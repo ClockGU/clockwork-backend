@@ -1,0 +1,6 @@
+/certs/
+
+#Basics
+*.py[cod]
+__pycache__
+.local
