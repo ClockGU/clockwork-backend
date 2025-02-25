@@ -13,6 +13,8 @@ pydantic-settings = "^2.7.1"
 sqlalchemy = "^2.0.38"
 psycopg2-binary = "^2.9.10"
 pyjwt = "^2.10.1"
+alembic = "^1.14.1"
+sqlmodel = "^0.0.22"
 
 
 [build-system]

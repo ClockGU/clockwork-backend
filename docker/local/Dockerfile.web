@@ -22,6 +22,7 @@ RUN poetry install --no-dev
 # Copy the application code
 COPY . /app  
 
+
 # Expose the port the app will run on
 EXPOSE 8000
 
