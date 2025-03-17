@@ -61,13 +61,14 @@ def check_user(
 
 # routes to check the basic working
 @app.get("/check-db")
-def check_db(
-    db: Session = Depends(get_db)
-    ):
-    result = db.execute(text("SELECT NOW()"))  # Query to get the current timestamp from the database
-    current_time = result.scalar()  # Fetch the first row's first column (current timestamp)
+def check_db(db: Session = Depends(get_db)):
+    if db.bind.dialect.name == "sqlite":
+        query = "SELECT CURRENT_TIMESTAMP"
+    else:
+        query = "SELECT NOW()"
+    result = db.execute(text(query))
+    current_time = result.scalar()
     return {"database_time": current_time}
-
 
 
 

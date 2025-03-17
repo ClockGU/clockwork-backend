@@ -23,10 +23,10 @@ class PetitionManager:
         return self.db.get(self.schema, petition_id)
 
     def get_petitions(self, offset: int = 0, limit: int = 100) -> List[Petition]:
-        # Retrieve a list of petitions with pagination
+        # Use SQLModel's select with explicit session execution
         statement = select(self.schema).offset(offset).limit(limit)
-        result = self.db.exec(statement)
-        return result.all()
+        result = self.db.execute(statement)  # Changed exec to execute
+        return result.scalars().all()
 
     def update_petition(self, petition_id: UUID, petition_data: PetitionCreate) -> Optional[Petition]:
         # Find the petition first
