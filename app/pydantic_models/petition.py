@@ -6,7 +6,7 @@ from datetime import date
 
 
 class PetitionBase(SQLModel):
-    user_account: str
+    user_account: Optional[uuid.UUID] = None 
     org_unit: str
     eos_number: str
     start_date: date

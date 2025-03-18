@@ -1,5 +1,7 @@
 from fastapi import Request, HTTPException, Depends
 import jwt
+from enum import Enum
+
 
 from app.env import settings
 # Replace with your actual public key
@@ -11,6 +13,11 @@ if not PUBLIC_KEY_PATH:
 with open(PUBLIC_KEY_PATH, "r") as f:
     public_key = f.read()
 
+
+class UserRole(Enum):
+    STUDENT = 0
+    SUPERVISOR = 1
+    CLERK = 2
 
 def get_current_supervisor(request: Request):
     """
@@ -29,7 +36,8 @@ def get_current_supervisor(request: Request):
         payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
         
         ####check the role of supervisor
-
+        if payload.get("user_role") != UserRole.SUPERVISOR.value:
+            raise HTTPException(status_code=403, detail="No permission to access this resource")
         return payload
 
     except jwt.ExpiredSignatureError:
@@ -55,6 +63,9 @@ def get_current_student(request: Request):
         payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
         
         ####check the role of student here
+        if payload.get("user_role") != UserRole.STUDENT.value:
+            raise HTTPException(status_code=403, detail="No permission to access this resource")
+
 
         return payload
 

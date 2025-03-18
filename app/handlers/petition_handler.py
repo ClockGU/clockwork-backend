@@ -24,3 +24,6 @@ class PetitionHandler:
 
     def delete_petition(self, petition_id: UUID) -> bool:
         return self.manager.delete_petition(petition_id)
+    
+    def get_petitions_by_user(self, user_account: UUID) -> List[Petition]:
+        return self.manager.get_petitions_by_user(user_account)

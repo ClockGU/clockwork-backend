@@ -5,7 +5,7 @@ from fastapi.openapi.utils import get_openapi
 
 
 from app.db.dependencies import get_db  
-from app.security import get_current_supervisor
+from app.security import get_current_supervisor, get_current_student
 from app.routers import router
 
 app = FastAPI()
@@ -53,9 +53,15 @@ app.openapi = custom_openapi
 
 
 
-@app.get("/checkuser")
-def check_user(
+@app.get("/checksupervisor")
+def check_supervisor(
     current_user: dict = Depends(get_current_supervisor)
+    ):
+    return current_user
+
+@app.get("/checkstudent")
+def check_student(
+    current_user: dict = Depends(get_current_student)
     ):
     return current_user
 

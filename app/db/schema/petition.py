@@ -5,7 +5,7 @@ from datetime import date
 
 class Petition(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
-    user_account: str
+    user_account: uuid.UUID
     org_unit: str
     eos_number: str
     start_date: date

@@ -53,3 +53,9 @@ class PetitionManager:
         self.db.delete(petition)
         self.db.commit()
         return True
+    
+    def get_petitions_by_user(self, user_account: UUID) -> List[Petition]:
+        # Retrieve all petitions associated with a user
+        statement = select(self.schema).where(self.schema.user_account == user_account)
+        result = self.db.execute(statement)
+        return result.scalars().all()
