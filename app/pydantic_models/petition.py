@@ -31,3 +31,20 @@ class PetitionCreate(PetitionBase):
 
 class PetitionRead(PetitionBase):
     id: uuid.UUID
+
+class PetitionStudentBase(SQLModel):
+    start_date: date
+    end_date: date
+    minutes: int
+    student_mail: str
+    time_exce_student: Optional[str] = None
+    time_exce_name: Optional[str] = None
+    time_exce_start: Optional[date] = None
+    time_exce_end: Optional[date] = None
+    duration_exce_student: Optional[str] = None
+    duration_exce_name: Optional[str] = None
+    duration_exce_start: Optional[date] = None
+    duration_exce_end: Optional[date] = None
+
+class PetitionStudentUpdate(PetitionStudentBase):
+    pass

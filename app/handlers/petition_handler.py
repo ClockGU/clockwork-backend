@@ -27,3 +27,6 @@ class PetitionHandler:
     
     def get_petitions_by_user(self, user_account: UUID) -> List[Petition]:
         return self.manager.get_petitions_by_user(user_account)
+    
+    def get_student_petitions(self, student_mail: str) -> List[Petition]:
+        return self.manager.get_student_petitions(student_mail)
