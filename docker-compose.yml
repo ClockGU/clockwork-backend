@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    environment:
+      POSTGRES_DB: db_app
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_pass
+    restart: always
+    image: postgres:15.5-alpine
+    ports:
+      - "5432:5432"
+      
+
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/local/Dockerfile.web
+    ports:
+      - "8000:8000" 
+    volumes:
+      - .:/app
+    environment:
+      - APP_ENV=development  
+      - DATABASE_URL=postgresql://db_user:db_pass@db:5432/db_app
+      - JWT_PUBLIC_KEY_PATH=./certs/public.pem
+      - JWT_ALGORITHM=RS256
+    depends_on:
+      - db    
+
+
+    
+    
+    
