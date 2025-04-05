@@ -26,12 +26,11 @@ def get_current_supervisor(request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         raise HTTPException(status_code=401, detail="Missing Authorization header")
+    scheme, token = auth_header.split()
+    if scheme.lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Invalid authentication scheme")
     
     try:
-        scheme, token = auth_header.split()
-        if scheme.lower() != "bearer":
-            raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-        
         # Decode the JWT token using the public key
         payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
         
