@@ -24,9 +24,9 @@ def get_petition_handler(
 def create_petition(
     petition: PetitionCreate,
     handler: PetitionHandler = Depends(get_petition_handler),
-    #user = Depends(get_current_supervisor)
+    user = Depends(get_current_supervisor)
 ):
-    #petition.user_account = user.get('sub')
+    petition.user_account = user.get('sub')
     created_petition = handler.create_petition(petition)
     return created_petition
 
