@@ -23,7 +23,7 @@ app.add_middleware(
 app.include_router(router)
 
 
-
+### Custom OpenAPI schema generation for swagger docs
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema

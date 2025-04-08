@@ -65,3 +65,7 @@ class PetitionManager:
         statement = select(self.schema).where(self.schema.student_mail == student_mail)
         result = self.db.execute(statement)
         return result.scalars().all()
+    
+    def get_petitions_by_status(self, status: str) -> List[Petition]:
+        return self.db.query(Petition).filter(Petition.status == status).all()
+

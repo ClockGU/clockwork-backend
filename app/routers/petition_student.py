@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlmodel import Session
 
 from app.handlers.petition_handler import PetitionHandler
-from app.pydantic_models.petition import PetitionStudentBase, PetitionStudentUpdate
+from app.pydantic_models import  PetitionStudentUpdate, PetitionStudentRead
 from app.db.dependencies import get_db
 from app.security import get_current_supervisor, get_current_student
 
@@ -18,7 +18,7 @@ def get_petition_handler(
     return PetitionHandler(db)
 
 #Api to list all the petitions of students
-@router.get("/petitions/students/", response_model=List[PetitionStudentBase])
+@router.get("/students/petitions/", response_model=List[PetitionStudentRead])
 def read_petitions(
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_student)
@@ -27,7 +27,7 @@ def read_petitions(
     return petitions
 
 #Api to upload documents by student
-@router.patch("/petitions/students/{petition_id}/upload")
+@router.patch("/students/petitions{petition_id}/upload")
 def upload_documents(
     petition_id: UUID,
     peition: PetitionStudentUpdate,
