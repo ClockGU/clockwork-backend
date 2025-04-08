@@ -6,7 +6,7 @@ from pydantic import field_validator, model_validator
 import re
 
 
-class PetitionBase(SQLModel):
+class PetitionCreateBase(SQLModel):
     user_account: Optional[uuid.UUID] = None
     org_unit: str
     eos_number: str
@@ -83,50 +83,11 @@ class PetitionBase(SQLModel):
         if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", student_mail):
             raise ValueError("student_mail must be a valid email address")
         return student_mail
+    
 
-class PetitionCreate(PetitionBase):
+class PetitionSupervisorCreate(PetitionCreateBase):
+    """
+    Pydantic model for creating a new petition.
+    Inherits from PetitionCreateBase.
+    """
     pass
-
-class PetitionRead(SQLModel):
-    id: uuid.UUID
-    user_account: Optional[uuid.UUID] = None
-    org_unit: str
-    eos_number: str
-    start_date: date
-    end_date: date
-    minutes: int
-    ba_degree: bool
-    budget_position: str
-    budget_approver: str
-    student_mail: str
-
-    status: Literal["pending", "approved", "rejected"] = "pending"
-
-    time_exce_student: Optional[bool] = None
-    time_exce_course: Optional[bool] = None
-    time_exce_name: Optional[str] = None
-    time_exce_start: Optional[date] = None
-    time_exce_end: Optional[date] = None
-
-    duration_exce_course: Optional[bool] = None
-    duration_exce_name: Optional[str] = None
-    duration_exce_start: Optional[date] = None
-    duration_exce_end: Optional[date] = None
-
-class PetitionStudentBase(SQLModel):
-    start_date: date
-    end_date: date
-    minutes: int
-    student_mail: str
-    time_exce_student: Optional[str] = None
-    time_exce_name: Optional[str] = None
-    time_exce_start: Optional[date] = None
-    time_exce_end: Optional[date] = None
-    duration_exce_student: Optional[str] = None
-    duration_exce_name: Optional[str] = None
-    duration_exce_start: Optional[date] = None
-    duration_exce_end: Optional[date] = None
-
-class PetitionStudentUpdate(PetitionStudentBase):
-    pass
-#all the updates should also hve to have validations and all fiels should be optional

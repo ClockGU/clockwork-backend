@@ -9,7 +9,7 @@ services:
     restart: always
     image: postgres:15.5-alpine
     ports:
-      - "5432:5432"
+      - "5433:5432"
       
       
   web:
@@ -18,6 +18,8 @@ services:
       dockerfile: ./docker/local/Dockerfile.web
     ports:
       - "8000:8000" 
+      - "4444:4444"
+      
     volumes:
       - .:/app
     environment:
