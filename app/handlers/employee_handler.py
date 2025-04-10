@@ -11,12 +11,14 @@ class EmployeeHandler:
     def __init__(self, db: Session):
         self.manager = EmployeeManager(db)
 
-    def create_employee(self, employee_data: Employee) -> Employee:
+    def create_employee(self, employee_data: dict) -> Employee:
         """
         Create a new employee record.
         """
         try:
-            employee = self.manager.create_employee(employee_data)
+            # Convert the dictionary to an Employee instance
+            employee_instance = Employee(**employee_data)
+            employee = self.manager.create_employee(employee_instance)
             if not employee:
                 raise HTTPException(status_code=400, detail="Employee could not be created")
             return employee

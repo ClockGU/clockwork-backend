@@ -86,20 +86,7 @@ def get_current_student(request: Request, db: Session = Depends(get_db)):
         if not employee_handler.employee_exists_by_user_account(user_account):
             # Create a new employee entry
             new_employee_data = {
-                "user_account": user_account,
-                "first_name": "",  # Default or placeholder values
-                "last_name": "",
-                "form_of_address": "",
-                "gender": "",
-                "date_of_birth": None,
-                "city_of_birth": "",
-                "address": "",
-                "postal_code": "",
-                "married": False,
-                "nationality": "",
-                "telephone_number": "",
-                "health_insurance": "",
-                "iban": "",
+                "user_account": user_account  # Only required field
             }
             new_employee = employee_handler.create_employee(new_employee_data)
 
