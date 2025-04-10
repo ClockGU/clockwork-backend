@@ -1,7 +1,8 @@
-from sqlmodel import SQLModel, Field
-from typing import Optional
+from typing import List, Optional
+from sqlmodel import SQLModel, Field, Relationship
 import uuid
 from datetime import date
+from app.db.schema.student_documents import StudentDocuments  # Import the related model
 
 class Employee(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
@@ -21,3 +22,6 @@ class Employee(SQLModel, table=True):
     previous_employment: Optional[str] = None
     prev_emp_duration: Optional[str] = None
     iban: str
+
+    # Add the documents relationship
+    documents: List[StudentDocuments] = Relationship(back_populates="employee")

@@ -12,3 +12,16 @@ from .petition_update import (
     PetitionStudentUpdate,
     PetitionClerkUpdate
     )
+
+from .documents import (
+    StudentDocumentsCreate,
+    StudentDocumentsUpdate,
+    StudentDocumentsRead
+    )
+
+
+from .employee import (
+    EmployeeRead,
+    EmployeeCreate,
+    EmployeeUpdate
+)
