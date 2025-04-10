@@ -20,7 +20,6 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-dev  
 
 
-
 # Copy the application code
 COPY . /app  
 
