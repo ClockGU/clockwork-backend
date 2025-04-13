@@ -1,11 +1,10 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
-from uuid import UUID
-
+import uuid
 
 class StudentDocuments(SQLModel, table=True):
-    id: Optional[UUID] = Field(default=None, primary_key=True)
-    employee_id: UUID = Field(foreign_key="employee.id", nullable=False)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
+    employee_id: uuid.UUID = Field(foreign_key="employee.id", nullable=False)
 
     # Document fields
     elstam_url: Optional[str] = None

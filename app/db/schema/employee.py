@@ -3,6 +3,7 @@ from sqlmodel import SQLModel, Field, Relationship
 import uuid
 from datetime import date
 from app.db.schema.student_documents import StudentDocuments  # Import the related model
+from sqlalchemy.orm import relationship  # Import relationship for cascade behavior
 
 class Employee(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
@@ -24,4 +25,7 @@ class Employee(SQLModel, table=True):
     iban: Optional[str] = None
 
     # Add the documents relationship
-    documents: List[StudentDocuments] = Relationship(back_populates="employee")
+    documents: List[StudentDocuments] = Relationship(
+        back_populates="employee",
+        sa_relationship=relationship("StudentDocuments", back_populates="employee", cascade="all, delete-orphan")
+    )

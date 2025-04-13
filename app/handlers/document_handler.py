@@ -12,35 +12,17 @@ class StudentDocumentHandler:
     def __init__(self, db: Session):
         self.manager = StudentDocumentManager(db)
 
-    async def create_document(
-        self,
-        petition_id: UUID,
-        bachelors_degree: Optional[UploadFile] = None,
-        id_card: Optional[UploadFile] = None,
-        transcript: Optional[UploadFile] = None,
-        other_document: Optional[UploadFile] = None,
-    ) -> StudentDocuments:
+    async def create_document(self, employee_id: UUID) -> StudentDocuments:
+        """
+        Create a new document record with just the employee_id.
+        """
         try:
-            # Save files and generate file paths
-            file_urls = {}
-            if bachelors_degree:
-                file_urls["bachelors_degree_url"] = await self.save_file(bachelors_degree)
-            if id_card:
-                file_urls["id_card_url"] = await self.save_file(id_card)
-            if transcript:
-                file_urls["transcript_url"] = await self.save_file(transcript)
-            if other_document:
-                file_urls["other_document_url"] = await self.save_file(other_document)
-
-            # Create the document record
-            document_data = StudentDocumentsCreate(petition_id=petition_id)
-            document = self.manager.create_document(
-                StudentDocuments(**document_data.dict(), **file_urls)
-            )
+            document_data = StudentDocumentsCreate(employee_id=employee_id)
+            document = self.manager.create_document(document_data)  # Pass the correct object
             return document
         except Exception as e:
             raise HTTPException(
-                status_code=500,
+                status_code=400,
                 detail=f"An error occurred while creating the document: {str(e)}",
             )
 

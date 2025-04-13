@@ -2,14 +2,15 @@ from uuid import UUID
 from typing import Optional
 from pydantic import BaseModel
 
-
 class StudentDocumentsCreate(BaseModel):
     petition_id: UUID  # Required to associate the document with a petition
-
+    studienbescheinigung_url: Optional[str] = None  # Accept URLs as strings
+    versicherungsbescheinigung_url: Optional[str] = None  # Accept URLs as strings
 
 class StudentDocumentsUpdate(BaseModel):
-    pass  # No fields here since files will be handled separately
-
+    elstam_url: Optional[str] = None  # Accept URLs as strings
+    studienbescheinigung_url: Optional[str] = None  # Accept URLs as strings
+    versicherungsbescheinigung_url: Optional[str] = None  # Accept URLs as strings
 
 class StudentDocumentsRead(BaseModel):
     id: UUID

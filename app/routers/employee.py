@@ -24,7 +24,7 @@ def update_employee_by_user(
     Update an employee record by the user ID (user_account).
     """
     # Use the handler to get the employee by user_account
-    employee = handler.get_employee_by_user_account(user.get("id"))
+    employee = handler.get_employee_by_user_account(user.get("sub"))
     updated_employee = handler.update_employee(employee.id, employee_data.dict(exclude_unset=True))
     return updated_employee
 
@@ -37,6 +37,17 @@ def get_employee_by_user(
     """
     Retrieve an employee record by the user ID (user_account).
     """
-    import remote_pdb; remote_pdb.set_trace("0.0.0.0", 4444)
-    employee = handler.get_employee_by_user_account(user.get("id"))
+    employee = handler.get_employee_by_user_account(user.get("sub"))
     return employee
+
+
+@router.delete("/employees/")
+def delete_employee_by_user(
+    handler: EmployeeHandler = Depends(get_employee_handler),
+    user=Depends(get_current_student),  # Secure the endpoint
+):
+    """
+    Delete an employee by the user ID (user_account).
+    """
+    result = handler.delete_employee_by_user_account(user.get("sub"))
+    return result

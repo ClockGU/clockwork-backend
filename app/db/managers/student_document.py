@@ -15,7 +15,13 @@ class StudentDocumentManager:
         """
         Create a new document record.
         """
-        document = self.schema(**document_data.dict())
+        if isinstance(document_data, dict):
+            # Handle plain dictionary
+            document = self.schema(**document_data)
+        else:
+            # Handle Pydantic model
+            document = self.schema(**document_data.dict())
+
         self.db.add(document)
         self.db.commit()
         self.db.refresh(document)

@@ -28,7 +28,7 @@ def get_document(
     Retrieve a document by the user's associated employee ID.
     """
     # Get the employee associated with the user
-    employee = employee_handler.get_employee_by_user_account(user.get("id"))
+    employee = employee_handler.get_employee_by_user_account(user.get("sub"))
 
     # Get the document associated with the employee
     documents = handler.get_documents_by_employee(employee.id)
@@ -48,12 +48,13 @@ def update_document(
     """
     Update a document by the user's associated employee ID. Save uploaded files and update their URLs in the database.
     """
-    # Define the upload directory
-    upload_dir = os.path.expanduser("~/uploads")
-    os.makedirs(upload_dir, exist_ok=True)
+    # Define the root directory as the parent directory of the 'routers' folder
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Go one level up to the 'app' directory
+    upload_dir = os.path.join(root_dir, "uploads")  # Create the uploads folder in the root directory
+    os.makedirs(upload_dir, exist_ok=True)  # Create the folder if it doesn't exist
 
     # Get the employee associated with the user
-    employee = employee_handler.get_employee_by_user_account(user.get("id"))
+    employee = employee_handler.get_employee_by_user_account(user.get("sub"))
 
     # Check if the document exists
     documents = handler.get_documents_by_employee(employee.id)
@@ -64,14 +65,14 @@ def update_document(
     # Save files and generate URLs
     file_urls = {}
     if elstam:
-        file_urls["elstam_url"] = save_file(elstam, upload_dir)
+        file_urls["elstam_url"] = save_file(elstam, upload_dir)  
     if studienbescheinigung:
-        file_urls["studienbescheinigung_url"] = save_file(studienbescheinigung, upload_dir)
+        file_urls["studienbescheinigung_url"] = save_file(studienbescheinigung, upload_dir)  
     if versicherungsbescheinigung:
-        file_urls["versicherungsbescheinigung_url"] = save_file(versicherungsbescheinigung, upload_dir)
+        file_urls["versicherungsbescheinigung_url"] = save_file(versicherungsbescheinigung, upload_dir)  
 
-    # Update the document in the database
-    document_data = StudentDocumentsUpdate(**file_urls)
+    document_data = StudentDocumentsUpdate(**file_urls)  
+
     updated_document = handler.update_document(document.id, document_data)
     return updated_document
 

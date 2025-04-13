@@ -102,3 +102,26 @@ class EmployeeHandler:
                 status_code=400, detail=f"Employee with ID {employee_id} could not be deleted"
             )
         return {"detail": "Employee deleted successfully"}
+
+    def delete_employee_by_user_account(self, user_account: UUID) -> dict:
+        """
+        Delete an employee by their user_account UUID.
+        """
+        # Retrieve the employee by user_account
+        employee = self.manager.get_employee_by_user_account(user_account)
+        if not employee:
+            raise HTTPException(
+                status_code=404, detail=f"Employee with user_account {user_account} not found"
+            )
+
+        # Ensure related documents are deleted (handled by cascade)
+        success = self.manager.delete_employee(employee.id)
+        if not success:
+            raise HTTPException(
+                status_code=400, detail=f"Employee with user_account {user_account} could not be deleted"
+            )
+        return {"detail": "Employee and related documents deleted successfully"}
+    
+
+    # the issue of employee not found
+    # find it and get done with it.
