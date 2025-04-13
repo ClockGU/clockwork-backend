@@ -74,3 +74,10 @@ class PetitionHandler:
         if not petitions:
             raise HTTPException(status_code=404, detail=f"No petitions found with status '{status}'")
         return petitions
+    
+    def check_petition_exists(self, petition_id: UUID) -> None:
+        # Check if the petition exists
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+        

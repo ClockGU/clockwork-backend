@@ -37,6 +37,7 @@ class PetitionRead(PetitionBaseRead):
 
 # PetitionStudentRead for students
 class PetitionStudentRead(PetitionBaseRead):
-    time_exce_student: Optional[bool] = None  
-    duration_exce_student: Optional[bool] = None  
+    time_exce_student: Optional[bool] = None
+    duration_exce_student: Optional[bool] = None
+
 
