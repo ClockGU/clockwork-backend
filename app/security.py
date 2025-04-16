@@ -21,8 +21,8 @@ with open(PUBLIC_KEY_PATH, "r") as f:
 
 
 class UserRole(Enum):
-    STUDENT = 2
-    SUPERVISOR = 2
+    STUDENT = 0
+    SUPERVISOR = 1
     CLERK = 2
 
 def get_current_supervisor(request: Request):
