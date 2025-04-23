@@ -6,6 +6,7 @@ from datetime import date
 
 class EmployeeCreate(BaseModel):
     user_account: UUID  # Mandatory field for creation
+    user_email: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     form_of_address: Optional[str] = None
@@ -26,6 +27,7 @@ class EmployeeCreate(BaseModel):
 class EmployeeUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    user_email: Optional[str] = None
     form_of_address: Optional[str] = None
     gender: Optional[str] = None
     date_of_birth: Optional[date] = None
@@ -44,6 +46,7 @@ class EmployeeUpdate(BaseModel):
 class EmployeeRead(BaseModel):
     id: UUID
     first_name: Optional[str] = None
+    user_email: Optional[str] = None
     last_name: Optional[str] = None
     form_of_address: Optional[str] = None
     gender: Optional[str] = None

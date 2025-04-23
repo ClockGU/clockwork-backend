@@ -115,3 +115,5 @@ class StudentDocumentHandler:
         with open(file_location, "wb") as f:
             f.write(await file.read())
         return file_location
+
+    

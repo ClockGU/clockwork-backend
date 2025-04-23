@@ -29,6 +29,7 @@ def create_petition(
     user = Depends(get_current_supervisor)
 ):
     petition.user_account = user.get('sub')
+    petition.supervisor_mail = user.get('email')
     created_petition = handler.create_petition(petition)
     return created_petition
 

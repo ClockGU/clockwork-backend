@@ -41,6 +41,14 @@ class EmployeeManager:
         result = self.db.execute(statement)
         return result.scalars().first()
 
+    def get_employee_by_email(self, email: str) -> Optional[Employee]:
+        """
+        Retrieve an employee by their email address.
+        """
+        statement = select(self.schema).where(self.schema.user_email == email)
+        result = self.db.execute(statement)
+        return result.scalars().first()
+
     def update_employee(self, employee_id: UUID, employee_data: dict) -> Optional[Employee]:
         """
         Update an existing employee record.

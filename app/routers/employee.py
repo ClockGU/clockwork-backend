@@ -5,7 +5,7 @@ from sqlmodel import Session
 from app.handlers.employee_handler import EmployeeHandler
 from app.pydantic_models.employee import EmployeeUpdate, EmployeeRead
 from app.db.dependencies import get_db
-from app.security import get_current_student  # Import the dependency for student authentication
+from app.security import get_current_student,get_current_supervisor  # Import the dependency for student authentication
 
 router = APIRouter()
 
@@ -32,7 +32,7 @@ def update_employee_by_user(
 @router.get("/employees/", response_model=EmployeeRead)
 def get_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student),  # Secure the endpoint
+    user=Depends(get_current_supervisor),  # Secure the endpoint
 ):
     """
     Retrieve an employee record by the user ID (user_account).
@@ -44,7 +44,7 @@ def get_employee_by_user(
 @router.delete("/employees/")
 def delete_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student),  # Secure the endpoint
+    user=Depends(get_current_supervisor),  # Secure the endpoint
 ):
     """
     Delete an employee by the user ID (user_account).

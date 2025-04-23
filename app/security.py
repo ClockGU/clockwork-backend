@@ -82,11 +82,12 @@ def get_current_student(request: Request, db: Session = Depends(get_db)):
         document_handler = StudentDocumentHandler(db)
 
         # Check if an employee entry exists
-
+        
         if not employee_handler.employee_exists_by_user_account(user_account):
             # Create a new employee entry
             new_employee_data = {
-                "user_account": user_account  # Only required field
+                "user_account": user_account,  
+                "user_email": payload.get("email"),  
             }
             new_employee = employee_handler.create_employee(new_employee_data)
 

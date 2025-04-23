@@ -12,6 +12,7 @@ class PetitionBaseRead(SQLModel):
     end_date: date
     minutes: int
     student_mail: str
+    supervisor_mail: Optional[str] = None
     time_exce_name: Optional[str] = None
     time_exce_start: Optional[date] = None
     time_exce_end: Optional[date] = None

@@ -122,6 +122,15 @@ class EmployeeHandler:
             )
         return {"detail": "Employee and related documents deleted successfully"}
     
+    def get_employee_by_email(self, email: str) -> Employee:
+        """
+        Retrieve an employee by their email and return their associated documents.
+        """
+        # Use the EmployeeManager to get the employee by email
+        employee = self.manager.get_employee_by_email(email)
+        if not employee:
+            raise HTTPException(
+                status_code=404, detail=f"Employee with email {email} not found"
+            )
+        return employee
 
-    # the issue of employee not found
-    # find it and get done with it.
