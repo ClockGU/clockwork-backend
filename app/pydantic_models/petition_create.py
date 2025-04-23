@@ -17,6 +17,7 @@ class PetitionCreateBase(SQLModel):
     budget_position: str
     budget_approver: str
     student_mail: str
+    supervisor_mail: Optional[str] = None
 
     status: Literal["pending", "approved", "rejected"] = "pending"
 

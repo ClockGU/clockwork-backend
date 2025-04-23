@@ -15,6 +15,7 @@ class Petition(SQLModel, table=True):
     budget_position: str
     budget_approver: str
     student_mail: str
+    supervisor_mail: Optional[str] = None
 
     status: str = Field(default="pending", nullable=False)
 

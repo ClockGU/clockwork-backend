@@ -19,6 +19,7 @@ COPY pyproject.toml poetry.lock ./
 # Install dependencies using Poetry (ensure app module is included)
 RUN poetry install --no-dev  
 
+RUN pip install remote-pdb --no-cache-dir
 
 # Copy the application code
 COPY . /app  

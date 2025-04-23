@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from typing import Optional
 from uuid import UUID
 from sqlmodel import Session
 import os
 import uuid
+from fastapi.responses import FileResponse
 
 from app.handlers.document_handler import StudentDocumentHandler
 from app.handlers.employee_handler import EmployeeHandler
@@ -34,6 +35,7 @@ def get_document(
     documents = handler.get_documents_by_employee(employee.id)
 
     return documents[0]
+
 
 
 @router.patch("/documents/")
@@ -86,3 +88,43 @@ def save_file(file: UploadFile, upload_dir: str) -> str:
     with open(file_path, "wb") as f:
         f.write(file.file.read())
     return file_path
+
+
+@router.get("/download-file/")
+def download_file(file_url: str = Query(..., description="The URL of the file to download")):
+    """
+    Takes the URL of a file and returns the actual file.
+    """
+    # Check if the file exists at the given URL
+    if not os.path.exists(file_url):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # Return the file as a response
+    return FileResponse(
+        file_url,
+        media_type="application/octet-stream",
+        filename=os.path.basename(file_url)
+    )
+
+
+@router.get("/clerk/documents-by-email/", response_model=StudentDocumentsRead)
+def get_documents_by_email(
+    email: str = Query(..., description="The email of the student"),
+    handler: StudentDocumentHandler = Depends(get_document_handler),
+    employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db))
+):
+    """
+    Retrieve a document by the student's email.
+    """
+    # Get the employee associated with the email
+    employee = employee_handler.get_employee_by_email(email)
+    if not employee:
+        raise HTTPException(status_code=404, detail=f"Employee with email {email} not found")
+
+    # Get the documents associated with the employee
+    documents = handler.get_documents_by_employee(employee.id)
+    if not documents:
+        raise HTTPException(status_code=404, detail=f"No documents found for employee with email {email}")
+
+    # Return the first document (assuming one document per employee)
+    return documents[0]
