@@ -3,7 +3,7 @@ from typing import List
 from uuid import UUID
 from sqlmodel import Session
 
-from app.handlers.petition_handler import PetitionHandler
+from app.handlers import PetitionHandler, EmailHandler
 from app.pydantic_models import (
     PetitionSupervisorCreate,
     PetitionRead,
@@ -31,6 +31,12 @@ def create_petition(
     petition.user_account = user.get('sub')
     petition.supervisor_mail = user.get('email')
     created_petition = handler.create_petition(petition)
+    email_handler = EmailHandler()
+    email_handler.send_email(
+        recipient=petition.student_mail,
+        subject="Petition Created",
+        body=f"Your petition with ID {created_petition.id} has been created successfully."
+    )
     return created_petition
 
 @router.get("/supervisor/petitions/user", response_model=List[PetitionRead])

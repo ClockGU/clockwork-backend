@@ -22,12 +22,24 @@ services:
     volumes:
       - .:/app
     environment:
-      - APP_ENV=development  
+      - APP_ENV=production  
       - DATABASE_URL=postgresql://db_user:db_pass@db:5432/db_app
       - JWT_PUBLIC_KEY_PATH=./certs/public.pem
       - JWT_ALGORITHM=RS256
+      - SMTP_SERVER=mailhog
+      - SMTP_PORT=1025
+      - SMTP_TLS=false
+      - SMTP_USER=
+      - SMTP_PASSWORD=
     depends_on:
-      - db    
+      - db 
+      - mailhog   
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
 
     
