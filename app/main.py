@@ -22,6 +22,28 @@ app.add_middleware(
 
 app.include_router(router)
 
+from fastapi import FastAPI, WebSocket
+
+app = FastAPI()
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    # 1) accept the connection
+    await websocket.accept()
+
+    # 2) send a welcome message
+    await websocket.send_text("👋 You’re connected to FastAPI WebSocket!")
+
+    # 3) echo loop
+    try:
+        while True:
+            msg = await websocket.receive_text()
+            # send it right back
+            await websocket.send_text(f"Echo: {msg}")
+    except Exception:
+        # client disconnected
+        pass
+    
 
 ### Custom OpenAPI schema generation for swagger docs
 def custom_openapi():
