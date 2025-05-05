@@ -45,3 +45,4 @@ def update_petition(
 ):
     updated_petition = handler.update_petition(petition_id, petition_data)
     return updated_petition
+

@@ -24,7 +24,6 @@ app.include_router(router)
 
 from fastapi import FastAPI, WebSocket
 
-app = FastAPI()
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -43,7 +42,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception:
         # client disconnected
         pass
-    
+
 
 ### Custom OpenAPI schema generation for swagger docs
 def custom_openapi():
