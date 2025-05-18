@@ -52,6 +52,20 @@ class PetitionCreateBase(SQLModel):
             raise ValueError("eos_number must be a 5-digit numeric value")
         return eos_number
 
+    @field_validator("student_mail")
+    def validate_student_mail(cls, student_mail):
+        # Ensure student_mail is a valid email format
+        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", student_mail):
+            raise ValueError("student_mail must be a valid email address")
+        return student_mail
+
+    @field_validator("budget_approver")
+    def validate_budget_approver(cls, budget_approver):
+        # Ensure budget_approver is a valid email format
+        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", budget_approver):
+            raise ValueError("budget_approver must be a valid email address")
+        return budget_approver
+
     @model_validator(mode="after")
     def validate_time_exc(cls, values):
         # Ensure all time_exc fields are either fully provided or all are None
@@ -78,13 +92,6 @@ class PetitionCreateBase(SQLModel):
             raise ValueError("All duration_exc fields must be provided together or not at all")
         return values
 
-    @field_validator("student_mail")
-    def validate_student_mail(cls, student_mail):
-        # Ensure student_mail is a valid email format
-        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", student_mail):
-            raise ValueError("student_mail must be a valid email address")
-        return student_mail
-    
 
 class PetitionSupervisorCreate(PetitionCreateBase):
     """

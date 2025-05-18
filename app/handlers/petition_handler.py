@@ -80,4 +80,11 @@ class PetitionHandler:
         petition = self.manager.get_petition(petition_id)
         if not petition:
             raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
-        
+    
+    def get_petitions_by_budget_approver(self, budget_approver_email: str) -> List[Petition]:
+        petitions = self.manager.get_petitions_by_budget_approver(budget_approver_email)
+        if not petitions:
+            raise HTTPException(status_code=404, detail=f"No petitions found for budget approver with email {budget_approver_email}")
+        return petitions
+
+

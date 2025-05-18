@@ -24,6 +24,7 @@ class UserRole(Enum):
     STUDENT = 0
     SUPERVISOR = 1
     CLERK = 2
+    APPROVER = 3
 
 def get_current_supervisor(request: Request):
     """
@@ -120,6 +121,34 @@ def get_current_clerk(request: Request):
         
         ####check the role of clerk here
         if payload.get("user_role") != UserRole.CLERK.value:
+            raise HTTPException(status_code=403, detail="No permission to access this resource")
+
+
+        return payload
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+    
+def get_current_approver(request: Request):
+    """
+    decode the JWT token to inject user in api and checks the role of approver
+    """
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+    
+    try:
+        scheme, token = auth_header.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid authentication scheme")
+        
+        # Decode the JWT token using the public key
+        payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
+        
+        ####check the role of approver here
+        if payload.get("user_role") != UserRole.APPROVER.value:
             raise HTTPException(status_code=403, detail="No permission to access this resource")
 
 
