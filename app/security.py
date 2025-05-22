@@ -2,8 +2,10 @@ from fastapi import Request, HTTPException, Depends
 import jwt
 from enum import Enum
 from sqlmodel import Session
-
-
+import hmac
+import hashlib
+import base64
+import secrets
 
 from app.env import settings
 from app.handlers.employee_handler import EmployeeHandler
@@ -24,7 +26,6 @@ class UserRole(Enum):
     STUDENT = 0
     SUPERVISOR = 1
     CLERK = 2
-    APPROVER = 3
 
 def get_current_supervisor(request: Request):
     """
@@ -131,30 +132,33 @@ def get_current_clerk(request: Request):
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
     
-def get_current_approver(request: Request):
+
+# for email signature
+SECRET_KEY = settings.SIGNATURE_SECRET_KEY  # Ensure the secret key is bytes
+
+def generate_signature() -> str:
     """
-    decode the JWT token to inject user in api and checks the role of approver
+    Generate a unique HMAC signature using a random nonce and a secret key.
     """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    
+    nonce = secrets.token_urlsafe(32)  # Generates a secure random string
+    signature = hmac.new(SECRET_KEY, nonce.encode(), hashlib.sha256).digest()
+    signature_b64 = base64.urlsafe_b64encode(nonce.encode() + b"." + signature).decode()
+    return signature_b64
+
+
+def verify_signature(signature_b64: str) -> bool:
+    """
+    Verify if the given signature is valid using the secret key.
+    """
     try:
-        scheme, token = auth_header.split()
-        if scheme.lower() != "bearer":
-            raise HTTPException(status_code=401, detail="Invalid authentication scheme")
+        # Decode and split nonce and signature
+        decoded = base64.urlsafe_b64decode(signature_b64.encode())
+        nonce, received_sig = decoded.split(b".", 1)
         
-        # Decode the JWT token using the public key
-        payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
+        # Recalculate the expected signature
+        expected_sig = hmac.new(SECRET_KEY, nonce, hashlib.sha256).digest()
         
-        ####check the role of approver here
-        if payload.get("user_role") != UserRole.APPROVER.value:
-            raise HTTPException(status_code=403, detail="No permission to access this resource")
-
-
-        return payload
-
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+        # Securely compare both signatures
+        return hmac.compare_digest(received_sig, expected_sig)
+    except Exception:
+        return False

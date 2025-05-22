@@ -10,7 +10,8 @@ from .petition_create import (
 from .petition_update import (
     PetitionSupervisorUpdate, 
     PetitionStudentUpdate,
-    PetitionClerkUpdate
+    PetitionClerkUpdate,
+    PetitionApproverUpdate
     )
 
 from .documents import (

@@ -31,6 +31,7 @@ services:
       - SMTP_TLS=false
       - SMTP_USER=
       - SMTP_PASSWORD=
+      - SIGNATURE_SECRET_KEY=secret
     depends_on:
       - db 
       - mailhog   

@@ -10,6 +10,11 @@ class Settings(BaseSettings):
     SMTP_TLS: bool = False
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
+    SIGNATURE_SECRET_KEY: bytes = b"secret key"
+
+    @property
+    def signature_secret_key(self) -> bytes:
+        return self.SIGNATURE_SECRET_KEY.encode() if isinstance(self.SIGNATURE_SECRET_KEY, str) else self.SIGNATURE_SECRET_KEY
 
     class Config:
         env_file = ".env"  
