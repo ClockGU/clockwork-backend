@@ -2,8 +2,10 @@ from fastapi import Request, HTTPException, Depends
 import jwt
 from enum import Enum
 from sqlmodel import Session
-
-
+import hmac
+import hashlib
+import base64
+import secrets
 
 from app.env import settings
 from app.handlers.employee_handler import EmployeeHandler
@@ -129,3 +131,34 @@ def get_current_clerk(request: Request):
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+    
+
+# for email signature
+SECRET_KEY = settings.SIGNATURE_SECRET_KEY  # Ensure the secret key is bytes
+
+def generate_signature() -> str:
+    """
+    Generate a unique HMAC signature using a random nonce and a secret key.
+    """
+    nonce = secrets.token_urlsafe(32)  # Generates a secure random string
+    signature = hmac.new(SECRET_KEY, nonce.encode(), hashlib.sha256).digest()
+    signature_b64 = base64.urlsafe_b64encode(nonce.encode() + b"." + signature).decode()
+    return signature_b64
+
+
+def verify_signature(signature_b64: str) -> bool:
+    """
+    Verify if the given signature is valid using the secret key.
+    """
+    try:
+        # Decode and split nonce and signature
+        decoded = base64.urlsafe_b64decode(signature_b64.encode())
+        nonce, received_sig = decoded.split(b".", 1)
+        
+        # Recalculate the expected signature
+        expected_sig = hmac.new(SECRET_KEY, nonce, hashlib.sha256).digest()
+        
+        # Securely compare both signatures
+        return hmac.compare_digest(received_sig, expected_sig)
+    except Exception:
+        return False

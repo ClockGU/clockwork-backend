@@ -68,4 +68,10 @@ class PetitionManager:
     
     def get_petitions_by_status(self, status: str) -> List[Petition]:
         return self.db.query(Petition).filter(Petition.status == status).all()
+    
+    def get_petitions_by_budget_approver(self, budget_approver_email: str) -> List[Petition]:
+        # Retrieve all petitions associated with a specific budget approver email
+        statement = select(self.schema).where(self.schema.budget_approver == budget_approver_email)
+        result = self.db.execute(statement)
+        return result.scalars().all()
 

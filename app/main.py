@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
-
-
+from typing import Dict
 
 from app.db.dependencies import get_db  
 from app.security import get_current_supervisor, get_current_student
@@ -21,27 +20,6 @@ app.add_middleware(
 )
 
 app.include_router(router)
-
-from fastapi import FastAPI, WebSocket
-
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    # 1) accept the connection
-    await websocket.accept()
-
-    # 2) send a welcome message
-    await websocket.send_text("👋 You’re connected to FastAPI WebSocket!")
-
-    # 3) echo loop
-    try:
-        while True:
-            msg = await websocket.receive_text()
-            # send it right back
-            await websocket.send_text(f"Echo: {msg}")
-    except Exception:
-        # client disconnected
-        pass
 
 
 ### Custom OpenAPI schema generation for swagger docs
@@ -81,9 +59,6 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-
-
-
 @app.get("/checksupervisor")
 def check_supervisor(
     current_user: dict = Depends(get_current_supervisor)
@@ -106,6 +81,8 @@ def check_db(db: Session = Depends(get_db)):
     result = db.execute(text(query))
     current_time = result.scalar()
     return {"database_time": current_time}
+
+
 
 
 

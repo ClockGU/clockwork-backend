@@ -94,8 +94,12 @@ class PetitionClerkUpdate(PetitionBaseUpdate):
     budget_position: Optional[str] = None
     budget_approver: Optional[str] = None
 
-    status: Optional[Literal["pending", "approved", "rejected"]] = None
+    status: Optional[Literal["pending", "approved", "student_action"]] = None
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
     duration_exce_course: Optional[bool] = None
+
+class PetitionApproverUpdate(PetitionBaseUpdate):
+    budget_approved: bool  # Make this field required
+    status: Optional[Literal["pending", "approved", "student_action"]] = None
