@@ -30,7 +30,7 @@ class PetitionRead(PetitionBaseRead):
     ba_degree: bool
     budget_position: str
     budget_approver: str
-    status: Literal["pending", "approved", "student_action"] = "pending"
+    status: Literal["pending", "approved", "student_action", "rejected"] = "pending"
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
     duration_exce_course: Optional[bool] = None
