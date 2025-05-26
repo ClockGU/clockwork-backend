@@ -102,4 +102,4 @@ class PetitionClerkUpdate(PetitionBaseUpdate):
 
 class PetitionApproverUpdate(PetitionBaseUpdate):
     budget_approved: bool  # Make this field required
-    status: Optional[Literal["pending", "approved", "student_action"]] = None
+    status: Optional[Literal["pending", "approved","rejected", "student_action"]] = None
