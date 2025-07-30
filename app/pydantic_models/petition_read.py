@@ -1,9 +1,10 @@
 from sqlmodel import SQLModel
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 from datetime import date
 import uuid
 from pydantic import field_validator, model_validator
 import re
+from .budget_position import BudgetPositionRead
 
 
 # Base class for shared fields
@@ -28,18 +29,20 @@ class PetitionRead(PetitionBaseRead):
     org_unit: str
     eos_number: str
     ba_degree: bool
-    budget_position: str
-    budget_approver: str
     status: Literal["pending", "approved", "student_action", "rejected"] = "pending"
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
     duration_exce_course: Optional[bool] = None
-    budget_approved: bool = False
+    
+    # Budget positions as a list instead of single fields
+    budget_positions: List[BudgetPositionRead]
 
 
-# PetitionStudentRead for students
 class PetitionStudentRead(PetitionBaseRead):
     time_exce_student: Optional[bool] = None
     duration_exce_student: Optional[bool] = None
+    
+    budget_positions: List[BudgetPositionRead]
+
 
 

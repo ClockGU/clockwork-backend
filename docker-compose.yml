@@ -18,6 +18,7 @@ services:
       dockerfile: ./docker/local/Dockerfile.web
     ports:
       - "8030:8000"
+      - "4444:4444"
       
     volumes:
       - .:/app

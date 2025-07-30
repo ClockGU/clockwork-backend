@@ -46,6 +46,7 @@ async def create_petition(
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_supervisor)
 ):
+   # import remote_pdb; remote_pdb.set_trace('0.0.0.0', 4444)
     petition.user_account = user.get('sub')
     petition.supervisor_mail = user.get('email')
     created_petition = handler.create_petition(petition)
@@ -54,11 +55,15 @@ async def create_petition(
     signature = generate_signature()
     petition_url = f"https://preview.clock.uni-frankfurt.de/approver?petition_id={created_petition.id}&signature={signature}"
     print(petition_url, flush=True)
-    email_handler.send_email(
-        recipient=petition.budget_approver,
-        subject="New petition ",
-        body=f"New petition is createt here is the link to access that petition." + petition_url
-    )
+    
+    # Send email to all budget approvers
+    for budget_position in created_petition.budget_positions:
+        email_handler.send_email(
+            recipient=budget_position.budget_approver,
+            subject="New petition ",
+            body=f"New petition is created here is the link to access that petition." + petition_url
+        )
+    
     # Get all the clerks and broadcast
     petitions = handler.list_petitions()
     clerk_IDS = ["1234", "12345"]  # Once the clerks have registered the data will be fetched from the database
