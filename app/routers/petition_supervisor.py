@@ -53,15 +53,17 @@ async def create_petition(
 
     email_handler = EmailHandler()
     signature = generate_signature()
-    petition_url = f"https://preview.clock.uni-frankfurt.de/approver?petition_id={created_petition.id}&signature={signature}"
-    print(petition_url, flush=True)
     
-    # Send email to all budget approvers
+    # Send email to all budget approvers with specific budget position ID
     for budget_position in created_petition.budget_positions:
+        # Include budget position ID as third query parameter
+        petition_url = f"https://preview.clock.uni-frankfurt.de/approver?petition_id={created_petition.id}&signature={signature}&budget_position_id={budget_position.id}"
+        print(f"Budget Position URL: {petition_url}", flush=True)
+        
         email_handler.send_email(
             recipient=budget_position.budget_approver,
-            subject="New petition ",
-            body=f"New petition is created here is the link to access that petition." + petition_url
+            subject="New petition requires your approval",
+            body=f"New petition is created for budget position: {budget_position.budget_position}. Here is the link to access that petition: {petition_url}"
         )
     
     # Get all the clerks and broadcast

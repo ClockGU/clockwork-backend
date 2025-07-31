@@ -20,3 +20,6 @@ class BudgetPositionRead(BaseModel):
     budget_position: str
     budget_approver: str
     budget_approved: bool
+
+class BudgetPositionApprovalUpdate(BaseModel):
+    budget_approved: bool
