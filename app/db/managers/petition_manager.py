@@ -139,8 +139,11 @@ class PetitionManager:
         return petitions
     
     def get_student_petitions(self, student_mail: str) -> List[Petition]:
-        # Retrieve all petitions associated with a student
-        statement = select(self.schema).where(self.schema.student_mail == student_mail)
+        # Retrieve all petitions associated with a student with status 'student_action'
+        statement = select(self.schema).where(
+            (self.schema.student_mail == student_mail) & 
+            (self.schema.status == "student_action")
+        )
         result = self.db.execute(statement)
         petitions = result.scalars().all()
         

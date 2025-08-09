@@ -8,6 +8,7 @@ class BudgetPosition(SQLModel, table=True):
     budget_position: str = Field(nullable=False)
     budget_approver: str = Field(nullable=False)
     budget_approved: bool = Field(default=False, nullable=False)
+    percentage: Optional[float] = Field(default=0, nullable=True)  # Made nullable
     
     # Relationship back to petition
     petition: "Petition" = Relationship(back_populates="budget_positions")

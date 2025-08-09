@@ -93,6 +93,23 @@ class PetitionCreateBase(SQLModel):
             raise ValueError("All duration_exc fields must be provided together or not at all")
         return values
 
+    @model_validator(mode="after")
+    def validate_budget_percentage_sum(cls, values):
+        """Validate that budget position percentages sum up to 100"""
+        budget_positions = values.budget_positions
+        
+        if not budget_positions:
+            raise ValueError("At least one budget position is required")
+        
+        # Calculate total percentage (individual validations are handled by BudgetPositionCreate)
+        total_percentage = sum(budget_pos.percentage for budget_pos in budget_positions)
+        
+        # Check if total percentage equals 100 (with small tolerance for floating point precision)
+        if abs(total_percentage - 100.0) > 0.01:
+            raise ValueError(f"Total budget position percentages must sum to 100, but got {total_percentage}")
+        
+        return values
+
 
 class PetitionSupervisorCreate(PetitionCreateBase):
     """
