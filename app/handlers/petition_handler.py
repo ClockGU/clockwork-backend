@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from app.db.managers import PetitionManager
 from app.db.managers.budget_position_manager import BudgetPositionManager
+from app.db.managers.student_document import StudentDocumentManager
 from app.pydantic_models.petition import PetitionCreate  # Pydantic model for input
 from app.db.schema.petition import Petition  # ORM model
 from app.handlers.email_handler import EmailHandler
@@ -14,6 +15,7 @@ class PetitionHandler:
     def __init__(self, db: Session):
         self.manager = PetitionManager(db)
         self.budget_position_manager = BudgetPositionManager(db)
+        self.student_document_manager = StudentDocumentManager(db)
         self.email_handler = EmailHandler()
 
     def create_petition(self, petition_data: PetitionCreate) -> Petition:
@@ -83,6 +85,7 @@ class PetitionHandler:
 
     def _send_approval_emails(self, petition: Petition) -> None:
         """Send emails when all budget positions are approved"""
+
         try:
             # Send email to supervisor
             if petition.supervisor_mail:
@@ -92,12 +95,29 @@ class PetitionHandler:
                     body=f"Petition {petition.id} has been approved by all budget approvers."
                 )
             
-            # Send email to student
-            self.email_handler.send_email(
-                recipient=petition.student_mail,
-                subject="Upload Documents",
-                body=f"Your petition has been approved. Please upload the required documents for your petition."
-            )
+            # Check if student has uploaded documents before sending email
+            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_mail)
+            if has_uploaded_documents:
+                # Generate signature for the petition acceptance link
+                from app.security import generate_signature
+                signature = generate_signature()
+                petition_url = f"https://preview.clock.uni-frankfurt.de/student/accept?petition_id={petition.id}&signature={signature}"
+                
+                # Send email to student with acceptance link
+                self.email_handler.send_email(
+                    recipient=petition.student_mail,
+                    subject="New petition requires your acceptance",
+                    body=f"A new petition has been created and approved for you. Your documents have already been verified. "
+                         f"Please click the following link to review and accept the petition: {petition_url}"
+                )
+            else:
+                # Send email asking student to upload documents
+                self.email_handler.send_email(
+                    recipient=petition.student_mail,
+                    subject="Upload Documents Required",
+                    body=f"Your petition has been approved. Please upload the required documents (Elstam, Studienbescheinigung, Versicherungsbescheinigung) to complete your petition."
+                )
+                
         except Exception as e:
             print(f"Error sending approval emails: {str(e)}", flush=True)
 
@@ -179,5 +199,68 @@ class PetitionHandler:
         if not petitions:
             raise HTTPException(status_code=404, detail=f"No petitions found for budget approver with email {budget_approver_email}")
         return petitions
+
+    def update_student_petition_status(self, petition_id: UUID, status: str) -> Petition:
+        """Update petition status when student accepts or rejects the petition"""
+        try:
+            # Check if petition exists
+            petition = self.manager.get_petition(petition_id)
+            if not petition:
+                raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+
+            # Check if petition is in the correct status to be updated by student
+            if petition.status != "student_action":
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Petition status is '{petition.status}', but must be 'student_action' to be updated by student"
+                )
+
+            # Update petition status
+            petition.status = status
+            self.manager.db.add(petition)
+            self.manager.db.commit()
+            self.manager.db.refresh(petition)
+            
+            # Load budget positions
+            petition.budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+            
+            # Send notification emails based on status
+            if status == "clerk_action":
+                self._send_student_acceptance_email(petition)
+            elif status == "rejected":
+                self._send_student_rejection_email(petition)
+            
+            return petition
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating petition status: {str(e)}")
+
+    def _send_student_acceptance_email(self, petition: Petition) -> None:
+        """Send email when student accepts the petition"""
+        try:
+            # Send email to supervisor
+            if petition.supervisor_mail:
+                self.email_handler.send_email(
+                    recipient=petition.supervisor_mail,
+                    subject="Student Accepted Petition",
+                    body=f"Student has accepted petition {petition.id}. The petition is now ready for clerk review."
+                )
+        except Exception as e:
+            print(f"Error sending student acceptance email: {str(e)}", flush=True)
+
+    def _send_student_rejection_email(self, petition: Petition) -> None:
+        """Send email when student rejects the petition"""
+        try:
+            # Send email to supervisor
+            if petition.supervisor_mail:
+                self.email_handler.send_email(
+                    recipient=petition.supervisor_mail,
+                    subject="Student Rejected Petition",
+                    body=f"Student has rejected petition {petition.id}. Please review the petition details."
+                )
+        except Exception as e:
+            print(f"Error sending student rejection email: {str(e)}", flush=True)
 
 

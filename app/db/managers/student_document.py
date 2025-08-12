@@ -41,6 +41,46 @@ class StudentDocumentManager:
         result = self.db.execute(statement)
         return result.scalars().all()
 
+    def check_student_documents_uploaded(self, student_email: str) -> bool:
+        """
+        Check if a student has uploaded all required documents.
+        
+        Args:
+            student_email: Email of the student
+        
+        Returns:
+            bool: True if all documents are uploaded, False otherwise
+        """
+        from app.db.schema.employee import Employee
+        
+        # First get the employee by email
+        employee_statement = select(Employee).where(Employee.user_email == student_email)
+        employee_result = self.db.execute(employee_statement)
+        employee = employee_result.scalar_one_or_none()
+        
+        # If employee doesn't exist, return False
+        if not employee:
+            return False
+        
+        # Get the student documents record using employee_id
+        statement = select(self.schema).where(self.schema.employee_id == employee.id)
+        result = self.db.execute(statement)
+        student_docs = result.scalar_one_or_none()
+        
+        # If no document record exists, documents are not uploaded
+        if not student_docs:
+            return False
+        
+        # Check if all required document URLs are present and not empty
+        required_documents = [
+            student_docs.elstam_url,
+            student_docs.studienbescheinigung_url,
+            student_docs.versicherungsbescheinigung_url
+        ]
+        
+        # Return True only if all documents have non-empty URLs
+        return all(doc_url and doc_url.strip() for doc_url in required_documents)
+
     def update_document(self, document_id: UUID, document_data: StudentDocumentsUpdate) -> Optional[StudentDocuments]:
         """
         Update an existing document record.
@@ -70,3 +110,4 @@ class StudentDocumentManager:
         self.db.delete(document)
         self.db.commit()
         return True
+
