@@ -1,9 +1,10 @@
 from sqlmodel import SQLModel
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 from datetime import date
 import uuid
 from pydantic import field_validator, model_validator
 import re
+from .budget_position import BudgetPositionCreate
 
 
 class PetitionCreateBase(SQLModel):
@@ -14,10 +15,11 @@ class PetitionCreateBase(SQLModel):
     end_date: date
     minutes: int
     ba_degree: bool
-    budget_position: str
-    budget_approver: str
     student_mail: str
     supervisor_mail: Optional[str] = None
+
+    # Budget positions as a list
+    budget_positions: List[BudgetPositionCreate]
 
     status: Literal["pending", "approved", "rejected"] = "pending"
 
@@ -59,12 +61,11 @@ class PetitionCreateBase(SQLModel):
             raise ValueError("student_mail must be a valid email address")
         return student_mail
 
-    @field_validator("budget_approver")
-    def validate_budget_approver(cls, budget_approver):
-        # Ensure budget_approver is a valid email format
-        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", budget_approver):
-            raise ValueError("budget_approver must be a valid email address")
-        return budget_approver
+    @field_validator("budget_positions")
+    def validate_budget_positions(cls, budget_positions):
+        if not budget_positions or len(budget_positions) == 0:
+            raise ValueError("At least one budget position is required")
+        return budget_positions
 
     @model_validator(mode="after")
     def validate_time_exc(cls, values):
@@ -90,6 +91,23 @@ class PetitionCreateBase(SQLModel):
         provided = [field for field in duration_exc_fields if field is not None]
         if len(provided) > 0 and len(provided) != len(duration_exc_fields):
             raise ValueError("All duration_exc fields must be provided together or not at all")
+        return values
+
+    @model_validator(mode="after")
+    def validate_budget_percentage_sum(cls, values):
+        """Validate that budget position percentages sum up to 100"""
+        budget_positions = values.budget_positions
+        
+        if not budget_positions:
+            raise ValueError("At least one budget position is required")
+        
+        # Calculate total percentage (individual validations are handled by BudgetPositionCreate)
+        total_percentage = sum(budget_pos.percentage for budget_pos in budget_positions)
+        
+        # Check if total percentage equals 100 (with small tolerance for floating point precision)
+        if abs(total_percentage - 100.0) > 0.01:
+            raise ValueError(f"Total budget position percentages must sum to 100, but got {total_percentage}")
+        
         return values
 
 
