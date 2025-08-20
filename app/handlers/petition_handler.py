@@ -27,7 +27,7 @@ class PetitionHandler:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred while creating the petition: {str(e)}")
 
-    def update_budget_position_approval(self, petition_id: UUID, budget_position_id: UUID, budget_approved: bool) -> Petition:
+    def update_budget_position_approval(self, petition_id: UUID, budget_position_id: UUID, budget_position_status: str, message: Optional[str] = None) -> Petition:
         """Update budget position approval and handle petition status accordingly"""
         try:
             petition = self.manager.get_petition(petition_id)
@@ -42,40 +42,38 @@ class PetitionHandler:
             if budget_position.petition_id != petition_id:
                 raise HTTPException(status_code=400, detail="Budget position does not belong to this petition")
 
-            # Update the budget position approval status
-            updated_budget_position = self.budget_position_manager.update_budget_position(budget_position_id, budget_approved)
+            # Update the budget position status
+            updated_budget_position = self.budget_position_manager.update_budget_position_status(budget_position_id, budget_position_status)
             if not updated_budget_position:
                 raise HTTPException(status_code=400, detail="Failed to update budget position")
 
-            # Handle approval logic
-            if budget_approved:
+            # Handle different status cases
+            if budget_position_status == "approved":
                 # Check if all budget positions are now approved
                 all_approved = self.budget_position_manager.check_all_budget_positions_approved(petition_id)
                 
                 if all_approved:
-                    # Update petition status to student_action
-                    petition.status = "student_action"
-                    self.manager.db.add(petition)
-                    self.manager.db.commit()
+                    # Update petition status to student_action using manager
+                    petition = self.manager.update_petition_status(petition_id, "student_action")
                     
                     # Send approval emails
                     self._send_approval_emails(petition)
                     
-            else:
-                # Budget position rejected - update petition status to rejected
-                petition.status = "rejected"
-                self.manager.db.add(petition)
-                self.manager.db.commit()
+            elif budget_position_status == "rejected":
+                # Budget position rejected - update petition status to rejected using manager
+                petition = self.manager.update_petition_status(petition_id, "rejected")
                 
                 # Send rejection email
                 self._send_rejection_email(petition, updated_budget_position)
+                
+            elif budget_position_status == "approver_revision":
+                # Budget approver wants revision - keep petition status as pending
+                # Send revision request email
+                self._send_revision_request_email(petition, updated_budget_position, message)
 
-            # Refresh petition to get updated data
-            self.manager.db.refresh(petition)
-            
             # Load budget positions
             petition.budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
-            
+        
             return petition
 
         except HTTPException:
@@ -93,6 +91,19 @@ class PetitionHandler:
                     recipient=petition.supervisor_mail,
                     subject="Petition Approved",
                     body=f"Petition {petition.id} has been approved by all budget approvers."
+                )
+            
+            # Get all budget positions for this petition
+            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+            
+            # Send email to all budget approvers notifying them that petition is fully approved
+            for budget_position in budget_positions:
+                self.email_handler.send_email(
+                    recipient=budget_position.budget_approver,
+                    subject="Petition Fully Approved - Awaiting Student Action",
+                    body=f"Petition {petition.id} has been approved by all budget approvers, including yourself. "
+                         f"Your budget position '{budget_position.budget_position}' was approved. "
+                         f"The petition is now awaiting student action."
                 )
             
             # Check if student has uploaded documents before sending email
@@ -121,6 +132,39 @@ class PetitionHandler:
         except Exception as e:
             print(f"Error sending approval emails: {str(e)}", flush=True)
 
+    def _send_revision_request_email(self, petition: Petition, requesting_budget_position, message: Optional[str] = None) -> None:
+        """Send email when a budget approver requests revision"""
+        try:
+            revision_message = message if message else "No specific message provided."
+            
+            # Send email to supervisor
+            if petition.supervisor_mail:
+                self.email_handler.send_email(
+                    recipient=petition.supervisor_mail,
+                    subject="Petition Revision Requested",
+                    body=f"Budget approver {requesting_budget_position.budget_approver} for budget position "
+                         f"'{requesting_budget_position.budget_position}' has requested a revision for petition {petition.id}.\n\n"
+                         f"Message: {revision_message}"
+                )
+            
+            # Get all budget positions for this petition
+            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+            
+            # Send email to all other budget approvers
+            for budget_position in budget_positions:
+                if budget_position.id != requesting_budget_position.id:
+                    self.email_handler.send_email(
+                        recipient=budget_position.budget_approver,
+                        subject="Petition Revision Requested by Another Approver",
+                        body=f"Budget approver {requesting_budget_position.budget_approver} has requested a revision "
+                             f"for petition {petition.id} (budget position: '{requesting_budget_position.budget_position}').\n\n"
+                             f"Message: {revision_message}\n\n"
+                             f"You may need to review your approval for budget position '{budget_position.budget_position}'."
+                    )
+            
+        except Exception as e:
+            print(f"Error sending revision request email: {str(e)}", flush=True)
+
     def _send_rejection_email(self, petition: Petition, rejected_budget_position) -> None:
         """Send email when a budget position is rejected"""
         try:
@@ -131,6 +175,21 @@ class PetitionHandler:
                     subject="Petition Rejected",
                     body=f"Petition {petition.id} has been rejected due to budget position '{rejected_budget_position.budget_position}' being denied by {rejected_budget_position.budget_approver}."
                 )
+            
+            # Get all budget positions for this petition
+            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+            
+            # Send email to all budget approvers (approved or not)
+            for budget_position in budget_positions:
+                if budget_position.id != rejected_budget_position.id:
+                    self.email_handler.send_email(
+                        recipient=budget_position.budget_approver,
+                        subject="Petition Rejected by Another Approver",
+                        body=f"Petition {petition.id} has been rejected by budget approver {rejected_budget_position.budget_approver} "
+                             f"for budget position '{rejected_budget_position.budget_position}'. "
+                             f"Your review for budget position '{budget_position.budget_position}' is no longer needed."
+                    )
+            
         except Exception as e:
             print(f"Error sending rejection email: {str(e)}", flush=True)
 
@@ -152,10 +211,18 @@ class PetitionHandler:
         if not existing_petition:
             raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
 
+        # Check if budget positions are being updated
+        budget_positions_updated = hasattr(petition_data, 'budget_positions') and petition_data.budget_positions is not None
+
         # Proceed with the update
         petition = self.manager.update_petition(petition_id, petition_data)
         if not petition:
             raise HTTPException(status_code=400, detail=f"Petition with ID {petition_id} could not be updated")
+        
+        # Send emails to budget approvers if budget positions were updated
+        if budget_positions_updated:
+            self._send_budget_position_update_emails(petition)
+        
         return petition
 
     def delete_petition(self, petition_id: UUID) -> dict:
@@ -215,11 +282,10 @@ class PetitionHandler:
                     detail=f"Petition status is '{petition.status}', but must be 'student_action' to be updated by student"
                 )
 
-            # Update petition status
-            petition.status = status
-            self.manager.db.add(petition)
-            self.manager.db.commit()
-            self.manager.db.refresh(petition)
+            # Update petition status using manager
+            petition = self.manager.update_petition_status(petition_id, status)
+            if not petition:
+                raise HTTPException(status_code=400, detail="Failed to update petition status")
             
             # Load budget positions
             petition.budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
@@ -262,5 +328,31 @@ class PetitionHandler:
                 )
         except Exception as e:
             print(f"Error sending student rejection email: {str(e)}", flush=True)
+
+    def _send_budget_position_update_emails(self, petition: Petition) -> None:
+        """Send emails to budget approvers when budget positions are updated"""
+        try:
+            from app.security import generate_signature
+            signature = generate_signature()
+            
+            # Get updated budget positions
+            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+            
+            # Send email to all budget approvers with updated budget positions
+            for budget_position in budget_positions:
+                petition_url = f"https://preview.clock.uni-frankfurt.de/approver?petition_id={petition.id}&signature={signature}&budget_position_id={budget_position.id}"
+                
+                self.email_handler.send_email(
+                    recipient=budget_position.budget_approver,
+                    subject="Budget Position Updated - Action Required",
+                    body=f"The budget positions for petition {petition.id} have been updated. "
+                         f"Your budget position '{budget_position.budget_position}' requires re-approval. "
+                         f"Please review and approve the updated petition: {petition_url}"
+                )
+            
+            print(f"Budget position update emails sent for petition {petition.id}", flush=True)
+            
+        except Exception as e:
+            print(f"Error sending budget position update emails: {str(e)}", flush=True)
 
 

@@ -12,13 +12,13 @@ class BudgetPositionManager:
         """Get a specific budget position by ID"""
         return self.db.get(BudgetPosition, budget_position_id)
 
-    def update_budget_position(self, budget_position_id: UUID, budget_approved: bool) -> Optional[BudgetPosition]:
-        """Update the approval status of a budget position"""
+    def update_budget_position_status(self, budget_position_id: UUID, budget_position_status: str) -> Optional[BudgetPosition]:
+        """Update the status of a budget position"""
         budget_position = self.db.get(BudgetPosition, budget_position_id)
         if not budget_position:
             return None
         
-        budget_position.budget_approved = budget_approved
+        budget_position.budget_position_status = budget_position_status
         self.db.add(budget_position)
         self.db.commit()
         self.db.refresh(budget_position)
@@ -29,7 +29,7 @@ class BudgetPositionManager:
         statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
         budget_positions = self.db.execute(statement).scalars().all()
         
-        return all(bp.budget_approved for bp in budget_positions)
+        return all(bp.budget_position_status == "approved" for bp in budget_positions)
 
     def get_budget_positions_by_petition(self, petition_id: UUID) -> list[BudgetPosition]:
         """Get all budget positions for a petition"""

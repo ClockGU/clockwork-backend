@@ -27,7 +27,16 @@ class BudgetPositionRead(BaseModel):
     id: uuid.UUID
     budget_position: str
     budget_approver: str
-    budget_approved: bool
+    budget_position_status: str 
 
 class BudgetPositionApprovalUpdate(BaseModel):
-    budget_approved: bool
+    budget_position_status: str  
+    message: Optional[str] = ""
+
+    @field_validator("budget_position_status")
+    def validate_budget_position_status(cls, status):
+        # Validate that status is one of the allowed values
+        allowed_statuses = ["approved", "rejected", "approver_revision", "waiting_approver_action"]
+        if status not in allowed_statuses:
+            raise ValueError(f"budget_position_status must be one of: {', '.join(allowed_statuses)}")
+        return status
