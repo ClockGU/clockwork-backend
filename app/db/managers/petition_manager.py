@@ -1,6 +1,7 @@
 from typing import List, Optional
 from uuid import UUID
 from sqlmodel import Session, select
+from datetime import date
 
 from app.db.schema.petition import Petition
 from app.db.schema.budget_position import BudgetPosition
@@ -203,4 +204,42 @@ class PetitionManager:
         petition.budget_positions = budget_result.scalars().all()
         
         return petition
+    
+    def get_student_approved_petitions_in_semester(self, student_email: str, start_date: date) -> List[Petition]:
+        """Get student's approved petitions in the same semester as the given start_date"""
+        # Determine semester boundaries based on start_date
+        year = start_date.year
+        
+        if start_date.month >= 4 and start_date.month <= 9:
+            # Summer semester: April 1 - September 30
+            semester_start = date(year, 4, 1)
+            semester_end = date(year, 9, 30)
+        else:
+            # Winter semester: October 1 - March 31 (next year)
+            if start_date.month >= 10:
+                # October-December of current year
+                semester_start = date(year, 10, 1)
+                semester_end = date(year + 1, 3, 31)
+            else:
+                # January-March of current year (belongs to previous year's winter semester)
+                semester_start = date(year - 1, 10, 1)
+                semester_end = date(year, 3, 31)
+        
+        # Query petitions with student email, approved status, and within semester date range
+        statement = select(self.schema).where(
+            (self.schema.student_mail == student_email) &
+            (self.schema.status == "approved") &
+            (self.schema.start_date >= semester_start) &
+            (self.schema.start_date <= semester_end)
+        )
+        result = self.db.execute(statement)
+        petitions = result.scalars().all()
+        
+        # Load budget positions for each petition
+        for petition in petitions:
+            budget_statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition.id)
+            budget_result = self.db.execute(budget_statement)
+            petition.budget_positions = budget_result.scalars().all()
+        
+        return petitions
 

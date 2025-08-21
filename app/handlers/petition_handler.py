@@ -2,6 +2,7 @@ from typing import List, Optional
 from uuid import UUID
 from sqlmodel import Session
 from fastapi import HTTPException
+from datetime import date
 
 from app.db.managers import PetitionManager
 from app.db.managers.budget_position_manager import BudgetPositionManager
@@ -108,7 +109,9 @@ class PetitionHandler:
             
             # Check if student has uploaded documents before sending email
             has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_mail)
-            if has_uploaded_documents:
+            is_semester_eligible = self._check_student_semester_eligibility(petition.student_mail, petition.start_date)
+
+            if has_uploaded_documents and is_semester_eligible:
                 # Generate signature for the petition acceptance link
                 from app.security import generate_signature
                 signature = generate_signature()
@@ -355,4 +358,21 @@ class PetitionHandler:
         except Exception as e:
             print(f"Error sending budget position update emails: {str(e)}", flush=True)
 
+    def _check_student_semester_eligibility(self, student_email: str, start_date: date) -> bool:
+        """
+        Check if student is eligible to have a petition in the given semester.
+        Returns True if eligible (no approved petition in same semester), False otherwise.
+        """
+        try:
+            existing_petitions = self.manager.get_student_approved_petitions_in_semester(
+                student_email, start_date
+            )
+            
+            # If there are existing approved petitions in the same semester, student is not eligible
+            return len(existing_petitions) != 0
+            
+        except Exception as e:
+            print(f"Error checking student semester eligibility: {str(e)}", flush=True)
+            # In case of error, allow the petition (fail-open approach)
+            return True
 
