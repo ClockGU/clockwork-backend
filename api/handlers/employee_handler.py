@@ -3,8 +3,8 @@ from uuid import UUID
 from sqlmodel import Session
 from fastapi import HTTPException
 
-from app.db.managers.emploeyee_manager import EmployeeManager
-from app.db.schema.employee import Employee
+from api.db.managers.emploeyee_manager import EmployeeManager
+from api.db.schema.employee import Employee
 
 
 class EmployeeHandler:

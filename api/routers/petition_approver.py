@@ -3,11 +3,11 @@ from typing import List
 from uuid import UUID
 from sqlmodel import Session
 
-from app.handlers.petition_handler import PetitionHandler
-from app.pydantic_models import PetitionRead
-from app.pydantic_models.budget_position import BudgetPositionApprovalUpdate
-from app.db.dependencies import get_db
-from app.security import verify_signature
+from api.handlers.petition_handler import PetitionHandler
+from api.pydantic_models import PetitionRead
+from api.pydantic_models.budget_position import BudgetPositionApprovalUpdate
+from api.db.dependencies import get_db
+from api.security import verify_signature
 
 router = APIRouter()
 

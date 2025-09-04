@@ -7,10 +7,10 @@ import hashlib
 import base64
 import secrets
 
-from app.env import settings
-from app.handlers.employee_handler import EmployeeHandler
-from app.handlers.document_handler import StudentDocumentHandler
-from app.db.dependencies import get_db
+from api.env import settings
+from api.handlers.employee_handler import EmployeeHandler
+from api.handlers.document_handler import StudentDocumentHandler
+from api.db.dependencies import get_db
 
 # Replace with your actual public key
 PUBLIC_KEY_PATH = settings.JWT_PUBLIC_KEY_PATH

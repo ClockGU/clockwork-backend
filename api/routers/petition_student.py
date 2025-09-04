@@ -3,11 +3,11 @@ from typing import List
 from uuid import UUID
 from sqlmodel import Session
 
-from app.handlers.document_handler import StudentDocumentHandler
-from app.handlers.petition_handler import PetitionHandler
-from app.pydantic_models import PetitionStudentUpdate, PetitionStudentRead, PetitionStudentAction
-from app.db.dependencies import get_db
-from app.security import get_current_supervisor, get_current_student, verify_signature
+from api.handlers.document_handler import StudentDocumentHandler
+from api.handlers.petition_handler import PetitionHandler
+from api.pydantic_models import PetitionStudentUpdate, PetitionStudentRead
+from api.db.dependencies import get_db
+from api.security import get_current_supervisor, get_current_student, verify_signature
 
 router = APIRouter()
 

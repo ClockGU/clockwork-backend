@@ -5,21 +5,21 @@ from sqlmodel import Session
 from json import dumps, JSONEncoder
 from datetime import date
 
-from app.handlers import PetitionHandler, EmailHandler
-from app.pydantic_models import (
+from api.handlers import PetitionHandler, EmailHandler
+from api.pydantic_models import (
     PetitionSupervisorCreate,
     PetitionRead,
     PetitionSupervisorUpdate
 )
-from app.db.dependencies import get_db
-from app.security import (
+from api.db.dependencies import get_db
+from api.security import (
     get_current_supervisor, 
     get_current_student, 
     get_current_clerk,
     generate_signature,
     verify_signature
 )
-from app.routers.web_socket import send_data_to_socket
+from api.routers.web_socket import send_data_to_socket
 
 # Custom JSON encoder to handle UUIDs and dates
 class UUIDEncoder(JSONEncoder):

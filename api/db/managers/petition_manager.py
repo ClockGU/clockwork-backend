@@ -3,9 +3,9 @@ from uuid import UUID
 from sqlmodel import Session, select
 from datetime import date
 
-from app.db.schema.petition import Petition
-from app.db.schema.budget_position import BudgetPosition
-from app.pydantic_models.petition import PetitionCreate
+from api.db.schema.petition import Petition
+from api.db.schema.budget_position import BudgetPosition
+from api.pydantic_models.petition import PetitionCreate
 
 class PetitionManager:
     def __init__(self, db: Session):

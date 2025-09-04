@@ -3,10 +3,10 @@ from typing import List
 from uuid import UUID
 from sqlmodel import Session
 
-from app.handlers.petition_handler import PetitionHandler
-from app.pydantic_models import PetitionRead, PetitionClerkUpdate
-from app.db.dependencies import get_db
-from app.security import get_current_clerk
+from api.handlers.petition_handler import PetitionHandler
+from api.pydantic_models import PetitionRead, PetitionClerkUpdate
+from api.db.dependencies import get_db
+from api.security import get_current_clerk
 
 router = APIRouter()
 

@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 from sqlmodel import Session, select
 
-from app.db.schema.budget_position import BudgetPosition
+from api.db.schema.budget_position import BudgetPosition
 
 class BudgetPositionManager:
     def __init__(self, db: Session):

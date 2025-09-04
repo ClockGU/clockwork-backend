@@ -2,7 +2,7 @@ from typing import List, Optional
 from sqlmodel import SQLModel, Field, Relationship
 import uuid
 from datetime import date
-from app.db.schema.student_documents import StudentDocuments  # Import the related model
+from api.db.schema.student_documents import StudentDocuments  # Import the related model
 from sqlalchemy.orm import relationship  # Import relationship for cascade behavior
 
 class Employee(SQLModel, table=True):

@@ -17,10 +17,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
 # Install dependencies using Poetry (ensure api module is included)
-RUN poetry install --no-dev  
-
-RUN pip install remote-pdb --no-cache-dir
-
+RUN poetry install --no-dev
 
 # Copy the application code
 COPY . /app  
@@ -29,4 +26,4 @@ COPY . /app
 EXPOSE 8000
 
 # Command to run the api
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+ENTRYPOINT ["./entrypoint.sh"]

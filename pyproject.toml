@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "cloclwork-backend"
+name = "api"
 version = "1"
 description = ""
 authors = ["Your Name <you@example.com>"]

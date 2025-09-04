@@ -3,9 +3,9 @@ from uuid import UUID
 from sqlmodel import Session
 from fastapi import HTTPException, UploadFile
 
-from app.db.managers.student_document import StudentDocumentManager
-from app.db.schema.student_documents import StudentDocuments
-from app.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
+from api.db.managers.student_document import StudentDocumentManager
+from api.db.schema.student_documents import StudentDocuments
+from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
 
 
 class StudentDocumentHandler:

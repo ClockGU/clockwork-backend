@@ -2,9 +2,9 @@ from typing import List, Optional
 from uuid import UUID
 from sqlmodel import Session, select
 
-from app.db.schema.student_documents import StudentDocuments
-from app.db.schema.employee import Employee
-from app.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
+from api.db.schema.student_documents import StudentDocuments
+from api.db.schema.employee import Employee
+from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
 
 
 class StudentDocumentManager:

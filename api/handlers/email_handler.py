@@ -1,4 +1,4 @@
-from app.env import settings
+from api.env import settings
 import smtplib
 from email.mime.text import MIMEText
 

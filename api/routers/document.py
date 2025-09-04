@@ -6,11 +6,11 @@ import os
 import uuid
 from fastapi.responses import FileResponse
 
-from app.handlers.document_handler import StudentDocumentHandler
-from app.handlers.employee_handler import EmployeeHandler
-from app.pydantic_models import StudentDocumentsUpdate, StudentDocumentsRead
-from app.db.dependencies import get_db
-from app.security import get_current_student
+from api.handlers.document_handler import StudentDocumentHandler
+from api.handlers.employee_handler import EmployeeHandler
+from api.pydantic_models import StudentDocumentsUpdate, StudentDocumentsRead
+from api.db.dependencies import get_db
+from api.security import get_current_student
 
 router = APIRouter()
 
@@ -51,7 +51,7 @@ def update_document(
     Update a document by the user's associated employee ID. Save uploaded files and update their URLs in the database.
     """
     # Define the root directory as the parent directory of the 'routers' folder
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Go one level up to the 'app' directory
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Go one level up to the 'api' directory
     upload_dir = os.path.join(root_dir, "uploads")  # Create the uploads folder in the root directory
     os.makedirs(upload_dir, exist_ok=True)  # Create the folder if it doesn't exist
 

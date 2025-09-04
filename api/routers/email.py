@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
-from app.handlers.email_handler import EmailHandler
+from api.handlers.email_handler import EmailHandler
 
 router = APIRouter()
 

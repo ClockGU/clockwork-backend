@@ -5,9 +5,9 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict
 
-from app.db.dependencies import get_db  
-from app.security import get_current_supervisor, get_current_student
-from app.routers import router
+from api.db.dependencies import get_db
+from api.security import get_current_supervisor, get_current_student
+from api.routers import router
 
 app = FastAPI()
 

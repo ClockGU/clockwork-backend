@@ -1,5 +1,5 @@
 /certs/
-/app/uploads
+/api/uploads
 
 #Basics
 *.py[cod]

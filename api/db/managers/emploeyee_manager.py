@@ -2,7 +2,7 @@ from typing import List, Optional
 from uuid import UUID
 from sqlmodel import Session, select
 
-from app.db.schema.employee import Employee
+from api.db.schema.employee import Employee
 
 
 class EmployeeManager:
