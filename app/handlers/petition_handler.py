@@ -28,7 +28,7 @@ class PetitionHandler:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred while creating the petition: {str(e)}")
 
-    def update_budget_position_approval(self, petition_id: UUID, budget_position_id: UUID, budget_position_status: str, message: Optional[str] = None) -> Petition:
+    def update_budget_position_approval(self, petition_id: UUID, budget_position_id: UUID, budget_position_approved: bool, message: Optional[str] = None, revision_requested: bool = False) -> Petition:
         """Update budget position approval and handle petition status accordingly"""
         try:
             petition = self.manager.get_petition(petition_id)
@@ -44,12 +44,12 @@ class PetitionHandler:
                 raise HTTPException(status_code=400, detail="Budget position does not belong to this petition")
 
             # Update the budget position status
-            updated_budget_position = self.budget_position_manager.update_budget_position_status(budget_position_id, budget_position_status)
+            updated_budget_position = self.budget_position_manager.update_budget_position_status(budget_position_id, budget_position_approved)
             if not updated_budget_position:
                 raise HTTPException(status_code=400, detail="Failed to update budget position")
 
             # Handle different status cases
-            if budget_position_status == "approved":
+            if budget_position_approved:
                 # Check if all budget positions are now approved
                 all_approved = self.budget_position_manager.check_all_budget_positions_approved(petition_id)
                 
@@ -59,15 +59,15 @@ class PetitionHandler:
                     
                     # Send approval emails
                     self._send_approval_emails(petition)
-                    
-            elif budget_position_status == "rejected":
+
+            elif not budget_position_approved:
                 # Budget position rejected - update petition status to rejected using manager
                 petition = self.manager.update_petition_status(petition_id, "rejected")
                 
                 # Send rejection email
                 self._send_rejection_email(petition, updated_budget_position)
                 
-            elif budget_position_status == "approver_revision":
+            elif revision_requested:
                 # Budget approver wants revision - keep petition status as pending
                 # Send revision request email
                 self._send_revision_request_email(petition, updated_budget_position, message)

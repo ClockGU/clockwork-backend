@@ -41,7 +41,7 @@ def update_budget_position_approval(
     updated_petition = handler.update_budget_position_approval(
         petition_id=petition_id,
         budget_position_id=budget_position_id,
-        budget_position_status=approval_data.budget_position_status,
+        budget_position_approved=approval_data.budget_position_approved,
         message=approval_data.message
     )
 

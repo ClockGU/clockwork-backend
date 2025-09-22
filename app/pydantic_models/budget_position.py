@@ -1,6 +1,6 @@
 from typing import Optional
 import uuid
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 import re
 
 
@@ -27,16 +27,14 @@ class BudgetPositionRead(BaseModel):
     id: uuid.UUID
     budget_position: str
     budget_approver: str
-    budget_position_status: str 
+    budget_position_approved: bool
 
 class BudgetPositionApprovalUpdate(BaseModel):
-    budget_position_status: str  
+    budget_position_approved: bool
     message: Optional[str] = ""
+    revision_requested: Optional[bool] = False
 
-    @field_validator("budget_position_status")
-    def validate_budget_position_status(cls, status):
-        # Validate that status is one of the allowed values
-        allowed_statuses = ["approved", "rejected", "approver_revision", "waiting_approver_action"]
-        if status not in allowed_statuses:
-            raise ValueError(f"budget_position_status must be one of: {', '.join(allowed_statuses)}")
-        return status
+    @model_validator(mode="after")
+    def validate_approval_and_revision(cls, values):
+        if values.budget_position_approved and values.revision_requested:
+            raise ValueError("If budget_position_approved is True, revision_requested cannot be True.")
