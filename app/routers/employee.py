@@ -18,7 +18,7 @@ def get_employee_handler(db: Session = Depends(get_db)) -> EmployeeHandler:
 def update_employee_by_user(
     employee_data: EmployeeUpdate,
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student),  # Secure the endpoint
+    user=Depends(get_current_student),  
 ):
     """
     Update an employee record by the user ID (user_account).
@@ -32,7 +32,7 @@ def update_employee_by_user(
 @router.get("/employees/", response_model=EmployeeRead)
 def get_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_supervisor),  # Secure the endpoint
+    user=Depends(get_current_student), 
 ):
     """
     Retrieve an employee record by the user ID (user_account).
@@ -44,7 +44,7 @@ def get_employee_by_user(
 @router.delete("/employees/")
 def delete_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_supervisor),  # Secure the endpoint
+    user=Depends(get_current_student),  # Secure the endpoint
 ):
     """
     Delete an employee by the user ID (user_account).
