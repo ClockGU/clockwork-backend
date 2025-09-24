@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import List
 from uuid import UUID
 from sqlmodel import Session
@@ -26,23 +26,28 @@ def read_petition(
     return petition
 
 
-@router.patch("/approver/petitions/{petition_id}/{signature}/{budget_position_id}", response_model=PetitionRead)
+@router.patch("/approver/petitions/{petition_id}/{signature}/{budget_position_id}")
 def update_budget_position_approval(
     petition_id: UUID,
     signature: str,
     budget_position_id: UUID,
-    approval_data: BudgetPositionApprovalUpdate,
+    approval_data: BudgetPositionApprovalUpdate = Body(...),  
     handler: PetitionHandler = Depends(get_petition_handler),
 ):
     """Update the approval status of a specific budget position"""
     if not verify_signature(signature):
         raise HTTPException(status_code=403, detail="Invalid signature")
-
     updated_petition = handler.update_budget_position_approval(
         petition_id=petition_id,
         budget_position_id=budget_position_id,
         budget_position_approved=approval_data.budget_position_approved,
-        message=approval_data.message
+        message=approval_data.message,
+        revision_requested=approval_data.revision_requested
     )
 
     return updated_petition
+
+@router.patch("/test")
+def test_patch(data: BudgetPositionApprovalUpdate = Body(...)):
+    print(data)
+    return data

@@ -30,7 +30,7 @@ class PetitionManager:
                 petition_id=petition.id,
                 budget_position=budget_pos_data.budget_position,
                 budget_approver=budget_pos_data.budget_approver,
-                budget_approved=False  # Default value
+                budget_position_approved=False  # Default value
             )
             self.db.add(budget_position)
         

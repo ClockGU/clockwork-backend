@@ -60,7 +60,7 @@ class PetitionHandler:
                     # Send approval emails
                     self._send_approval_emails(petition)
 
-            elif not budget_position_approved:
+            elif not budget_position_approved and not revision_requested:
                 # Budget position rejected - update petition status to rejected using manager
                 petition = self.manager.update_petition_status(petition_id, "rejected")
                 
@@ -70,6 +70,9 @@ class PetitionHandler:
             elif revision_requested:
                 # Budget approver wants revision - keep petition status as pending
                 # Send revision request email
+                petition = self.manager.update_petition_status(petition_id, "petitioner_action")
+
+                #send rejection emails
                 self._send_revision_request_email(petition, updated_budget_position, message)
 
             # Load budget positions
@@ -225,6 +228,9 @@ class PetitionHandler:
         # Send emails to budget approvers if budget positions were updated
         if budget_positions_updated:
             self._send_budget_position_update_emails(petition)
+            if petition.status == "petitioner_action":
+                # this means revision was requested If petition was in petitioner_action status, revert to approver_action when budget positions change
+                petition = self.manager.update_petition_status(petition_id, "approver_action")
         
         return petition
 

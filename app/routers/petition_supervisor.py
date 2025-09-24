@@ -46,7 +46,6 @@ async def create_petition(
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_supervisor)
 ):
-   # import remote_pdb; remote_pdb.set_trace('0.0.0.0', 4444)
     petition.user_account = user.get('sub')
     petition.supervisor_mail = user.get('email')
     created_petition = handler.create_petition(petition)

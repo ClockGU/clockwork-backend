@@ -32,9 +32,6 @@ class BudgetPositionRead(BaseModel):
 class BudgetPositionApprovalUpdate(BaseModel):
     budget_position_approved: bool
     message: Optional[str] = ""
-    revision_requested: Optional[bool] = False
+    revision_requested: bool = False
 
-    @model_validator(mode="after")
-    def validate_approval_and_revision(cls, values):
-        if values.budget_position_approved and values.revision_requested:
-            raise ValueError("If budget_position_approved is True, revision_requested cannot be True.")
+    

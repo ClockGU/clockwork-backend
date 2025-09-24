@@ -21,7 +21,6 @@ class PetitionCreateBase(SQLModel):
     # Budget positions as a list
     budget_positions: List[BudgetPositionCreate]
 
-    status: Literal["pending", "approved", "rejected"] = "pending"
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
