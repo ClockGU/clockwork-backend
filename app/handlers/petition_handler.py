@@ -382,3 +382,37 @@ class PetitionHandler:
             # In case of error, allow the petition (fail-open approach)
             return True
 
+    def student_accept_or_reject_petition(self, petition_id: UUID, approved: bool) -> Petition:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+        if petition.status != "student_action":
+            raise HTTPException(status_code=400, detail="Student cannot accept or reject at this stage")
+        
+        if approved:
+            # Student accepted, move to clerk_action
+            petition = self.manager.update_petition_status(petition_id, "clerk_action")
+            # Send email to supervisor
+            if petition.supervisor_mail:
+                self.email_handler.send_email(
+                    recipient=petition.supervisor_mail,
+                    subject="Student Accepted Petition",
+                    body=f"Student has accepted petition {petition.id}. The petition is now ready for clerk review."
+                )
+        else:
+            # Student rejected, notify and then move to clerk_action
+            petition = self.manager.update_petition_status(petition_id, "rejected")
+            if petition.supervisor_mail:
+                self.email_handler.send_email(
+                    recipient=petition.supervisor_mail,
+                    subject="Student Rejected Petition",
+                    body=f"Student has rejected petition {petition.id}. Please review the petition details."
+                )
+            for budget_position in petition.budget_positions:
+                self.email_handler.send_email(
+                    recipient=budget_position.budget_approver,
+                    subject="Petition Rejected by Student",
+                    body=f"Petition {petition.id} was rejected by the student."
+                )
+        return petition
+

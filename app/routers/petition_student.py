@@ -5,7 +5,7 @@ from sqlmodel import Session
 
 from app.handlers.document_handler import StudentDocumentHandler
 from app.handlers.petition_handler import PetitionHandler
-from app.pydantic_models import PetitionStudentUpdate, PetitionStudentRead
+from app.pydantic_models import PetitionStudentUpdate, PetitionStudentRead, PetitionStudentAction
 from app.db.dependencies import get_db
 from app.security import get_current_supervisor, get_current_student, verify_signature
 
@@ -52,6 +52,22 @@ def update_petition_acceptance(
         status=acceptance_data.status
     )
     
+    return updated_petition
+
+@router.patch("/students/petitions/{petition_id}/student-action", response_model=PetitionStudentRead)
+def student_accept_or_reject_petition(
+    petition_id: UUID,
+    action: PetitionStudentAction,
+    handler: PetitionHandler = Depends(get_petition_handler)
+):
+    """
+    API for students to accept or reject their petition.
+    Only allowed if petition status is 'student_action'.
+    """
+    updated_petition = handler.student_accept_or_reject_petition(
+        petition_id=petition_id,
+        approved=action.approved
+    )
     return updated_petition
 
 

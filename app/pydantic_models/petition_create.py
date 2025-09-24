@@ -2,7 +2,7 @@ from sqlmodel import SQLModel
 from typing import Optional, Literal, List
 from datetime import date
 import uuid
-from pydantic import field_validator, model_validator
+from pydantic import field_validator, model_validator, BaseModel
 import re
 from .budget_position import BudgetPositionCreate
 
@@ -116,3 +116,7 @@ class PetitionSupervisorCreate(PetitionCreateBase):
     Inherits from PetitionCreateBase.
     """
     pass
+
+
+class PetitionStudentAction(BaseModel):
+    approved: bool

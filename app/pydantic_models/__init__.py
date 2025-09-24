@@ -4,7 +4,8 @@ from .petition_read import (
         )
 
 from .petition_create import (
-    PetitionSupervisorCreate
+    PetitionSupervisorCreate,
+    PetitionStudentAction
     )
 
 from .petition_update import (
