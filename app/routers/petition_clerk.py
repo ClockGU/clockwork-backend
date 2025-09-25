@@ -43,6 +43,9 @@ def update_petition(
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)  
 ):
-    updated_petition = handler.update_petition(petition_id, petition_data)
+    updated_petition = handler.update_petition_status_as_clerk(
+        petition_id=petition_id,
+        approved=petition_data.approved
+    )
     return updated_petition
 

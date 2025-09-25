@@ -127,6 +127,7 @@ class PetitionHandler:
                     body=f"A new petition has been created and approved for you. Your documents have already been verified. "
                          f"Please click the following link to review and accept the petition: {petition_url}"
                 )
+
             else:
                 # Send email asking student to upload documents
                 self.email_handler.send_email(
@@ -389,7 +390,14 @@ class PetitionHandler:
         if petition.status != "student_action":
             raise HTTPException(status_code=400, detail="Student cannot accept or reject at this stage")
         
+        # Check if student has uploaded documents before approving
         if approved:
+            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_mail)
+            if not has_uploaded_documents:
+                raise HTTPException(
+                    status_code=400,
+                    detail="You cannot approve the petition unless you upload the required documents."
+                )
             # Student accepted, move to clerk_action
             petition = self.manager.update_petition_status(petition_id, "clerk_action")
             # Send email to supervisor
@@ -416,3 +424,26 @@ class PetitionHandler:
                 )
         return petition
 
+    def update_petition_status_as_clerk(self, petition_id: UUID, approved: bool) -> Petition:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+        if petition.status != "clerk_action":
+            raise HTTPException(status_code=400, detail="Clerk cannot approve or reject at this stage")
+
+        # Update petition status
+        petition = self.manager.update_petition_status(petition_id, "approved" if approved else "rejected")
+        if petition.supervisor_mail:
+            self.email_handler.send_email(
+                recipient=petition.supervisor_mail,
+                subject="Clerk Updated Petition Status",
+                body=f"Clerk has {'approved' if approved else 'rejected'} petition {petition.id}. Please review the petition details."
+            )
+        for budget_position in petition.budget_positions:
+            self.email_handler.send_email(
+                recipient=budget_position.budget_approver,
+                subject="Petition Status Updated by Clerk",
+                body=f"Petition {petition.id} was {'approved' if approved else 'rejected'} by the clerk."
+            )
+        
+        return petition

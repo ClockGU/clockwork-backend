@@ -126,12 +126,13 @@ class PetitionSupervisorUpdate(PetitionUpdateBase):
     pass
 
 
-class PetitionClerkUpdate(PetitionUpdateBase):
+class PetitionClerkUpdate(SQLModel):
     """
     Pydantic model for updating a petition by clerk.
     May have different permissions than supervisor updates.
     """
-    pass
+    approved : bool
+    status: Optional[Literal["approved", "rejected", "student_action", "clerk_action"]] = None
 
 class PetitionStudentUpdate(SQLModel):
     """
