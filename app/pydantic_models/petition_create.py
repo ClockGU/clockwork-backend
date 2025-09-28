@@ -48,9 +48,9 @@ class PetitionCreateBase(SQLModel):
 
     @field_validator("eos_number")
     def validate_eos_number(cls, eos_number):
-        # Ensure eos_number starts with 'F' followed by 5 digits
-        if not re.match(r"^F\d{5}$", eos_number):
-            raise ValueError("eos_number must start with 'F' followed by 5 digits (e.g., F12345)")
+        # Ensure eos_number starts with 'F' followed by 6 digits
+        if not re.match(r"^F\d{6}$", eos_number):
+            raise ValueError("eos_number must start with 'F' followed by 6 digits (e.g., F123456)")
         return eos_number
 
     @field_validator("student_mail")

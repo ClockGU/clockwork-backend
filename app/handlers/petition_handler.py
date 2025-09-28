@@ -28,7 +28,15 @@ class PetitionHandler:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred while creating the petition: {str(e)}")
 
-    def update_budget_position_approval(self, petition_id: UUID, budget_position_id: UUID, budget_position_approved: bool, message: Optional[str] = None, revision_requested: bool = False) -> Petition:
+    def update_budget_position_approval(
+            self, petition_id: UUID, 
+            budget_position_id: UUID,
+              budget_position_approved: bool,
+              message: Optional[str] = None,
+              revision_requested: bool = False,
+              rejected: bool = False
+              ) -> Petition:
+        
         """Update budget position approval and handle petition status accordingly"""
         try:
             petition = self.manager.get_petition(petition_id)
