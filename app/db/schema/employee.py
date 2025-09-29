@@ -21,7 +21,7 @@ class Employee(SQLModel, table=True):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previous_employment: Optional[str] = None
+    previously_employeed: Optional[bool] = None
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
 

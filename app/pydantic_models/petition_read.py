@@ -9,6 +9,7 @@ from .budget_position import BudgetPositionRead
 
 # Base class for shared fields
 class PetitionBaseRead(SQLModel):
+    id: uuid.UUID
     start_date: date
     end_date: date
     minutes: int
@@ -20,6 +21,9 @@ class PetitionBaseRead(SQLModel):
     duration_exce_name: Optional[str] = None
     duration_exce_start: Optional[date] = None
     duration_exce_end: Optional[date] = None
+    time_exce_course: Optional[bool] = None  
+    duration_exce_course: Optional[bool] = None 
+    status: Literal["pending", "approved", "student_action", "rejected", "approver_action", "clerk_action"] = "pending"
 
 
 # PetitionReadBase for clerks/supervisors
@@ -29,12 +33,10 @@ class PetitionRead(PetitionBaseRead):
     org_unit: str
     eos_number: str
     ba_degree: bool
-    status: Literal["pending", "approved", "student_action", "rejected"] = "pending"
     time_exce_student: Optional[bool] = None
-    time_exce_course: Optional[bool] = None
-    duration_exce_course: Optional[bool] = None
-    
-    # Budget positions as a list instead of single fields
+    time_exce_course: Optional[bool] = None  
+    duration_exce_course: Optional[bool] = None  
+    duration_exce_student: Optional[bool] = None
     budget_positions: List[BudgetPositionRead]
 
 

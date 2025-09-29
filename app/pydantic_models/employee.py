@@ -5,7 +5,7 @@ from datetime import date
 
 
 class EmployeeCreate(BaseModel):
-    user_account: UUID  # Mandatory field for creation
+    user_account: UUID  
     user_email: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -19,7 +19,7 @@ class EmployeeCreate(BaseModel):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previous_employment: Optional[str] = None
+    previously_employed: Optional[bool] = None  
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
 
@@ -38,7 +38,7 @@ class EmployeeUpdate(BaseModel):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previous_employment: Optional[str] = None
+    previously_employed: Optional[bool] = None
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
 
@@ -58,7 +58,7 @@ class EmployeeRead(BaseModel):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previous_employment: Optional[str] = None
+    previous_employment: Optional[bool] = None  
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
 

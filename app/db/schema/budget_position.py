@@ -7,7 +7,8 @@ class BudgetPosition(SQLModel, table=True):
     petition_id: uuid.UUID = Field(foreign_key="petition.id", nullable=False)
     budget_position: str = Field(nullable=False)
     budget_approver: str = Field(nullable=False)
-    budget_approved: bool = Field(default=False, nullable=False)
+    budget_position_approved: bool = Field(default=False, nullable=True)
+
     percentage: Optional[float] = Field(default=0, nullable=True)  # Made nullable
     
     # Relationship back to petition

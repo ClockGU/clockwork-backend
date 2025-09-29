@@ -1,6 +1,6 @@
 from typing import Optional
 import uuid
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 import re
 
 
@@ -27,7 +27,11 @@ class BudgetPositionRead(BaseModel):
     id: uuid.UUID
     budget_position: str
     budget_approver: str
-    budget_approved: bool
+    budget_position_approved: bool
 
 class BudgetPositionApprovalUpdate(BaseModel):
-    budget_approved: bool
+    budget_position_approved: bool
+    message: Optional[str] = ""
+    revision_requested: bool = False
+
+    

@@ -2,7 +2,7 @@ from sqlmodel import SQLModel
 from typing import Optional, Literal, List
 from datetime import date
 import uuid
-from pydantic import field_validator, model_validator
+from pydantic import field_validator, model_validator, BaseModel
 import re
 from .budget_position import BudgetPositionCreate
 
@@ -21,7 +21,6 @@ class PetitionCreateBase(SQLModel):
     # Budget positions as a list
     budget_positions: List[BudgetPositionCreate]
 
-    status: Literal["pending", "approved", "rejected"] = "pending"
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
@@ -49,9 +48,9 @@ class PetitionCreateBase(SQLModel):
 
     @field_validator("eos_number")
     def validate_eos_number(cls, eos_number):
-        # Ensure eos_number is numeric and has 5 digits
-        if not re.match(r"^\d{5}$", eos_number):
-            raise ValueError("eos_number must be a 5-digit numeric value")
+        # Ensure eos_number starts with 'F' followed by 6 digits
+        if not re.match(r"^F\d{6}$", eos_number):
+            raise ValueError("eos_number must start with 'F' followed by 6 digits (e.g., F123456)")
         return eos_number
 
     @field_validator("student_mail")
@@ -117,3 +116,7 @@ class PetitionSupervisorCreate(PetitionCreateBase):
     Inherits from PetitionCreateBase.
     """
     pass
+
+
+class PetitionStudentAction(BaseModel):
+    approved: bool

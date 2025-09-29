@@ -20,7 +20,7 @@ class PetitionUpdateBase(SQLModel):
     # Budget positions as a list - can be updated
     budget_positions: Optional[List[BudgetPositionCreate]] = None
 
-    status: Optional[Literal["pending", "approved", "student_action", "rejected"]] = None
+    status: Optional[Literal["pending", "approved", "approver_action","student_action", "rejected"]] = None
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
@@ -45,14 +45,13 @@ class PetitionUpdateBase(SQLModel):
         if minutes is not None and minutes <= 0:
             raise ValueError("minutes must be greater than 0")
         return minutes
+        @field_validator("eos_number")
+        def validate_eos_number(cls, eos_number):
+            # Accept either 6 digits OR 'F' followed by 6 digits
+            if eos_number is not None and not re.match(r"^(F\d{6}|\d{6})$", eos_number):
+                raise ValueError("eos_number must be either 6 digits or start with 'F' followed by 6 digits (e.g., F123456 or 123456)")
+            return eos_number
 
-    @field_validator("eos_number")
-    def validate_eos_number(cls, eos_number):
-        if eos_number is not None:
-            # Ensure eos_number is numeric and has 5 digits
-            if not re.match(r"^\d{5}$", eos_number):
-                raise ValueError("eos_number must be a 5-digit numeric value")
-        return eos_number
 
     @field_validator("student_mail")
     def validate_student_mail(cls, student_mail):
@@ -126,12 +125,13 @@ class PetitionSupervisorUpdate(PetitionUpdateBase):
     pass
 
 
-class PetitionClerkUpdate(PetitionUpdateBase):
+class PetitionClerkUpdate(SQLModel):
     """
     Pydantic model for updating a petition by clerk.
     May have different permissions than supervisor updates.
     """
-    pass
+    approved : bool
+    status: Optional[Literal["approved", "rejected", "student_action", "clerk_action"]] = None
 
 class PetitionStudentUpdate(SQLModel):
     """

@@ -22,7 +22,7 @@ def list_pending_petitions(
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)  
 ):
-    petitions = handler.get_petitions_by_status("pending")
+    petitions = handler.get_petitions_by_status("clerk_action")
     return petitions
 
 # 2. API to delete a petition by ID
@@ -43,6 +43,9 @@ def update_petition(
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)  
 ):
-    updated_petition = handler.update_petition(petition_id, petition_data)
+    updated_petition = handler.update_petition_status_as_clerk(
+        petition_id=petition_id,
+        approved=petition_data.approved
+    )
     return updated_petition
 

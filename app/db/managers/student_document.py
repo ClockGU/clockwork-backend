@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlmodel import Session, select
 
 from app.db.schema.student_documents import StudentDocuments
+from app.db.schema.employee import Employee
 from app.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
 
 
@@ -51,7 +52,6 @@ class StudentDocumentManager:
         Returns:
             bool: True if all documents are uploaded, False otherwise
         """
-        from app.db.schema.employee import Employee
         
         # First get the employee by email
         employee_statement = select(Employee).where(Employee.user_email == student_email)

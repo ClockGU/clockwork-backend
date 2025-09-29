@@ -15,7 +15,7 @@ class Petition(SQLModel, table=True):
     student_mail: str
     supervisor_mail: Optional[str] = None
     
-    status: str = Field(default="pending", nullable=False)# can be pending, student_action, rejected
+    status: str = Field(default="approver_action", nullable=False)
 
     # Relationship to budget positions (one-to-many)
     budget_positions: List["BudgetPosition"] = Relationship(back_populates="petition")
