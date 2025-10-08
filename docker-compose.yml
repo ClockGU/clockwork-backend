@@ -21,7 +21,7 @@ services:
       - "4444:4444"
       
     volumes:
-      - .:/app
+      - .:/api
     environment:
       - APP_ENV=production  
       - DATABASE_URL=postgresql://db_user:db_pass@db:5432/db_app

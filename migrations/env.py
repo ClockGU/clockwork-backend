@@ -6,8 +6,8 @@ from sqlalchemy import pool
 from alembic import context
 
 from sqlmodel import SQLModel
-from app.db.schema import Petition
-from app.env import settings
+from api.db.schema import Petition
+from api.env import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

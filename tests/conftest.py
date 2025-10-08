@@ -7,7 +7,7 @@ from alembic import command
 from pathlib import Path
 from sqlmodel import SQLModel
 
-from app.db.dependencies import get_db
+from api.db.dependencies import get_db
 
 # Get project root
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,7 +45,7 @@ def db_session():
 @pytest.fixture
 def client(db_session):
     from fastapi.testclient import TestClient
-    from app.main import app
+    from api.main import app
 
     # Dependency override with commit
     def override_get_db():

@@ -16,7 +16,7 @@ WORKDIR /app
 # Copy only the dependency files first for efficient caching
 COPY pyproject.toml poetry.lock ./
 
-# Install dependencies using Poetry (ensure app module is included)
+# Install dependencies using Poetry (ensure api module is included)
 RUN poetry install --no-dev  
 
 RUN pip install remote-pdb --no-cache-dir
@@ -25,8 +25,8 @@ RUN pip install remote-pdb --no-cache-dir
 # Copy the application code
 COPY . /app  
 
-# Expose the port the app will run on
+# Expose the port the api will run on
 EXPOSE 8000
 
-# Command to run the app
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Command to run the api
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 
-from app.db.schema.petition import Petition
+from api.db.schema.petition import Petition
 
 # Helper function to return sample petition data matching your PetitionCreate schema.
 def sample_petition_data():
