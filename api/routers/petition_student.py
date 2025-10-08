@@ -57,7 +57,7 @@ def update_petition_acceptance(
 @router.patch("/students/petitions/{petition_id}/student-action", response_model=PetitionStudentRead)
 def student_accept_or_reject_petition(
     petition_id: UUID,
-    action: PetitionStudentAction,
+    action: PetitionStudentUpdate,
     handler: PetitionHandler = Depends(get_petition_handler)
 ):
     """
