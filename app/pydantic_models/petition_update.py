@@ -2,7 +2,7 @@ from sqlmodel import SQLModel
 from typing import Optional, Literal, List
 from datetime import date
 import uuid
-from pydantic import field_validator, model_validator
+from pydantic import field_validator, model_validator, BaseModel
 import re
 from .budget_position import BudgetPositionCreate
 
@@ -146,3 +146,6 @@ class PetitionApproverUpdate(PetitionUpdateBase):
     May have different permissions than supervisor and clerk updates.
     """
     pass
+
+class ClerkRevisionRequest(BaseModel):
+    message: str

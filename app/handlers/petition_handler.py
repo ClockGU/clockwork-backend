@@ -455,3 +455,20 @@ class PetitionHandler:
             )
         
         return petition
+
+    def request_revision_from_student(self, petition_id: UUID, message: str) -> Petition:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+        if petition.status != "clerk_action":
+            raise HTTPException(status_code=400, detail="Revision can only be requested when petition status is 'clerk_action'")
+        
+        # Send email to student
+        self.email_handler.send_email(
+            recipient=petition.student_mail,
+            subject="Revision Requested for Your Petition",
+            body=f"The clerk has requested a revision for your petition.\n\nMessage: {message}"
+        )
+        # Change status to clerk_revision
+        petition = self.manager.update_petition_status(petition_id, "clerk_revision")
+        return petition
