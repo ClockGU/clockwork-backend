@@ -76,6 +76,7 @@ def update_document(
     document_data = StudentDocumentsUpdate(**file_urls)  
 
     updated_document = handler.update_document(document.id, document_data)
+    
     return updated_document
 
 

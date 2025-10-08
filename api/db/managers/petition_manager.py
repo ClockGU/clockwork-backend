@@ -140,10 +140,10 @@ class PetitionManager:
         return petitions
     
     def get_student_petitions(self, student_mail: str) -> List[Petition]:
-        # Retrieve all petitions associated with a student with status 'student_action'
+        # Retrieve all petitions for a student where status is 'student_action' or 'completed'
         statement = select(self.schema).where(
             (self.schema.student_mail == student_mail) & 
-            (self.schema.status == "student_action")
+            ((self.schema.status == "student_action") | (self.schema.status == "completed"))
         )
         result = self.db.execute(statement)
         petitions = result.scalars().all()

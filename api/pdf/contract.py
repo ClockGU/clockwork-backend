@@ -22,7 +22,8 @@ def create_contract_pdf(employee: EmployeeRead, petition: PetitionRead)-> BytesI
         af["/DA"] = String("/Helv 11 Tf 0 g")
         form = Form(pdf, ExtendedAppearanceStreamGenerator)
         today = date.today()
-        filename = f"Arbeitsvertrag_{employee.last_name}_{employee.first_name}_{today.strftime("%d-%m-%Y")}.pdf"
+        # Build a filename for use by callers (not returned here)
+        filename = f"Arbeitsvertrag_{employee.last_name}_{employee.first_name}_{today.strftime('%d-%m-%Y')}.pdf"
 
         form[consts.NAME_FIELD].value = f"{employee.last_name}, {employee.first_name}"
         form[consts.BIRTHDAY_FIELD].value = f"{employee.date_of_birth.strftime('%d.%m.%Y')}"

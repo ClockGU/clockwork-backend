@@ -7,9 +7,16 @@ from datetime import date
 from api.db.managers import PetitionManager
 from api.db.managers.budget_position_manager import BudgetPositionManager
 from api.db.managers.student_document import StudentDocumentManager
-from api.pydantic_models.petition import PetitionCreate  # Pydantic model for input
-from api.db.schema.petition import Petition  # ORM model
+from api.db.managers.emploeyee_manager import EmployeeManager
+from api.db.schema.petition import Petition  
 from api.handlers.email_handler import EmailHandler
+from api.pydantic_models import (
+    EmployeeRead, 
+    PetitionRead,
+    PetitionCreate
+    ) 
+from api.pdf.contract import create_contract_pdf
+
 
 
 class PetitionHandler:
@@ -17,6 +24,7 @@ class PetitionHandler:
         self.manager = PetitionManager(db)
         self.budget_position_manager = BudgetPositionManager(db)
         self.student_document_manager = StudentDocumentManager(db)
+        self.employee_manager = EmployeeManager(db)
         self.email_handler = EmailHandler()
 
     def create_petition(self, petition_data: PetitionCreate) -> Petition:
@@ -440,7 +448,7 @@ class PetitionHandler:
             raise HTTPException(status_code=400, detail="Clerk cannot approve or reject at this stage")
 
         # Update petition status
-        petition = self.manager.update_petition_status(petition_id, "approved" if approved else "rejected")
+        petition = self.manager.update_petition_status(petition_id, "awaiting_signature" if approved else "rejected")
         if petition.supervisor_mail:
             self.email_handler.send_email(
                 recipient=petition.supervisor_mail,
@@ -453,5 +461,49 @@ class PetitionHandler:
                 subject="Petition Status Updated by Clerk",
                 body=f"Petition {petition.id} was {'approved' if approved else 'rejected'} by the clerk."
             )
+        
+        if approved:
+            # Create contract PDF and email it to the employee (and student)
+            try:
+                employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+                if employee:
+                    # Convert ORM objects to pydantic models expected by create_contract_pdf
+                    employee_read = EmployeeRead.from_orm(employee)
+                    petition_read = PetitionRead.from_orm(petition)
 
+                    # Create PDF bytes
+                    pdf_buf = create_contract_pdf(employee_read, petition_read)
+                    pdf_bytes = pdf_buf.getvalue()
+                    filename = f"Arbeitsvertrag_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
+
+                    # Send to employee
+                    if employee.user_email:
+                        self.email_handler.send_email(
+                            recipient=employee.user_email,
+                            subject="Your Employment Contract",
+                            body=f"Dear {employee.first_name or ''},\n\nPlease find attached your employment contract for petition {petition.id}.",
+                            attachment_bytes=pdf_bytes,
+                            attachment_filename=filename,
+                        )
+                        
+            except Exception as e:
+                print(f"Failed to create/send contract: {e}", flush=True)
+
+        return petition
+
+    def request_revision_from_student(self, petition_id: UUID, message: str) -> Petition:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+        if petition.status != "clerk_action":
+            raise HTTPException(status_code=400, detail="Revision can only be requested when petition status is 'clerk_action'")
+
+        # Send email to student
+        self.email_handler.send_email(
+            recipient=petition.student_mail,
+            subject="Revision Requested for Your Petition",
+            body=f"The clerk has requested a revision for your petition.\n\nMessage: {message}"
+        )
+        # Change status to clerk_revision
+        petition = self.manager.update_petition_status(petition_id, "clerk_revision")
         return petition

@@ -2,7 +2,11 @@ from sqlmodel import SQLModel
 from typing import Optional, Literal, List
 from datetime import date
 import uuid
-from pydantic import field_validator, model_validator
+from pydantic import (
+    field_validator, 
+    model_validator, 
+    BaseModel
+    )
 import re
 from .budget_position import BudgetPositionCreate
 
@@ -125,20 +129,19 @@ class PetitionSupervisorUpdate(PetitionUpdateBase):
     pass
 
 
-class PetitionClerkUpdate(SQLModel):
+class PetitionClerkUpdate(BaseModel):
     """
     Pydantic model for updating a petition by clerk.
     May have different permissions than supervisor updates.
     """
     approved : bool
-    status: Optional[Literal["approved", "rejected", "student_action", "clerk_action"]] = None
 
-class PetitionStudentUpdate(SQLModel):
+class PetitionStudentUpdate(BaseModel):
     """
     Pydantic model for student petition acceptance.
     Only allows status updates with specific values.
     """
-    status: Literal["rejected", "clerk_action"]
+    status: Literal["rejected", "accepted"]
 
 class PetitionApproverUpdate(PetitionUpdateBase):
     """
@@ -146,3 +149,6 @@ class PetitionApproverUpdate(PetitionUpdateBase):
     May have different permissions than supervisor and clerk updates.
     """
     pass
+
+class ClerkRevisionRequest(BaseModel):
+    message: str
