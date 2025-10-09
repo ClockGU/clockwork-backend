@@ -462,13 +462,26 @@ class PetitionHandler:
                     body=f"Petition {petition.id} was rejected by the student."
                 )
         return petition
+    
+    def update_petition_as_clerk(self, petition_id: UUID, approved: bool) -> Petition:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+        if petition.status == "clerk_action":
+            return self.approve_petition_as_clerk(petition_id, approved)
+        elif petition.status == "awaiting_signature" and approved:
+            return self.complete_petition_as_clerk(petition_id)
+        else:
+            raise HTTPException(status_code=400, detail="Clerk cannot approve or reject at this stage")
+        
 
-    def update_petition_status_as_clerk(self, petition_id: UUID, approved: bool) -> Petition:
+    def approve_petition_as_clerk(self, petition_id: UUID, approved: bool) -> Petition:
         petition = self.manager.get_petition(petition_id)
         if not petition:
             raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
         if petition.status != "clerk_action":
             raise HTTPException(status_code=400, detail="Clerk cannot approve or reject at this stage")
+        
 
         # Update petition status
         petition = self.manager.update_petition_status(petition_id, "awaiting_signature" if approved else "rejected")
@@ -528,4 +541,27 @@ class PetitionHandler:
         )
         # Change status to clerk_revision
         petition = self.manager.update_petition_status(petition_id, "clerk_revision")
+        return petition
+
+    def complete_petition_as_clerk(self, petition_id: UUID) -> Petition:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+        if petition.status != "awaiting_signature":
+            raise HTTPException(status_code=400, detail="Petition can only be completed when status is 'awaiting_signature'")
+
+        # Update petition status to completed
+        petition = self.manager.update_petition_status(petition_id, "completed")
+        
+        # Send email to student
+        self.email_handler.send_email(
+            recipient=petition.student_mail,
+            subject="Your Petition is Completed",
+            body=f"Your petition {petition.id} has been completed. Welcome aboard!"
+        )
+        self.email_handler.send_email(
+            recipient=petition.supervisor_mail,
+            subject="Petition Completed",
+            body=f"Petition {petition.id} has been completed for the student. All steps are finalized."
+        )
         return petition
