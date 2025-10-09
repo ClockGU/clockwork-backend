@@ -141,7 +141,7 @@ class PetitionStudentUpdate(BaseModel):
     Pydantic model for student petition acceptance.
     Only allows status updates with specific values.
     """
-    status: Literal["rejected", "accepted"]
+    approved: bool
 
 class PetitionApproverUpdate(PetitionUpdateBase):
     """

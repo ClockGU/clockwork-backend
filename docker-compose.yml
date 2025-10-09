@@ -19,11 +19,10 @@ services:
     ports:
       - "8030:8000"
       - "4444:4444"
-      
     volumes:
-      - .:/api
+      - .:/app
     environment:
-      - APP_ENV=production  
+      - APP_ENV=development
       - DATABASE_URL=postgresql://db_user:db_pass@db:5432/db_app
       - JWT_PUBLIC_KEY_PATH=./certs/public.pem
       - JWT_ALGORITHM=RS256
@@ -44,6 +43,6 @@ services:
       - "8025:8025"
 
 
-    
-    
-    
+
+
+
