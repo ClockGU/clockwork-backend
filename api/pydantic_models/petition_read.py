@@ -23,7 +23,7 @@ class PetitionBaseRead(SQLModel):
     duration_exce_end: Optional[date] = None
     time_exce_course: Optional[bool] = None  
     duration_exce_course: Optional[bool] = None 
-    status: Literal["pending", "approved", "student_action", "rejected", "approver_action", "clerk_action", "awaiting_signature"] = "pending"
+    status: Literal["pending", "approved", "student_action", "rejected", "approver_action", "clerk_action", "awaiting_signature", "completed", "clerk_revision"] = "pending"
 
 
 # PetitionReadBase for clerks/supervisors
