@@ -26,8 +26,8 @@ def create_contract_pdf(employee: EmployeeRead, petition: PetitionRead)-> BytesI
         filename = f"Arbeitsvertrag_{employee.last_name}_{employee.first_name}_{today.strftime('%d-%m-%Y')}.pdf"
 
         form[consts.NAME_FIELD].value = f"{employee.last_name}, {employee.first_name}"
-        form[consts.BIRTHDAY_FIELD].value = f"{employee.date_of_birth.strftime('%d.%m.%Y')}"
-        form[consts.ADDRESS_FIELD].value = f"{employee.address},{employee.postal_code}"
+       # form[consts.BIRTHDAY_FIELD].value = f"{employee.date_of_birth.strftime('%d.%m.%Y')}"
+        #form[consts.ADDRESS_FIELD].value = f"{employee.address},{employee.postal_code}"
         form[consts.CONTRACT_START_FIELD].value = f"{petition.start_date.strftime('%d.%m.%Y')}"
         form[consts.CONTRACT_END_FIELD].value = f"{petition.end_date.strftime('%d.%m.%Y')}"
         form[consts.DEBIT_WORKTIME_FIELD].value = f"{petition.minutes // 60}"

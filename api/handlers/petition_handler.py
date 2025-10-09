@@ -307,7 +307,19 @@ class PetitionHandler:
                     status_code=400, 
                     detail=f"Petition status is '{petition.status}', but must be 'student_action' to be updated by student"
                 )
-
+            if status == "clerk_action":
+                # Check if student has uploaded documents before approving
+                employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+                if not employee:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="You cannot approve the petition unless you are registered as an employee."
+                    )
+                if employee.date_of_birth is None or employee.address is None:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="You cannot approve the petition unless your employee profile is complete (date of birth and address)."
+                    )
             # Update petition status using manager
             petition = self.manager.update_petition_status(petition_id, status)
             if not petition:
@@ -408,6 +420,17 @@ class PetitionHandler:
 
         # Check if student has uploaded documents before approving
         if approved:
+            employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+            if not employee:
+                raise HTTPException(
+                    status_code=400,
+                    detail="You cannot approve the petition unless you are registered as an employee."
+                )
+            if employee.date_of_birth is None or employee.address is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="You cannot approve the petition unless your employee profile is complete (date of birth and address)."
+                )
             has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_mail)
             if not has_uploaded_documents:
                 raise HTTPException(
@@ -467,9 +490,8 @@ class PetitionHandler:
             try:
                 employee = self.employee_manager.get_employee_by_email(petition.student_mail)
                 if employee:
-                    # Convert ORM objects to pydantic models expected by create_contract_pdf
-                    employee_read = EmployeeRead.from_orm(employee)
-                    petition_read = PetitionRead.from_orm(petition)
+                    employee_read = EmployeeRead.model_validate(employee,from_attributes=True)
+                    petition_read = PetitionRead.model_validate(petition, from_attributes=True)
 
                     # Create PDF bytes
                     pdf_buf = create_contract_pdf(employee_read, petition_read)
@@ -481,7 +503,7 @@ class PetitionHandler:
                         self.email_handler.send_email(
                             recipient=employee.user_email,
                             subject="Your Employment Contract",
-                            body=f"Dear {employee.first_name or ''},\n\nPlease find attached your employment contract for petition {petition.id}.",
+                            body=f"Dear {employee.first_name or ''},\n\nPlease find attached your employment contract for petition {petition.id}. Please print it out twice and handover the signed version",
                             attachment_bytes=pdf_bytes,
                             attachment_filename=filename,
                         )

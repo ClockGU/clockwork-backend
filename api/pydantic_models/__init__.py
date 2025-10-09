@@ -32,7 +32,3 @@ from .employee import (
     EmployeeUpdate
 )
 
-from .petition import (
-    PetitionCreate,
-    PetitionRead
-)
