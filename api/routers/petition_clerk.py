@@ -23,14 +23,10 @@ def get_petition_handler(
 # 1. API to list all petitions with the status of "pending"
 @router.get("/clerk/petitions", response_model=List[PetitionRead])
 def list_petitions_by_status(
-    status: str = Depends(lambda status: status),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)  
 ):
-    allowed_statuses = {"clerk_action", "awaiting_signature", "completed", "clerk_revision"}# this is temprorary will change later
-    if status not in allowed_statuses:
-        raise HTTPException(status_code=400, detail=f"Status must be one of {allowed_statuses}")
-    petitions = handler.get_petitions_by_status(status)
+    petitions = handler.get_petitions_clerk()
     return petitions
 
 # 2. API to delete a petition by ID
