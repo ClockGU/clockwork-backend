@@ -565,3 +565,31 @@ class PetitionHandler:
             body=f"Petition {petition.id} has been completed for the student. All steps are finalized."
         )
         return petition
+
+    def get_petitions_clerk(self) -> List[Petition]:
+        """Return petitions relevant to clerks (several statuses)."""
+        try:
+            statuses = ["awaiting_signature", "completed", "clerk_revision", "clerk_action"]
+            petitions = []
+            for s in statuses:
+                # call manager directly to avoid raising on empty per-status result
+                res = self.manager.get_petitions_by_status(s)
+                if res:
+                    petitions.extend(res)
+
+            # dedupe by id
+            seen = set()
+            unique = []
+            for p in petitions:
+                if getattr(p, "id", None) not in seen:
+                    seen.add(p.id)
+                    unique.append(p)
+
+            if not unique:
+                raise HTTPException(status_code=404, detail="No petitions found for clerk")
+
+            return unique
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while fetching clerk petitions: {str(e)}")
