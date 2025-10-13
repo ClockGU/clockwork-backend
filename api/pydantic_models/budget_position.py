@@ -28,6 +28,7 @@ class BudgetPositionRead(BaseModel):
     budget_position: str
     budget_approver: str
     budget_position_approved: bool
+    percentage: float
 
 class BudgetPositionApprovalUpdate(BaseModel):
     budget_position_approved: bool
