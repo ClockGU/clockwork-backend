@@ -86,7 +86,7 @@ class PetitionHandler:
             elif revision_requested:
                 # Budget approver wants revision - keep petition status as pending
                 # Send revision request email
-                petition = self.manager.update_petition_status(petition_id, "petitioner_action")
+                petition = self.manager.update_petition_status(petition_id, "approver_revision")
 
                 #send rejection emails
                 self._send_revision_request_email(petition, updated_budget_position, message)
@@ -245,7 +245,7 @@ class PetitionHandler:
         # Send emails to budget approvers if budget positions were updated
         if budget_positions_updated:
             self._send_budget_position_update_emails(petition)
-            if petition.status == "petitioner_action":
+            if petition.status == "approver_revision":
                 # this means revision was requested If petition was in petitioner_action status, revert to approver_action when budget positions change
                 petition = self.manager.update_petition_status(petition_id, "approver_action")
 
@@ -370,7 +370,8 @@ class PetitionHandler:
     def _send_budget_position_update_emails(self, petition: Petition) -> None:
         """Send emails to budget approvers when budget positions are updated"""
         try:
-            from app.security import generate_signature
+            # due to circular import this is imported here
+            from api.security import generate_signature
             signature = generate_signature()
 
             # Get updated budget positions
