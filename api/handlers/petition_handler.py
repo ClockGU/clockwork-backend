@@ -594,3 +594,16 @@ class PetitionHandler:
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred while fetching clerk petitions: {str(e)}")
+
+    def mark_revision_done_student(self, petition_id: UUID) -> Petition:
+        petition = self.manager.get_petition(petition_id)
+        
+        if not petition:
+            raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+        if petition.status != "clerk_revision":
+            raise HTTPException(status_code=400, detail="Revision can only be marked done when petition status is clerk_revision")
+
+        # Change status back to clerk_action
+        petition = self.manager.update_petition_status(petition_id, "clerk_action")
+
+        return petition

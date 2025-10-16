@@ -19,7 +19,6 @@ from api.security import (
     generate_signature,
     verify_signature
 )
-from api.routers.web_socket import send_data_to_socket
 
 # Custom JSON encoder to handle UUIDs and dates
 class UUIDEncoder(JSONEncoder):
@@ -63,18 +62,6 @@ async def create_petition(
             recipient=budget_position.budget_approver,
             subject="New petition requires your approval",
             body=f"New petition is created for budget position: {budget_position.budget_position}. Here is the link to access that petition: {petition_url}"
-        )
-    
-    # Get all the clerks and broadcast
-    petitions = handler.list_petitions()
-    clerk_IDS = ["1234", "12345"]  # Once the clerks have registered the data will be fetched from the database
-    for clerk_id in clerk_IDS:
-        await send_data_to_socket(
-            user_id=clerk_id,
-            data=dumps({
-                "type": "new_petition",
-                "data": [petition.dict(by_alias=True, exclude_none=True) for petition in petitions]  # Convert each model to a dictionary
-            }, cls=UUIDEncoder)  # Use custom encoder
         )
     
     return created_petition
@@ -122,5 +109,7 @@ def delete_petition(
 ):
     success = handler.delete_petition(petition_id)
     return {"detail": "Petition deleted successfully"}
+
+
 
 

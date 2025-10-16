@@ -11,6 +11,7 @@ from api.pydantic_models import (
     )
 from api.db.dependencies import get_db
 from api.security import get_current_clerk
+from api.routers.web_socket import send_data_to_clerks
 
 router = APIRouter()
 
@@ -54,7 +55,7 @@ def update_petition_as_clerk(
     return updated_petition
 
 @router.patch("/clerk/petitions/{petition_id}/request-revision", response_model=PetitionRead)
-def request_revision_from_student(
+async def request_revision_from_student(
     petition_id: UUID,
     revision: ClerkRevisionRequest = Body(...),
     handler: PetitionHandler = Depends(get_petition_handler),
@@ -64,4 +65,5 @@ def request_revision_from_student(
         petition_id=petition_id,
         message=revision.message
     )
+    await send_data_to_clerks(handler.get_petitions_clerk())
     return updated_petition

@@ -8,6 +8,7 @@ from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import PetitionStudentUpdate, PetitionStudentRead
 from api.db.dependencies import get_db
 from api.security import get_current_supervisor, get_current_student, verify_signature
+from api.routers.web_socket import send_data_to_clerks
 
 router = APIRouter()
 
@@ -31,7 +32,7 @@ def read_petitions(
     return petitions
 
 @router.patch("/students/petitions/accept", response_model=PetitionStudentRead)
-def update_petition_acceptance(
+async def update_petition_acceptance(
     acceptance_data: PetitionStudentUpdate,
     petition_id: UUID = Query(..., description="The ID of the petition to update"),
     signature: str = Query(..., description="Security signature for verification"),
@@ -51,11 +52,12 @@ def update_petition_acceptance(
         petition_id=petition_id,
         status=acceptance_data.status
     )
+    await send_data_to_clerks(handler.get_petitions_clerk())
     
     return updated_petition
 
 @router.patch("/students/petitions/{petition_id}/student-action", response_model=PetitionStudentRead)
-def student_accept_or_reject_petition(
+async def student_accept_or_reject_petition(
     petition_id: UUID,
     action: PetitionStudentUpdate,
     handler: PetitionHandler = Depends(get_petition_handler)
@@ -68,8 +70,19 @@ def student_accept_or_reject_petition(
         petition_id=petition_id,
         approved=action.approved
     )
+    await send_data_to_clerks(handler.get_petitions_clerk())
+    
+
     return updated_petition
 
-
-
-
+@router.patch("/students/petitions/{petition_id}/revision-done", response_model=PetitionStudentRead)
+async def mark_revision_done(
+    petition_id: UUID,
+    handler: PetitionHandler = Depends(get_petition_handler)
+):
+    """
+    API for students to mark their petition as revision done.
+    """
+    updated_petition = handler.mark_revision_done_student(petition_id)
+    await send_data_to_clerks(handler.get_petitions_clerk())
+    return updated_petition
