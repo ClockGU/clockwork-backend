@@ -32,6 +32,7 @@ services:
       - SMTP_USER=
       - SMTP_PASSWORD=
       - SIGNATURE_SECRET_KEY=secret
+      - CLERK_LIST=http://host.docker.internal:8020/users/clerks
     depends_on:
       - db 
       - mailhog   

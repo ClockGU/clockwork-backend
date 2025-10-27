@@ -9,12 +9,14 @@ from sqlmodel import Session
 from json import dumps, JSONEncoder
 from uuid import UUID
 from datetime import date
+import requests
 
 from api.db.dependencies import get_db
 from api.handlers import (
     PetitionHandler,
     ConnectionManager
     )
+from api.env import settings
 
 
 manager = ConnectionManager()
@@ -36,7 +38,11 @@ def get_petition_handler(
 
 def get_all_clerks():
     # when there are clerks this function will get clerk id's from hr-login-backend
-    return ["1234","12345"]
+    clerk_list_api = settings.CLERK_LIST
+    response = requests.get(clerk_list_api)
+    if response.status_code == 200:
+        return response.json().get("clerks", [])
+    return []
 
 async def send_data_to_clerks(data: str):
     """
@@ -59,6 +65,9 @@ async def websocket_endpoint(
     websocket: WebSocket, 
     handler: PetitionHandler = Depends(get_petition_handler),
     ):
+    clerk_ids = get_all_clerks()
+    if client_id not in clerk_ids:
+        raise RuntimeError(f"Invalid user id: {client_id}")
 
     await manager.connect(client_id, websocket)
 
