@@ -587,7 +587,7 @@ class PetitionHandler:
                     unique.append(p)
 
             if not unique:
-                raise HTTPException(status_code=404, detail="No petitions found for clerk")
+                return []
 
             return unique
         except HTTPException:

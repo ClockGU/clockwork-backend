@@ -32,7 +32,7 @@ services:
       - SMTP_USER=
       - SMTP_PASSWORD=
       - SIGNATURE_SECRET_KEY=secret
-      - CLERK_LIST=http://host.docker.internal:8020/users/clerks
+      - CLERK_LIST=http://hr-login-web:8000/users/clerks
     depends_on:
       - db 
       - mailhog   
@@ -42,6 +42,11 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+
+networks:
+  default:
+    external:
+      name: clock-network
 
 
 
