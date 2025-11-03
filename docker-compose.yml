@@ -10,6 +10,9 @@ services:
     image: postgres:15.5-alpine
     ports:
       - "5433:5432"
+    networks:
+      - clock-network
+
       
       
   web:
@@ -35,18 +38,22 @@ services:
       - CLERK_LIST=http://hr-login-web:8000/users/clerks
     depends_on:
       - db 
-      - mailhog   
+      - mailhog
+    networks:
+      - clock-network
 
   mailhog:
     image: mailhog/mailhog
     ports:
       - "1025:1025"
       - "8025:8025"
+    networks:
+      - clock-network
 
 networks:
-  default:
-    external:
-      name: clock-network
+  clock-network:
+    name: clock-network
+    external: true
 
 
 
