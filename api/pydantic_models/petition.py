@@ -100,7 +100,7 @@ class PetitionRead(SQLModel):
     budget_approver: str
     student_mail: str
 
-    status: Literal["pending", "approved", "rejected"] = "pending"
+    status: Literal["pending", "approved", "student_action", "rejected", "approver_action","approver_revision", "clerk_action", "awaiting_signature", "completed", "clerk_revision"] = "pending"
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
