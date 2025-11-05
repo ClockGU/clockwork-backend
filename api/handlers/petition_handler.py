@@ -77,11 +77,13 @@ class PetitionHandler:
                     self._send_approval_emails(petition)
 
             elif not budget_position_approved and not revision_requested:
-                # Budget position rejected - update petition status to rejected using manager
-                petition = self.manager.update_petition_status(petition_id, "rejected")
                 
                 # Send rejection email
                 self._send_rejection_email(petition, updated_budget_position)
+
+                deleted = self.manager.delete_petition(petition_id)
+                return {"detail": "Petition rejected and deleted successfully"}
+
 
             elif revision_requested:
                 # Budget approver wants revision - keep petition status as pending

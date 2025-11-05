@@ -41,7 +41,7 @@ def delete_petition(
     return {"detail": "Petition deleted successfully"}
 
 # 3. API to update a petition
-@router.patch("/clerk/petitions/{petition_id}", response_model=PetitionRead)
+@router.patch("/clerk/petitions/{petition_id}")
 def update_petition_as_clerk(
     petition_id: UUID,
     petition_data: PetitionClerkUpdate,
@@ -52,6 +52,9 @@ def update_petition_as_clerk(
         petition_id=petition_id,
         approved=petition_data.approved
     )
+    if updated_petition.status == 'rejected':
+        updated_petition = handler.delete_petition(petition_id)
+   
     return updated_petition
 
 @router.patch("/clerk/petitions/{petition_id}/request-revision", response_model=PetitionRead)
