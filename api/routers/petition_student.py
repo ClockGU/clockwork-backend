@@ -5,7 +5,11 @@ from sqlmodel import Session
 
 from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.petition_handler import PetitionHandler
-from api.pydantic_models import PetitionStudentUpdate, PetitionStudentRead
+from api.pydantic_models import (
+    PetitionStudentUpdate, 
+    PetitionStudentRead,
+    PetitionStudentUpdateRequest
+)   
 from api.db.dependencies import get_db
 from api.security import get_current_supervisor, get_current_student, verify_signature
 from api.routers.web_socket import send_data_to_clerks
@@ -91,3 +95,21 @@ async def mark_revision_done(
     updated_petition = handler.mark_revision_done_student(petition_id)
     await send_data_to_clerks(handler.get_petitions_clerk())
     return updated_petition
+
+@router.patch("/students/petitions/{petition_id}/request-revision", response_model=PetitionStudentRead)
+async def request_revision_from_supervisor(
+    petition_id: UUID,
+    revision_data: PetitionStudentUpdateRequest,
+    handler: PetitionHandler = Depends(get_petition_handler)
+):
+    """
+    API for students to request revision from supervisor.
+    Sends email to supervisor and changes petition status to 'student_revision'.
+    Body: {"body": "revision message"}
+    """
+    if not revision_data.body:
+        raise HTTPException(status_code=400, detail="Revision request text is required")
+    
+    updated_petition = handler.request_revision_from_supervisor(petition_id, revision_data.body)
+    return updated_petition
+

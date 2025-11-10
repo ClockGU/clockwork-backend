@@ -1,6 +1,7 @@
 from .petition_read import (
         PetitionRead, 
-        PetitionStudentRead
+        PetitionStudentRead,
+        
         )
 
 from .petition_create import (
@@ -16,7 +17,8 @@ from .petition_update import (
     PetitionStudentUpdate,
     PetitionClerkUpdate,
     PetitionApproverUpdate,
-    ClerkRevisionRequest
+    ClerkRevisionRequest,
+    PetitionStudentUpdateRequest
     )
 
 from .documents import (

@@ -24,7 +24,7 @@ class PetitionUpdateBase(SQLModel):
     # Budget positions as a list - can be updated
     budget_positions: Optional[List[BudgetPositionCreate]] = None
 
-    status: Optional[Literal["pending", "approved", "approver_action","student_action", "rejected"]] = None
+    status: Optional[Literal["pending", "approved", "approver_action","student_action", "rejected", "student_revision"]] = None
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
@@ -152,3 +152,6 @@ class PetitionApproverUpdate(PetitionUpdateBase):
 
 class ClerkRevisionRequest(BaseModel):
     message: str
+
+class PetitionStudentUpdateRequest(BaseModel):
+    body: str

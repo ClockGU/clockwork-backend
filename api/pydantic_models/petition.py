@@ -5,7 +5,7 @@ import uuid
 from pydantic import field_validator, model_validator
 import re
 
-
+## these pydantic models are for the manager of the petition
 class PetitionBase(SQLModel):
     user_account: Optional[uuid.UUID] = None
     org_unit: str

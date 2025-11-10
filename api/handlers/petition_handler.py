@@ -247,7 +247,7 @@ class PetitionHandler:
         # Send emails to budget approvers if budget positions were updated
         if budget_positions_updated:
             self._send_budget_position_update_emails(petition)
-            if petition.status == "approver_revision":
+            if petition.status == "approver_revision" or petition.status == "student_revision":
                 # this means revision was requested If petition was in petitioner_action status, revert to approver_action when budget positions change
                 petition = self.manager.update_petition_status(petition_id, "approver_action")
 
@@ -609,3 +609,49 @@ class PetitionHandler:
         petition = self.manager.update_petition_status(petition_id, "clerk_action")
 
         return petition
+
+    def request_revision_from_supervisor(self, petition_id: UUID, text: str) -> Petition:
+        """
+        Student requests revision from supervisor.
+        Sends email to supervisor and changes status to 'student_revision'.
+        """
+        try:
+            # Get petition
+            petition = self.manager.get_petition(petition_id)
+            if not petition:
+                raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
+            
+            # Check if petition is in a valid status for student to request revision
+            # Students can request revision when petition is in student_action, clerk_revision, or awaiting_signature
+            valid_statuses = ["student_action", "clerk_revision"]
+            if petition.status not in valid_statuses:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Student cannot request revision at this stage. Current status: {petition.status}"
+                )
+            
+            # Send email to supervisor
+            if petition.supervisor_mail:
+                self.email_handler.send_email(
+                    recipient=petition.supervisor_mail,
+                    subject=f"Revision Requested by Student for Petition {petition_id}",
+                    body=f"The student has requested a revision for petition {petition_id}.\n\n"
+                         f"Student email: {petition.student_mail}\n"
+                         f"Revision request message:\n{text}\n\n"
+                         f"Please review and make necessary changes to the petition."
+                )
+            
+            # Update petition status to student_revision
+            petition = self.manager.update_petition_status(petition_id, "student_revision")
+            if not petition:
+                raise HTTPException(status_code=400, detail="Failed to update petition status")
+            
+            return petition
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"An error occurred while requesting revision: {str(e)}"
+            )
