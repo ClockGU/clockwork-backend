@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  db:
+  clockwork-db:
     environment:
       POSTGRES_DB: db_app
       POSTGRES_USER: db_user
@@ -10,12 +10,11 @@ services:
     image: postgres:15.5-alpine
     ports:
       - "5433:5432"
-    networks:
-      - clock-network
+    
 
       
       
-  web:
+  clockwork-web:
     build:
       context: .
       dockerfile: ./docker/local/Dockerfile.web
@@ -26,7 +25,7 @@ services:
       - .:/app
     environment:
       - APP_ENV=development
-      - DATABASE_URL=postgresql://db_user:db_pass@db:5432/db_app
+      - DATABASE_URL=postgresql://db_user:db_pass@clockwork-db:5432/db_app
       - JWT_PUBLIC_KEY_PATH=./certs/public.pem
       - JWT_ALGORITHM=RS256
       - SMTP_SERVER=mailhog
@@ -35,25 +34,21 @@ services:
       - SMTP_USER=
       - SMTP_PASSWORD=
       - SIGNATURE_SECRET_KEY=secret
-      - CLERK_LIST=http://hr-login-web:8000/users/clerks
+      - CLERK_LIST=http://host.docker.internal:8020/users/clerks # points to local machine
     depends_on:
-      - db 
+      - clockwork-db
       - mailhog
-    networks:
-      - clock-network
+    
 
   mailhog:
     image: mailhog/mailhog
     ports:
       - "1025:1025"
       - "8025:8025"
-    networks:
-      - clock-network
+    
 
-networks:
-  clock-network:
-    name: clock-network
-    external: true
+
+
 
 
 

@@ -31,7 +31,7 @@ def read_petitions(
     petitions = handler.get_student_petitions(user.get('email'))
     return petitions
 
-@router.patch("/students/petitions/accept", response_model=PetitionStudentRead)
+@router.patch("/students/petitions/accept")
 async def update_petition_acceptance(
     acceptance_data: PetitionStudentUpdate,
     petition_id: UUID = Query(..., description="The ID of the petition to update"),
@@ -52,11 +52,14 @@ async def update_petition_acceptance(
         petition_id=petition_id,
         status=acceptance_data.status
     )
-    await send_data_to_clerks(handler.get_petitions_clerk())
+    if updated_petition.status == 'rejected':
+        updated_petition = handler.delete_petition(petition_id)
+    else:
+        await send_data_to_clerks(handler.get_petitions_clerk())
     
     return updated_petition
 
-@router.patch("/students/petitions/{petition_id}/student-action", response_model=PetitionStudentRead)
+@router.patch("/students/petitions/{petition_id}/student-action")
 async def student_accept_or_reject_petition(
     petition_id: UUID,
     action: PetitionStudentUpdate,
@@ -70,9 +73,11 @@ async def student_accept_or_reject_petition(
         petition_id=petition_id,
         approved=action.approved
     )
-    await send_data_to_clerks(handler.get_petitions_clerk())
+    if updated_petition.status == 'rejected':
+        updated_petition = handler.delete_petition(petition_id)
+    else:
+        await send_data_to_clerks(handler.get_petitions_clerk())
     
-
     return updated_petition
 
 @router.patch("/students/petitions/{petition_id}/revision-done", response_model=PetitionStudentRead)
