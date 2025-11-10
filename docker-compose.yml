@@ -10,8 +10,7 @@ services:
     image: postgres:15.5-alpine
     ports:
       - "5433:5432"
-    networks:
-      - clock-network
+    
 
       
       
@@ -35,25 +34,19 @@ services:
       - SMTP_USER=
       - SMTP_PASSWORD=
       - SIGNATURE_SECRET_KEY=secret
-      - CLERK_LIST=http://hr-login-web:8000/users/clerks
+      - CLERK_LIST=http://host.docker.internal:8020/users/clerks # points to local machine
     depends_on:
       - clockwork-db
       - mailhog
-    networks:
-      - clock-network
+    
 
   mailhog:
     image: mailhog/mailhog
     ports:
       - "1025:1025"
       - "8025:8025"
-    networks:
-      - clock-network
+    
 
-networks:
-  clock-network:
-    name: clock-network
-    external: true
 
 
 
