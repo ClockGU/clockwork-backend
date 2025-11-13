@@ -236,7 +236,11 @@ class PetitionHandler:
         if not existing_petition:
             raise HTTPException(status_code=404, detail=f"Petition with ID {petition_id} not found")
 
-        # Check if budget positions are being updated
+        if not (existing_petition.status == "approver_revision" or existing_petition.status == "student_revision" or existing_petition.status == "approver_action"):
+            raise HTTPException(
+                status_code=400, 
+                detail=f"you don't have permission to update this petition at this stage"
+            )
         budget_positions_updated = hasattr(petition_data, 'budget_positions') and petition_data.budget_positions is not None
 
         # Proceed with the update
@@ -244,12 +248,21 @@ class PetitionHandler:
         if not petition:
             raise HTTPException(status_code=400, detail=f"Petition with ID {petition_id} could not be updated")
 
+        # This makes approved budget positiions unapproved again
+        if not budget_positions_updated and petition.status == "student_revision":
+            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+            for budget_position in budget_positions:
+                if budget_position.budget_position_approved:
+                    self.budget_position_manager.update_budget_position_status(
+                        budget_position.id, 
+                        False
+                    )
+
         # Send emails to budget approvers if budget positions were updated
-        if budget_positions_updated:
-            self._send_budget_position_update_emails(petition)
-            if petition.status == "approver_revision" or petition.status == "student_revision":
-                # this means revision was requested If petition was in petitioner_action status, revert to approver_action when budget positions change
-                petition = self.manager.update_petition_status(petition_id, "approver_action")
+        self._send_budget_position_update_emails(petition)
+
+        if petition.status == "approver_revision" or petition.status == "student_revision":
+            petition = self.manager.update_petition_status(petition_id, "approver_action")
 
         return petition
 
@@ -385,8 +398,8 @@ class PetitionHandler:
 
                 self.email_handler.send_email(
                     recipient=budget_position.budget_approver,
-                    subject="Budget Position Updated - Action Required",
-                    body=f"The budget positions for petition {petition.id} have been updated. "
+                    subject="Petition Updated - Action Required",
+                    body=f"The petition with id {petition.id} have been updated. "
                          f"Your budget position '{budget_position.budget_position}' requires re-approval. "
                          f"Please review and approve the updated petition: {petition_url}"
                 )

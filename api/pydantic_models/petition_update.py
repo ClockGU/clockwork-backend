@@ -49,13 +49,13 @@ class PetitionUpdateBase(SQLModel):
         if minutes is not None and minutes <= 0:
             raise ValueError("minutes must be greater than 0")
         return minutes
-        @field_validator("eos_number")
-        def validate_eos_number(cls, eos_number):
-            # Accept either 6 digits OR 'F' followed by 6 digits
-            if eos_number is not None and not re.match(r"^(F\d{6}|\d{6})$", eos_number):
-                raise ValueError("eos_number must be either 6 digits or start with 'F' followed by 6 digits (e.g., F123456 or 123456)")
-            return eos_number
-
+    
+    @field_validator("eos_number")
+    def validate_eos_number(cls, eos_number):
+        # Accept either 6 digits OR 'F' followed by 6 digits
+        if eos_number is not None and not re.match(r"^(F\d{6}|\d{6})$", eos_number):
+            raise ValueError("eos_number must be either 6 digits or start with 'F' followed by 6 digits (e.g., F123456 or 123456)")
+        return eos_number
 
     @field_validator("student_mail")
     def validate_student_mail(cls, student_mail):
