@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     SIGNATURE_SECRET_KEY: bytes = b"secret key"
-    CLERK_LIST: str = "http://localhost:8020/users/clerks"
+    CLERK_LIST: str = "http://host.docker.internal:8020/users/clerks"
 
     @property
     def signature_secret_key(self) -> bytes:

@@ -38,6 +38,8 @@ services:
     depends_on:
       - clockwork-db
       - mailhog
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     
 
   mailhog:
