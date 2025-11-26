@@ -35,6 +35,7 @@ services:
       - SMTP_PASSWORD=
       - SIGNATURE_SECRET_KEY=secret
       - CLERK_LIST=http://host.docker.internal:8020/users/clerks # points to local machine
+      - FRONTEND_URL=https://preview.clock.uni-frankfurt.de
     depends_on:
       - clockwork-db
       - mailhog

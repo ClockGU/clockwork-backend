@@ -5,6 +5,7 @@ from sqlmodel import Session
 from json import dumps, JSONEncoder
 from datetime import date
 
+from api.env import settings
 from api.handlers import PetitionHandler, EmailHandler
 from api.pydantic_models import (
     PetitionSupervisorCreate,
@@ -55,7 +56,7 @@ async def create_petition(
     # Send email to all budget approvers with specific budget position ID
     for budget_position in created_petition.budget_positions:
         # Include budget position ID as third query parameter
-        petition_url = f"https://preview.clock.uni-frankfurt.de/approver?petition_id={created_petition.id}&signature={signature}&budget_position_id={budget_position.id}"
+        petition_url = f"{settings.FRONTEND_URL}/approver?petition_id={created_petition.id}&signature={signature}&budget_position_id={budget_position.id}"
         print(f"Budget Position URL: {petition_url}", flush=True)
         
         email_handler.send_email(
