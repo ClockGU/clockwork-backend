@@ -16,7 +16,7 @@ class PetitionBase(SQLModel):
     ba_degree: bool
     budget_position: str
     budget_approver: str
-    student_mail: str
+    student_username: str
 
     status: Literal["pending", "approved", "rejected"] = "pending"
 
@@ -77,12 +77,11 @@ class PetitionBase(SQLModel):
             raise ValueError("All duration_exc fields must be provided together or not at all")
         return values
 
-    @field_validator("student_mail")
-    def validate_student_mail(cls, student_mail):
-        # Ensure student_mail is a valid email format
-        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", student_mail):
-            raise ValueError("student_mail must be a valid email address")
-        return student_mail
+    @field_validator("student_username")
+    def validate_student_username(cls, student_username):
+        if student_username is None or student_username == "":
+            raise ValueError("student_username is required")
+        return student_username
 
 class PetitionCreate(PetitionBase):
     pass
@@ -98,7 +97,7 @@ class PetitionRead(SQLModel):
     ba_degree: bool
     budget_position: str
     budget_approver: str
-    student_mail: str
+    student_username: str
 
     status: Literal["pending", "approved", "student_action", "rejected", "approver_action","approver_revision", "clerk_action", "awaiting_signature", "completed", "clerk_revision"] = "pending"
 
@@ -117,7 +116,7 @@ class PetitionStudentBase(SQLModel):
     start_date: date
     end_date: date
     minutes: int
-    student_mail: str
+    student_username: str
     time_exce_student: Optional[str] = None
     time_exce_name: Optional[str] = None
     time_exce_start: Optional[date] = None

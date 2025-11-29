@@ -32,7 +32,7 @@ def read_petitions(
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_student)
 ):
-    petitions = handler.get_student_petitions(user.get('email'))
+    petitions = handler.get_student_petitions(user.get('username'))
     return petitions
 
 @router.patch("/students/petitions/accept")

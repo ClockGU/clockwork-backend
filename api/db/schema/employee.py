@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship  # Import relationship for cascade behav
 class Employee(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
     user_account: uuid.UUID  # Required field
-    user_email: Optional[str] = None
+    username: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     form_of_address: Optional[str] = None

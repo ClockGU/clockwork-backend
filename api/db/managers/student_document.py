@@ -42,19 +42,19 @@ class StudentDocumentManager:
         result = self.db.execute(statement)
         return result.scalars().all()
 
-    def check_student_documents_uploaded(self, student_email: str) -> bool:
+    def check_student_documents_uploaded(self, student_username: str) -> bool:
         """
         Check if a student has uploaded all required documents.
         
         Args:
-            student_email: Email of the student
+            student_username: Username of the student
         
         Returns:
             bool: True if all documents are uploaded, False otherwise
         """
         
         # First get the employee by email
-        employee_statement = select(Employee).where(Employee.user_email == student_email)
+        employee_statement = select(Employee).where(Employee.username == student_username)
         employee_result = self.db.execute(employee_statement)
         employee = employee_result.scalar_one_or_none()
         
