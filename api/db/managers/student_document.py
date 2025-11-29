@@ -75,7 +75,8 @@ class StudentDocumentManager:
         required_documents = [
             student_docs.elstam_url,
             student_docs.studienbescheinigung_url,
-            student_docs.versicherungsbescheinigung_url
+            student_docs.versicherungsbescheinigung_url,
+            student_docs.sozialversicherungsbogen_url
         ]
         
         # Return True only if all documents have non-empty URLs
