@@ -12,7 +12,7 @@ class Petition(SQLModel, table=True):
     end_date: date
     minutes: int
     ba_degree: bool
-    student_mail: str
+    student_user_name: str
     supervisor_mail: Optional[str] = None
     
     status: str = Field(default="approver_action", nullable=False)

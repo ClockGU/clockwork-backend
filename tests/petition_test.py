@@ -17,7 +17,7 @@ def sample_petition_data():
         "ba_degree": "Bachelor's",
         "budget_position": "Manager",
         "budget_approver": "Approver",
-        "student_mail": "student@example.com"
+        "student_user_name": "student123"
         # Optional fields can be omitted or provided as needed.
     }
 

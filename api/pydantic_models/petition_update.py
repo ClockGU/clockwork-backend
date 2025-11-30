@@ -18,7 +18,7 @@ class PetitionUpdateBase(SQLModel):
     end_date: Optional[date] = None
     minutes: Optional[int] = None
     ba_degree: Optional[bool] = None
-    student_mail: Optional[str] = None
+    student_user_name: Optional[str] = None
     supervisor_mail: Optional[str] = None
 
     # Budget positions as a list - can be updated
@@ -57,13 +57,13 @@ class PetitionUpdateBase(SQLModel):
             raise ValueError("eos_number must be either 6 digits or start with 'F' followed by 6 digits (e.g., F123456 or 123456)")
         return eos_number
 
-    @field_validator("student_mail")
-    def validate_student_mail(cls, student_mail):
-        if student_mail is not None:
-            # Ensure student_mail is a valid email format
-            if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", student_mail):
-                raise ValueError("student_mail must be a valid email address")
-        return student_mail
+    @field_validator("student_user_name")
+    def validate_student_user_name(cls, student_user_name):
+        if student_user_name is not None:
+            # Ensure student_user_name contains valid characters
+            if not re.match(r"^[a-zA-Z0-9_.+-]+$", student_user_name):
+                raise ValueError("student_user_name must contain only alphanumeric characters, dots, underscores, plus signs, or hyphens")
+        return student_user_name
 
     @field_validator("budget_positions")
     def validate_budget_positions(cls, budget_positions):

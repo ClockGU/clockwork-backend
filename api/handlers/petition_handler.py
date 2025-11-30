@@ -28,6 +28,10 @@ class PetitionHandler:
         self.employee_manager = EmployeeManager(db)
         self.email_handler = EmailHandler()
 
+    def _generate_student_email(self, student_user_name: str) -> str:
+        """Generate student email from username"""
+        return f"{student_user_name}@uni-frankfurt.de"
+
     def create_petition(self, petition_data: PetitionCreate) -> Petition:
         try:
             petition = self.manager.create_petition(petition_data)
@@ -130,8 +134,9 @@ class PetitionHandler:
                 )
 
             # Check if student has uploaded documents before sending email
-            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_mail)
-            is_semester_eligible = self._check_student_semester_eligibility(petition.student_mail, petition.start_date)
+            student_email = self._generate_student_email(petition.student_user_name)
+            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(student_email)
+            is_semester_eligible = self._check_student_semester_eligibility(petition.student_user_name, petition.start_date)
 
             if has_uploaded_documents and is_semester_eligible:
                 # Generate signature for the petition acceptance link
@@ -141,7 +146,7 @@ class PetitionHandler:
                 
                 # Send email to student with acceptance link
                 self.email_handler.send_email(
-                    recipient=petition.student_mail,
+                    recipient=student_email,
                     subject="New petition requires your acceptance",
                     body=f"A new petition has been created and approved for you. Your documents have already been verified. "
                          f"Please click the following link to review and accept the petition: {petition_url}"
@@ -150,7 +155,7 @@ class PetitionHandler:
             else:
                 # Send email asking student to upload documents
                 self.email_handler.send_email(
-                    recipient=petition.student_mail,
+                    recipient=student_email,
                     subject="Upload Documents Required",
                     body=f"Your petition has been approved. Please upload the required documents (Elstam, Studienbescheinigung, Versicherungsbescheinigung) to complete your petition."
                 )
@@ -285,10 +290,10 @@ class PetitionHandler:
             raise HTTPException(status_code=404, detail=f"No petitions found for user with ID {user_account}")
         return petitions
 
-    def get_student_petitions(self, student_mail: str) -> List[Petition]:
-        petitions = self.manager.get_student_petitions(student_mail)
+    def get_student_petitions(self, student_user_name: str) -> List[Petition]:
+        petitions = self.manager.get_student_petitions(student_user_name)
         if not petitions:
-            raise HTTPException(status_code=404, detail=f"No petitions found for student with email {student_mail}")
+            raise HTTPException(status_code=404, detail=f"No petitions found for student with username {student_user_name}")
         return petitions
 
     def get_petitions_by_status(self, status: str) -> List[Petition]:
@@ -325,7 +330,8 @@ class PetitionHandler:
                 )
             if status == "clerk_action":
                 # Check if student has uploaded documents before approving
-                employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+                student_email = self._generate_student_email(petition.student_user_name)
+                employee = self.employee_manager.get_employee_by_email(student_email)
                 if not employee:
                     raise HTTPException(
                         status_code=400,
@@ -410,14 +416,14 @@ class PetitionHandler:
         except Exception as e:
             print(f"Error sending budget position update emails: {str(e)}", flush=True)
 
-    def _check_student_semester_eligibility(self, student_email: str, start_date: date) -> bool:
+    def _check_student_semester_eligibility(self, student_user_name: str, start_date: date) -> bool:
         """
         Check if student is eligible to have a petition in the given semester.
         Returns True if eligible (no approved petition in same semester), False otherwise.
         """
         try:
             existing_petitions = self.manager.get_student_approved_petitions_in_semester(
-                student_email, start_date
+                student_user_name, start_date
             )
 
             # If there are existing approved petitions in the same semester, student is not eligible
@@ -437,7 +443,8 @@ class PetitionHandler:
 
         # Check if student has uploaded documents before approving
         if approved:
-            employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+            student_email = self._generate_student_email(petition.student_user_name)
+            employee = self.employee_manager.get_employee_by_email(student_email)
             if not employee:
                 raise HTTPException(
                     status_code=400,
@@ -448,7 +455,7 @@ class PetitionHandler:
                     status_code=400,
                     detail="You cannot approve the petition unless your employee profile is complete (date of birth and address)."
                 )
-            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_mail)
+            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(student_email)
             if not has_uploaded_documents:
                 raise HTTPException(
                     status_code=400,
@@ -518,7 +525,8 @@ class PetitionHandler:
         if approved:
             # Create contract PDF and email it to the employee (and student)
             try:
-                employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+                student_email = self._generate_student_email(petition.student_user_name)
+                employee = self.employee_manager.get_employee_by_email(student_email)
                 if employee:
                     employee_read = EmployeeRead.model_validate(employee,from_attributes=True)
                     petition_read = PetitionRead.model_validate(petition, from_attributes=True)
@@ -551,8 +559,9 @@ class PetitionHandler:
             raise HTTPException(status_code=400, detail="Revision can only be requested when petition status is 'clerk_action'")
 
         # Send email to student
+        student_email = self._generate_student_email(petition.student_user_name)
         self.email_handler.send_email(
-            recipient=petition.student_mail,
+            recipient=student_email,
             subject="Revision Requested for Your Petition",
             body=f"The clerk has requested a revision for your petition.\n\nMessage: {message}"
         )
@@ -571,8 +580,9 @@ class PetitionHandler:
         petition = self.manager.update_petition_status(petition_id, "completed")
         
         # Send email to student
+        student_email = self._generate_student_email(petition.student_user_name)
         self.email_handler.send_email(
-            recipient=petition.student_mail,
+            recipient=student_email,
             subject="Your Petition is Completed",
             body=f"Your petition {petition.id} has been completed. Welcome aboard!"
         )
@@ -650,7 +660,8 @@ class PetitionHandler:
                     recipient=petition.supervisor_mail,
                     subject=f"Revision Requested by Student for Petition {petition_id}",
                     body=f"The student has requested a revision for petition {petition_id}.\n\n"
-                         f"Student email: {petition.student_mail}\n"
+                         f"Student username: {petition.student_user_name}\n"
+                         f"Student email: {self._generate_student_email(petition.student_user_name)}\n"
                          f"Revision request message:\n{text}\n\n"
                          f"Please review and make necessary changes to the petition."
                 )
