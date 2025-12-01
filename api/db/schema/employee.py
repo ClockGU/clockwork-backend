@@ -30,3 +30,7 @@ class Employee(SQLModel, table=True):
         back_populates="employee",
         sa_relationship=relationship("StudentDocuments", back_populates="employee", cascade="all, delete-orphan")
     )
+
+    @property
+    def user_email(self):
+        return f"{self.username}@stud.uni-frankfurt.de"
