@@ -73,8 +73,9 @@ class PetitionUpdateBase(SQLModel):
     def validate_time_exc(cls, values):
         # Check if any time_exc fields are provided
         time_exc_fields = [
-            values.time_exce_start,
-            values.time_exce_end,
+            # values.time_exce_start,
+            # values.time_exce_end,
+            values.time_exce_time,
             values.time_exce_name,
         ]
         provided = [field for field in time_exc_fields if field is not None]
