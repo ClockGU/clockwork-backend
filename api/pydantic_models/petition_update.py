@@ -31,6 +31,7 @@ class PetitionUpdateBase(SQLModel):
     time_exce_name: Optional[str] = None
     time_exce_start: Optional[date] = None
     time_exce_end: Optional[date] = None
+    time_exce_time: Optional[int] = None
 
     duration_exce_course: Optional[bool] = None
     duration_exce_name: Optional[str] = None

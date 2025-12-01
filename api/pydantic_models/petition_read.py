@@ -18,6 +18,7 @@ class PetitionBaseRead(SQLModel):
     time_exce_name: Optional[str] = None
     time_exce_start: Optional[date] = None
     time_exce_end: Optional[date] = None
+    time_exce_time: Optional[int] = None
     duration_exce_name: Optional[str] = None
     duration_exce_start: Optional[date] = None
     duration_exce_end: Optional[date] = None
