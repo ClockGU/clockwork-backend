@@ -24,6 +24,8 @@ class Employee(SQLModel, table=True):
     previously_employeed: Optional[bool] = None
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
+    bic: Optional[str] = None
+    bank_name: Optional[str] = None
 
     # Add the documents relationship
     documents: List[StudentDocuments] = Relationship(

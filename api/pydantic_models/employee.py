@@ -22,6 +22,9 @@ class EmployeeCreate(BaseModel):
     previously_employed: Optional[bool] = None  
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
+    bic: Optional[str] = None
+    bank_name: Optional[str] = None
+    
 
 
 class EmployeeUpdate(BaseModel):
@@ -38,9 +41,11 @@ class EmployeeUpdate(BaseModel):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previously_employed: Optional[bool] = None
+    previously_employeed: Optional[bool] = None
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
+    bic: Optional[str] = None
+    bank_name: Optional[str] = None
 
 
 class EmployeeRead(BaseModel):
@@ -58,9 +63,11 @@ class EmployeeRead(BaseModel):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previous_employment: Optional[bool] = None  
+    previously_employeed: Optional[bool] = None  
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
+    bic: Optional[str] = None
+    bank_name: Optional[str] = None
 
     class Config:
         orm_mode = True

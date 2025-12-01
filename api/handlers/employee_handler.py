@@ -2,14 +2,19 @@ from typing import List, Optional
 from uuid import UUID
 from sqlmodel import Session
 from fastapi import HTTPException
+from io import BytesIO
 
 from api.db.managers.emploeyee_manager import EmployeeManager
+from api.db.managers.petition_manager import PetitionManager
 from api.db.schema.employee import Employee
+from api.pydantic_models import EmployeeRead, PetitionRead
+from api.pdf.student_data import create_student_data_pdf
 
 
 class EmployeeHandler:
     def __init__(self, db: Session):
         self.manager = EmployeeManager(db)
+        self.petition_manager = PetitionManager(db)
 
     def create_employee(self, employee_data: dict) -> Employee:
         """
@@ -133,4 +138,36 @@ class EmployeeHandler:
                 status_code=404, detail=f"Employee with username {username} not found"
             )
         return employee
+    
+    def get_student_data_pdf(self, username: str, petition_id: UUID) -> BytesIO:
+        """
+        Generate and return student data PDF for a given username and petition.
+        """
+        # Get employee by username
+        employee = self.manager.get_employee_by_username(username)
+        if not employee:
+            raise HTTPException(
+                status_code=404, detail=f"Employee with username {username} not found"
+            )
+        
+        # Get petition
+        petition = self.petition_manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(
+                status_code=404, detail=f"Petition with ID {petition_id} not found"
+            )
+        
+        # Convert to Pydantic models
+        employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
+        petition_read = PetitionRead.model_validate(petition, from_attributes=True)
+        
+        # Generate PDF
+        try:
+            pdf_buffer = create_student_data_pdf(employee_read, petition_read)
+            return pdf_buffer
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Failed to generate student data PDF: {str(e)}"
+            )
 
