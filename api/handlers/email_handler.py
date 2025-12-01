@@ -424,3 +424,49 @@ class EmailHandler:
                 )
         except Exception as e:
             print(f"Error sending student rejection to budget approvers email: {str(e)}", flush=True)
+
+    def send_student_documents_upload_request_email(self) -> None:
+        """Send email asking student to upload required documents"""
+        if not self.petition:
+            raise ValueError("Petition is required for this email operation")
+        
+        try:
+            self.send_email(
+                recipient=self.petition.student_mail,
+                subject="[ClockWork] Dokumente hochladen / Upload Documents Required",
+                body=f"Für Sie wurde ein Antrag zur Einstellung als studentische Hilfskraft gestellt. Laden Sie dazu die notwendigen Unterlagen hoch. Benötigt werden\n\n"
+                f"- Selbstauskunft zur Lohnsteuererklärung (ELStAM)\n\n"
+                f"- Fragebogen zur Sozialversicherung\n\n"
+                f"- aktuelle Studienbescheinigung\n\n"
+                f"- Mitgliedsbescheinigung Ihrer Krankenkasse\n\n"
+                f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
+                f"\n\n--------------\n\n"
+                f"An application has been filed for your employment as a student assistant. Please upload the required documents to complete your petition. You will need to uploade\n\n"
+                f"- Self-disclosure form for income tax (ELStAM form)\n\n"
+                f"- Social Security questionnaire\n\n"
+                f"- current certificate of enrolment\n\n"
+                f"- Health insurance membership certificate\n\n"
+                f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n"
+            )
+        except Exception as e:
+            print(f"Error sending student documents upload request email: {str(e)}", flush=True)
+
+    def send_student_acceptance_link_email(self, signature: str) -> None:
+        """Send email to student with acceptance link"""
+        if not self.petition:
+            raise ValueError("Petition is required for this email operation")
+        
+        try:
+            petition_url = f"{settings.FRONTEND_URL}/student/accept?petition_id={self.petition.id}&signature={signature}"
+            
+            self.send_email(
+                recipient=self.petition.student_mail,
+                subject="[ClockWork] Einstellung als studentische Hilfskraft / Employment as a student assistant",
+                body=f"Für Sie wurde ein Antrag zur Einstellung als studentische Hilfskraft gestellt.\n\n"
+                f"Bitte nutzen Sie den folgenden Link, um sich anzumelden und dem Antrag zuzustimmen: {petition_url}"
+                f"\n\n--------------\n\n"
+                f"An application has been filed for your employment as a student assistant.\n\n"
+                f"Please use the following link to review and accept the petition: {petition_url}"
+            )
+        except Exception as e:
+            print(f"Error sending student acceptance link email: {str(e)}", flush=True)
