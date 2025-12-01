@@ -190,10 +190,12 @@ class PetitionHandler:
                     recipient=petition.supervisor_mail,
                     subject="[ClockWork] Änderung durch Kostenstellenbeauftragten angefordert / Revision requested by budget approver",
                     body=f"Für den Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde von einer kostenstellenverantwortlichen Person eine Änderung angefordert."
+                         f" Nachricht: {revision_message}\n\n"
                          f"Bitte melden Sie sich bei ClockWork an überprüfen Sie die Details des Antrags."
                          f"Sie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}."
                          f"\n\n--------------\n\n"
                          f"An revision has been requested for the application {petition.id} for the employment of a new student assistant by another budget approver."
+                         f" Message: {revision_message}\n\n"
                          f"Please log in to ClockWork and review the application details."
                          f"You are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}."
                 )
