@@ -112,8 +112,10 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
-                    subject="Petition Approved",
-                    body=f"Petition {petition.id} has been approved by all budget approvers."
+                    subject="[ClockWork] Kostenstellen freigegeben / Budget approved", 
+                    body=f"Ihr Antrag {petition.id} für die Einstellung einer studentischen Hilfskraft wurde von allen Kostenstellenverantwortlichen freigegeben."
+                    f"\n\n--------------\n\n"
+                    f"Your application {petition.id} for the employment of a new student assistant has been approved by all budget approvers."
                 )
 
             # Get all budget positions for this petition
@@ -123,10 +125,10 @@ class PetitionHandler:
             for budget_position in budget_positions:
                 self.email_handler.send_email(
                     recipient=budget_position.budget_approver,
-                    subject="Petition Fully Approved - Awaiting Student Action",
-                    body=f"Petition {petition.id} has been approved by all budget approvers, including yourself. "
-                         f"Your budget position '{budget_position.budget_position}' was approved. "
-                         f"The petition is now awaiting student action."
+                    subject="[ClockWork] Kostenstellen freigegeben / Budget approved", 
+                    body=f"Der Antrag {petition.id} für die Einstellung einer studentischen Hilfskraft wurde von allen Kostenstellenverantwortlichen freigegeben."
+                    f"\n\n--------------\n\n"
+                    f"The application {petition.id} for the employment of a new student assistant has been approved by all budget approvers."
                 )
 
             # Check if student has uploaded documents before sending email
@@ -142,17 +144,30 @@ class PetitionHandler:
                 # Send email to student with acceptance link
                 self.email_handler.send_email(
                     recipient=petition.student_mail,
-                    subject="New petition requires your acceptance",
-                    body=f"A new petition has been created and approved for you. Your documents have already been verified. "
-                         f"Please click the following link to review and accept the petition: {petition_url}"
+                    subject="[ClockWork] Einstellung als studentische Hilfskraft / Employment as a student assistant",
+                    body=f"Für Sie wurde ein Antrag zur Einstellung als studentische Hilfskraft gestellt.\n\n"
+                    f"Bitte nutzen Sie den folgenden Link, um sich anzumelden und dem Antrag zuzustimmen."
+                    f"\n\n--------------\n\n"
+                    f"An application has been filed for your employment as a student assistant.\n\n"
+                    f"Please use the following link to review and accept the petition: {petition_url}"
                 )
 
             else:
                 # Send email asking student to upload documents
                 self.email_handler.send_email(
                     recipient=petition.student_mail,
-                    subject="Upload Documents Required",
-                    body=f"Your petition has been approved. Please upload the required documents (Elstam, Studienbescheinigung, Versicherungsbescheinigung) to complete your petition."
+                    subject="[ClockWork] Dokumente hochladen / Upload Documents Required",
+                    body=f"Der Antrag auf Einstellung als studentische Hilfskraft wurde genehemigt. Bitte laden Sie die notwendigen Unterlagen hoch. Benötigt werden\n\n"
+                    f"- Selbstauskunft zur Lohnsteuererklärung (ELStAM)\n\n"
+                    f"- Fragebogen zur Sozialversicherung\n\n"
+                    f"- aktuelle Studienbescheinigung\n\n"
+                    f"- Mitgliedsbescheinigung Ihrer Krankenkasse\n\n"
+                    f"\n\n--------------\n\n"
+                    f"The application for employment as a student assistant has been approved. Please upload the required documents to complete your petition. You will need to uploade\n\n"
+                    f"- Self-disclosure form for income tax (ELStAM form)\n\n"
+                    f"- Social Security questionnaire\n\n"
+                    f"- current certificate of enrolment\n\n"
+                    f"- Health insurance membership certificate\n\n"
                 )
                 
         except Exception as e:
@@ -167,10 +182,6 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
-                    subject="Petition Revision Requested",
-                    body=f"Budget approver {requesting_budget_position.budget_approver} for budget position "
-                         f"'{requesting_budget_position.budget_position}' has requested a revision for petition {petition.id}.\n\n"
-                         f"Message: {revision_message}"
                 )
 
             # Get all budget positions for this petition
@@ -181,11 +192,10 @@ class PetitionHandler:
                 if budget_position.id != requesting_budget_position.id:
                     self.email_handler.send_email(
                         recipient=budget_position.budget_approver,
-                        subject="Petition Revision Requested by Another Approver",
-                        body=f"Budget approver {requesting_budget_position.budget_approver} has requested a revision "
-                             f"for petition {petition.id} (budget position: '{requesting_budget_position.budget_position}').\n\n"
-                             f"Message: {revision_message}\n\n"
-                             f"You may need to review your approval for budget position '{budget_position.budget_position}'."
+                        subject="[ClockWork] ", 
+                        body=f"Für den Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde von einer anderen kostenstellenverantwortlichen Person eine Änderung angefordert. Der Antrag verzögert sich." 
+                        f"\n\n--------------\n\n"
+                        f"An revision has been requested for the application {petition.id} for the employment of a new student assistant by another budget approver. The application will be delayed."
                     )
 
         except Exception as e:
@@ -198,8 +208,10 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
-                    subject="Petition Rejected",
-                    body=f"Petition {petition.id} has been rejected due to budget position '{rejected_budget_position.budget_position}' being denied by {rejected_budget_position.budget_approver}."
+                    subject="[ClockWork] Antrag abgelehnt / Application rejected",
+                    body=f"Ihr Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde abgelehnt, da die Kostenstelle {rejected_budget_position.budget_position} von {rejected_budget_position.budget_approver} nicht freigegeben wurde." 
+                    f"\n\n--------------\n\n" 
+                    f"Your application {petition.id} for the employment of a new student assistant has been rejected. The budget {rejected_budget_position.budget_position} has not been approved by {rejected_budget_position.budget_approver}."
                 )
 
             # Get all budget positions for this petition
@@ -210,10 +222,10 @@ class PetitionHandler:
                 if budget_position.id != rejected_budget_position.id:
                     self.email_handler.send_email(
                         recipient=budget_position.budget_approver,
-                        subject="Petition Rejected by Another Approver",
-                        body=f"Petition {petition.id} has been rejected by budget approver {rejected_budget_position.budget_approver} "
-                             f"for budget position '{rejected_budget_position.budget_position}'. "
-                             f"Your review for budget position '{budget_position.budget_position}' is no longer needed."
+                        subject="[ClockWork] Antrag abgebrochen / Application canceled by another person ", 
+                        body=f"Der Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde abgebrochen, da eine der angegebenen Kostenstellen nicht freigegeben wurde.\n\nIhre Freigabe für {budget_position.budget_position} ist nicht mehr erforderlich." 
+                        f"\n\n--------------\n\n" 
+                        f"The application {petition.id} for the employment of a new student assistant has been canceled because another person did not approve one of the budget positions.\n\nYour review for budget position '{budget_position.budget_position}' is no longer required."
                     )
 
         except Exception as e:
@@ -364,8 +376,10 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
-                    subject="Student Accepted Petition",
-                    body=f"Student has accepted petition {petition.id}. The petition is now ready for clerk review."
+                    subject="[ClockWork] Zustimmung durch Stud. Hilfskraft / Accepted by student assistant", 
+                    body=f"Die studentische Hilfskraft hat der Einstellung zugestimmt. Der Antrag wird nun von PersonalServices geprüft." 
+                    f"\n\n--------------\n\n" 
+                    f"The new student assistant has agreed to the employment ({petition.id}). The application will now be reviewed by PersonalServices." 
                 )
         except Exception as e:
             print(f"Error sending student acceptance email: {str(e)}", flush=True)
@@ -377,8 +391,10 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
-                    subject="Student Rejected Petition",
-                    body=f"Student has rejected petition {petition.id}. Please review the petition details."
+                    subject="[ClockWork] Ablehnung durch Stud. Hilfskraft / Rejection by student assistant", 
+                    body=f"Die studentische Hilfskraft hat der Einstellung (Antrag {petition.id}) nicht zugestimmt. Bitte melden Sie sich bei ClockWork an überprüfen Sie die Details des Antrags."
+                    f"\n\n--------------\n\n" 
+                    f"The student assistant has not agreed to the employment (application {petition.id}). Please log in to ClockWork and review the application details." 
                 )
         except Exception as e:
             print(f"Error sending student rejection email: {str(e)}", flush=True)
@@ -399,10 +415,10 @@ class PetitionHandler:
 
                 self.email_handler.send_email(
                     recipient=budget_position.budget_approver,
-                    subject="Petition Updated - Action Required",
-                    body=f"The petition with id {petition.id} have been updated. "
-                         f"Your budget position '{budget_position.budget_position}' requires re-approval. "
-                         f"Please review and approve the updated petition: {petition_url}"
+                    subject="[ClockWork] Antrag aktualisiert: Aktion erforderlich / Application updated: action required", 
+                    body=f"Der Antrag {petition.id} wurde aktualisiert. Die Kostenstelle {budget_position.budget_position} muss erneut genehmigt werden. Bitte verwenden Sie den folgenden Link, um den Antrag zu prüfen: {petition_url}" 
+                    f"\n\n--------------\n\n" 
+                    f"Please review and approve the updated petition: {petition_url}"
                 )
 
             print(f"Budget position update emails sent for petition {petition.id}", flush=True)
@@ -460,8 +476,10 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
-                    subject="Student Accepted Petition",
-                    body=f"Student has accepted petition {petition.id}. The petition is now ready for clerk review."
+                    subject="[ClockWork] Zustimmung durch Stud. Hilfskraft / Accepted by student assistant", 
+                    body=f"Die neue studentische Hilfskraft hat der Einstellung zugestimmt. Der Antrag {petition.id} wird nun von PersonalServices geprüft." 
+                    f"\n\n--------------\n\n"
+                    f"The new student assistant has agreed to the employment. The application {petition.id} will now be reviewed by PersonalServices."
                 )
         else:
             # Student rejected, notify and then move to clerk_action
@@ -469,14 +487,18 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
-                    subject="Student Rejected Petition",
-                    body=f"Student has rejected petition {petition.id}. Please review the petition details."
+                    subject="[ClockWork] Ablehnung durch Stud. Hilfskraft / Rejection by student assistant", 
+                    body=f"Die studentische Hilfskraft hat der Einstellung (Antrag {petition.id}) nicht zugestimmt. Bitte melden Sie sich bei ClockWork an überprüfen Sie die Details des Antrags." 
+                    f"\n\n--------------\n\n" 
+                    f"The student assistant has not agreed to the employment (application {petition.id}). Please log in to ClockWork and review the application details."
                 )
             for budget_position in petition.budget_positions:
                 self.email_handler.send_email(
                     recipient=budget_position.budget_approver,
-                    subject="Petition Rejected by Student",
-                    body=f"Petition {petition.id} was rejected by the student."
+                    subject="[ClockWork] Ablehnung durch Stud. Hilfskraft / Rejection by student assistant",
+                    body=f"Die studentische Hilfskraft hat der Einstellung (Antrag {petition.id}) nicht zugestimmt." 
+                    f"\n\n--------------\n\n"
+                    f"The student assistant has not agreed to the employment (application {petition.id})."
                 )
         return petition
     
@@ -505,14 +527,20 @@ class PetitionHandler:
         if petition.supervisor_mail:
             self.email_handler.send_email(
                 recipient=petition.supervisor_mail,
-                subject="Clerk Updated Petition Status",
-                body=f"Clerk has {'approved' if approved else 'rejected'} petition {petition.id}. Please review the petition details."
+                subject="[ClockWork] Neuer Antragstatus / Application status updatee", 
+                body=f"Der Antrag {petition.id} wurde von PersonalServices {'freigegeben' if approved else 'zurückgewiesen'}.\n\n" 
+                f"Bitte melden Sie sich an, um den Antragsstatus zu überprüfen."
+                f"\n\n--------------\n\n"
+                f"Your application {petition.id} has been {'approved' if approved else 'rejected'} by PersonalServices.\n\n"
+                f"Please log in and review the application's status."
             )
         for budget_position in petition.budget_positions:
             self.email_handler.send_email(
                 recipient=budget_position.budget_approver,
-                subject="Petition Status Updated by Clerk",
-                body=f"Petition {petition.id} was {'approved' if approved else 'rejected'} by the clerk."
+                subject="[ClockWork] Neuer Antragstatus / Application status updatee", 
+                body=f"Der Antrag {petition.id} wurde von PersonalServices {'freigegeben' if approved else 'zurückgewiesen'}." 
+                f"\n\n--------------\n\n" 
+                f"The application {petition.id} has been {'approved' if approved else 'rejected'} by PersonalServices."
             )
         
         if approved:
@@ -531,9 +559,15 @@ class PetitionHandler:
                     # Send to employee
                     if employee.username:
                         self.email_handler.send_email(
-                            recipient=employee.username,
-                            subject="Your Employment Contract",
-                            body=f"Dear {employee.first_name or ''},\n\nPlease find attached your employment contract for petition {petition.id}. Please print it out twice and handover the signed version",
+                            recipient=employee.user_email,
+                            subject="[ClockWork] Ihr Arbeitsvertrag / Your employment contract",
+                            body=f"Sehr geehrte*r {employee.first_name} {employee.last_name},\n\n" 
+                            f"Im Anhang finden Sie Ihren Arbeitsvertrag für Ihre Einstellung als studentische Hilfskraft (Antrag {petition.id}).\n\n"
+                            f"Bitte drucken Sie diesen doppelt aus und geben Sie beide Anträge so schnell wie möglich unterschrieben an Ihren Fachbereich / Ihr Institut zurück." 
+                            f"\n\n--------------\n\n" 
+                            f"Dear {employee.first_name} {employee.last_name},\n\n" 
+                            f"Please find attached your employment contract for your employment as student assistant (application ID {petition.id}).\n\n"
+                            f"Please print it out twice and hand over the signed version to your department / institute as soon as possible.",
                             attachment_bytes=pdf_bytes,
                             attachment_filename=filename,
                         )
@@ -553,8 +587,14 @@ class PetitionHandler:
         # Send email to student
         self.email_handler.send_email(
             recipient=petition.student_mail,
-            subject="Revision Requested for Your Petition",
-            body=f"The clerk has requested a revision for your petition.\n\nMessage: {message}"
+            subject="[ClockWork] Änderungen angefordert / Changes requested",
+            body=f"PersonalServices hat eine Anpassung Ihrer Angaben / Unterlagen angefordert:\n\n"
+            f"{message}\n\n"
+            f"Bitte melden Sie sich an, um Ihre Angaben zu prüfen und zu ergänzen."
+            f"\n\n--------------\n\n"
+            f"PersonalServices has requested a revision of your data / documents:\n\n"
+            f"{message}\n\n"
+            f"Please log in to review and amend your personal information or documents."         
         )
         # Change status to clerk_revision
         petition = self.manager.update_petition_status(petition_id, "clerk_revision")
@@ -573,13 +613,21 @@ class PetitionHandler:
         # Send email to student
         self.email_handler.send_email(
             recipient=petition.student_mail,
-            subject="Your Petition is Completed",
-            body=f"Your petition {petition.id} has been completed. Welcome aboard!"
+            subject="[ClockWork] Einstellung abgeschlossen / Employment process completed",
+            body=f"Ihre Einstellung (Antrag {petition.id}) ist abgeschlossen.\n\n"
+            f"Willkommen als Beschäftigte*r der Goethe-Universität!" 
+            f"\n\n--------------\n\n" 
+            f"Your employment (application ID {petition.id}) has been completed.\n\n" 
+            f" Welcome as employee of Goethe University!" 
         )
         self.email_handler.send_email(
             recipient=petition.supervisor_mail,
-            subject="Petition Completed",
-            body=f"Petition {petition.id} has been completed for the student. All steps are finalized."
+            subject="[ClockWork] Einstellung abgeschlossen / Employment process completed",
+            body=f"Der Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft ist abgeschlossen.\n\n" 
+            f"Sie erhalten demnächst den unterschriebenen Arbeitsvertrag von PersonalServices. Bitte geben Sie diesen an die studentische Hilfskraft weiter." 
+            f"\n\n--------------\n\n" 
+            f"Application {petition.id} for the employment of a student assistant has been completed.\n\n" 
+            f"In a few days, you will be receiving the employment contract from PersonalServices. Please hand it over to the student assistant."
         )
         return petition
 
@@ -648,13 +696,16 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
-                    subject=f"Revision Requested by Student for Petition {petition_id}",
-                    body=f"The student has requested a revision for petition {petition_id}.\n\n"
-                         f"Student email: {petition.student_mail}\n"
-                         f"Revision request message:\n{text}\n\n"
-                         f"Please review and make necessary changes to the petition."
+                    subject=f"[ClockWork] Anpassung von studentischer Hilfskraft angefordert / Review requested by student assistant",
+                    body=f"Die studentische Hilfskraft ({petition.student_mail}) hat eine Anpassung des Antrags {petition.id} auf Einstellung angefordert:\n\n"
+                    f"{text}\n\n"
+                    f"Bitte melden Sie sich an und nehmen Sie die notwendigen Anpassungen vor."
+                    f"\n\n--------------\n\n"
+                    f"The student assistant({petition.student_mail}) has requested a revision for application {petition_id}:\n\n"
+                    f"{text}\n\n"
+                    f"Please log in and provide the necessery changes."
                 )
-            
+
             # Update petition status to student_revision
             petition = self.manager.update_petition_status(petition_id, "student_revision")
             if not petition:
