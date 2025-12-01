@@ -26,7 +26,7 @@ class PetitionHandler:
         self.budget_position_manager = BudgetPositionManager(db)
         self.student_document_manager = StudentDocumentManager(db)
         self.employee_manager = EmployeeManager(db)
-        self.email_handler = EmailHandler()
+        self.db = db
 
     def create_petition(self, petition_data: PetitionCreate) -> Petition:
         try:
@@ -182,39 +182,12 @@ class PetitionHandler:
     def _send_revision_request_email(self, petition: Petition, requesting_budget_position, message: Optional[str] = None) -> None:
         """Send email when a budget approver requests revision"""
         try:
-            revision_message = message if message else "No specific message provided."
-
-            # Send email to supervisor
-            if petition.supervisor_mail:
-                self.email_handler.send_email(
-                    recipient=petition.supervisor_mail,
-                    subject="[ClockWork] Änderung durch Kostenstellenbeauftragten angefordert / Revision requested by budget approver",
-                    body=f"Für den Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde von einer kostenstellenverantwortlichen Person eine Änderung angefordert."
-                         f" Nachricht: {revision_message}\n\n"
-                         f"Bitte melden Sie sich bei ClockWork an überprüfen Sie die Details des Antrags."
-                         f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
-                         f"\n\n--------------\n\n"
-                         f"An revision has been requested for the application {petition.id} for the employment of a new student assistant by another budget approver."
-                         f" Message: {revision_message}\n\n"
-                         f"Please log in to ClockWork and review the application details."
-                         f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n"
-                )
-
+            email_handler = EmailHandler(petition)
+            
             # Get all budget positions for this petition
             budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
 
-            # Send email to all other budget approvers
-            for budget_position in budget_positions:
-                if budget_position.id != requesting_budget_position.id:
-                    self.email_handler.send_email(
-                        recipient=budget_position.budget_approver,
-                        subject="[ClockWork] Änderung durch andere Kostenstellenbeauftragten angefordert / Revision requested by another budget approver",
-                        body=f"Für den Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde von einer anderen kostenstellenverantwortlichen Person eine Änderung angefordert. Der Antrag verzögert sich."
-                             f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n" 
-                        f"\n\n--------------\n\n"
-                        f"An revision has been requested for the application {petition.id} for the employment of a new student assistant by another budget approver. The application will be delayed."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n"
-                    )
+            email_handler.send_revision_request_email(requesting_budget_position, budget_positions, message)
 
         except Exception as e:
             print(f"Error sending revision request email: {str(e)}", flush=True)
@@ -222,33 +195,12 @@ class PetitionHandler:
     def _send_rejection_email(self, petition: Petition, rejected_budget_position) -> None:
         """Send email when a budget position is rejected"""
         try:
-            # Send email to supervisor
-            if petition.supervisor_mail:
-                self.email_handler.send_email(
-                    recipient=petition.supervisor_mail,
-                    subject="[ClockWork] Antrag abgelehnt / Application rejected",
-                    body=f"Ihr Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde abgelehnt, da die Kostenstelle {rejected_budget_position.budget_position} von {rejected_budget_position.budget_approver} nicht freigegeben wurde."
-                         f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n" 
-                    f"\n\n--------------\n\n" 
-                    f"Your application {petition.id} for the employment of a new student assistant has been rejected. The budget {rejected_budget_position.budget_position} has not been approved by {rejected_budget_position.budget_approver}."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n"
-                )
-
+            email_handler = EmailHandler(petition)
+            
             # Get all budget positions for this petition
             budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
 
-            # Send email to all budget approvers (approved or not)
-            for budget_position in budget_positions:
-                if budget_position.id != rejected_budget_position.id:
-                    self.email_handler.send_email(
-                        recipient=budget_position.budget_approver,
-                        subject="[ClockWork] Antrag abgebrochen / Application canceled by another person ", 
-                        body=f"Der Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde abgebrochen, da eine der angegebenen Kostenstellen nicht freigegeben wurde.\n\nIhre Freigabe für {budget_position.budget_position} ist nicht mehr erforderlich."
-                             f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n" 
-                        f"\n\n--------------\n\n" 
-                        f"The application {petition.id} for the employment of a new student assistant has been canceled because another person did not approve one of the budget positions.\n\nYour review for budget position '{budget_position.budget_position}' is no longer required."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n"
-                    )
+            email_handler.send_rejection_email(rejected_budget_position, budget_positions)
 
         except Exception as e:
             print(f"Error sending rejection email: {str(e)}", flush=True)
@@ -394,62 +346,28 @@ class PetitionHandler:
     def _send_student_acceptance_email(self, petition: Petition) -> None:
         """Send email when student accepts the petition"""
         try:
-            # Send email to supervisor
-            if petition.supervisor_mail:
-                self.email_handler.send_email(
-                    recipient=petition.supervisor_mail,
-                    subject="[ClockWork] Zustimmung durch Stud. Hilfskraft / Accepted by student assistant", 
-                    body=f"Die studentische Hilfskraft hat der Einstellung zugestimmt. Der Antrag wird nun von PersonalServices geprüft."
-                         f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n" 
-                    f"\n\n--------------\n\n" 
-                    f"The new student assistant has agreed to the employment ({petition.id}). The application will now be reviewed by PersonalServices."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n" 
-                )
+            email_handler = EmailHandler(petition)
+            email_handler.send_student_acceptance_email()
         except Exception as e:
             print(f"Error sending student acceptance email: {str(e)}", flush=True)
 
     def _send_student_rejection_email(self, petition: Petition) -> None:
         """Send email when student rejects the petition"""
         try:
-            # Send email to supervisor
-            if petition.supervisor_mail:
-                self.email_handler.send_email(
-                    recipient=petition.supervisor_mail,
-                    subject="[ClockWork] Ablehnung durch Stud. Hilfskraft / Rejection by student assistant", 
-                    body=f"Die studentische Hilfskraft hat der Einstellung (Antrag {petition.id}) nicht zugestimmt. Bitte melden Sie sich bei ClockWork an überprüfen Sie die Details des Antrags."
-                         f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
-                    f"\n\n--------------\n\n" 
-                    f"The student assistant has not agreed to the employment (application {petition.id}). Please log in to ClockWork and review the application details."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n" 
-                )
+            email_handler = EmailHandler(petition)
+            email_handler.send_student_rejection_email()
         except Exception as e:
             print(f"Error sending student rejection email: {str(e)}", flush=True)
 
     def _send_budget_position_update_emails(self, petition: Petition) -> None:
         """Send emails to budget approvers when budget positions are updated"""
         try:
-            # due to circular import this is imported here
-            from api.security import generate_signature
-            signature = generate_signature()
-
+            email_handler = EmailHandler(petition)
+            
             # Get updated budget positions
             budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
 
-            # Send email to all budget approvers with updated budget positions
-            for budget_position in budget_positions:
-                petition_url = f"{settings.FRONTEND_URL}/approver?petition_id={petition.id}&signature={signature}&budget_position_id={budget_position.id}"
-
-                self.email_handler.send_email(
-                    recipient=budget_position.budget_approver,
-                    subject="[ClockWork] Antrag aktualisiert: Aktion erforderlich / Application updated: action required", 
-                    body=f"Der Antrag {petition.id} wurde aktualisiert. Die Kostenstelle {budget_position.budget_position} muss erneut genehmigt werden. Bitte verwenden Sie den folgenden Link, um den Antrag zu prüfen: {petition_url}"
-                         f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n" 
-                    f"\n\n--------------\n\n" 
-                    f"Please review and approve the updated petition: {petition_url}"
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n"
-                )
-
-            print(f"Budget position update emails sent for petition {petition.id}", flush=True)
+            email_handler.send_budget_position_update_emails(budget_positions)
 
         except Exception as e:
             print(f"Error sending budget position update emails: {str(e)}", flush=True)
@@ -549,38 +467,18 @@ class PetitionHandler:
             petition = self.manager.update_petition_status(petition_id, "clerk_action")
             # Send email to supervisor
             if petition.supervisor_mail:
-                self.email_handler.send_email(
-                    recipient=petition.supervisor_mail,
-                    subject="[ClockWork] Zustimmung durch Stud. Hilfskraft / Accepted by student assistant", 
-                    body=f"Die neue studentische Hilfskraft hat der Einstellung zugestimmt. Der Antrag {petition.id} wird nun von PersonalServices geprüft."
-                         f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n" 
-                    f"\n\n--------------\n\n"
-                    f"The new student assistant has agreed to the employment. The application {petition.id} will now be reviewed by PersonalServices."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
-                )
+                email_handler = EmailHandler(petition)
+                email_handler.send_student_acceptance_email()
         else:
             # Student rejected, notify and then move to clerk_action
             petition = self.manager.update_petition_status(petition_id, "rejected")
+            email_handler = EmailHandler(petition)
             if petition.supervisor_mail:
-                self.email_handler.send_email(
-                    recipient=petition.supervisor_mail,
-                    subject="[ClockWork] Ablehnung durch Stud. Hilfskraft / Rejection by student assistant", 
-                    body=f"Die studentische Hilfskraft hat der Einstellung (Antrag {petition.id}) nicht zugestimmt. Bitte melden Sie sich bei ClockWork an überprüfen Sie die Details des Antrags."
-                         f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n" 
-                    f"\n\n--------------\n\n" 
-                    f"The student assistant has not agreed to the employment (application {petition.id}). Please log in to ClockWork and review the application details."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
-                )
-            for budget_position in petition.budget_positions:
-                self.email_handler.send_email(
-                    recipient=budget_position.budget_approver,
-                    subject="[ClockWork] Ablehnung durch Stud. Hilfskraft / Rejection by student assistant",
-                    body=f"Die studentische Hilfskraft hat der Einstellung (Antrag {petition.id}) nicht zugestimmt."
-                         f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n" 
-                    f"\n\n--------------\n\n"
-                    f"The student assistant has not agreed to the employment (application {petition.id})."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
-                )
+                email_handler.send_student_rejection_email()
+            
+            # Send to budget approvers
+            email_handler.send_student_rejection_to_budget_approvers_email(petition.budget_positions)
+            
         return petition
     
     def update_petition_as_clerk(self, petition_id: UUID, approved: bool) -> Petition:
@@ -605,62 +503,29 @@ class PetitionHandler:
 
         # Update petition status
         petition = self.manager.update_petition_status(petition_id, "awaiting_signature" if approved else "rejected")
-        if petition.supervisor_mail:
-            self.email_handler.send_email(
-                recipient=petition.supervisor_mail,
-                subject="[ClockWork] Neuer Antragstatus / Application status updatee", 
-                body=f"Der Antrag {petition.id} wurde von PersonalServices {'freigegeben' if approved else 'zurückgewiesen'}.\n\n" 
-                f"Bitte melden Sie sich an, um den Antragsstatus zu überprüfen."
-                f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                f"\n\n--------------\n\n"
-                f"Your application {petition.id} has been {'approved' if approved else 'rejected'} by PersonalServices.\n\n"
-                f"Please log in and review the application's status."
-                f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
-            )
-        for budget_position in petition.budget_positions:
-            self.email_handler.send_email(
-                recipient=budget_position.budget_approver,
-                subject="[ClockWork] Neuer Antragstatus / Application status updatee", 
-                body=f"Der Antrag {petition.id} wurde von PersonalServices {'freigegeben' if approved else 'zurückgewiesen'}."
-                     f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n" 
-                f"\n\n--------------\n\n" 
-                f"The application {petition.id} has been {'approved' if approved else 'rejected'} by PersonalServices."
-                f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
-            )
+        
+        email_handler = EmailHandler(petition)
+        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+        email_handler.send_clerk_approval_email(approved, budget_positions)
         
         if approved:
             # Create contract PDF and email it to the employee (and student)
             try:
                 employee = self.employee_manager.get_employee_by_username(petition.student_username)
-                if employee:
-                    employee_read = EmployeeRead.model_validate(employee,from_attributes=True)
-                    petition_read = PetitionRead.model_validate(petition, from_attributes=True)
-
-                    # Create PDF bytes
-                    pdf_buf = create_contract_pdf(employee_read, petition_read)
-                    pdf_bytes = pdf_buf.getvalue()
-                    filename = f"Arbeitsvertrag_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
-
-                    # Send to employee
-                    if employee.username:
-                        self.email_handler.send_email(
-                            recipient=employee.user_email,
-                            subject="[ClockWork] Ihr Arbeitsvertrag / Your employment contract",
-                            body=f"Sehr geehrte*r {employee.first_name} {employee.last_name},\n\n" 
-                            f"Im Anhang finden Sie Ihren Arbeitsvertrag für Ihre Einstellung als studentische Hilfskraft (Antrag {petition.id}).\n\n"
-                            f"Bitte drucken Sie diesen doppelt aus und geben Sie beide Anträge so schnell wie möglich unterschrieben an Ihren Fachbereich / Ihr Institut zurück."
-                            f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n" 
-                            f"\n\n--------------\n\n" 
-                            f"Dear {employee.first_name} {employee.last_name},\n\n" 
-                            f"Please find attached your employment contract for your employment as student assistant (application ID {petition.id}).\n\n"
-                            f"Please print it out twice and hand over the signed version to your department / institute as soon as possible."
-                            f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                            attachment_bytes=pdf_bytes,
-                            attachment_filename=filename,
-                        )
+                if not employee:
+                    print(f"Employee not found for petition {petition.id}", flush=True)
+                    return petition
+                    
+                employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
+                petition_read = PetitionRead.model_validate(petition, from_attributes=True)
+                
+                contract_pdf_buffer = create_contract_pdf(employee_read, petition_read)
+                
+                # Send contract PDF via email
+                email_handler.send_contract_pdf_email(contract_pdf_buffer, employee.user_email)
                         
             except Exception as e:
-                print(f"Failed to create/send contract: {e}", flush=True)
+                print(f"Error creating/sending contract PDF: {str(e)}", flush=True)
 
         return petition
 
@@ -672,19 +537,9 @@ class PetitionHandler:
             raise HTTPException(status_code=400, detail="Revision can only be requested when petition status is 'clerk_action'")
 
         # Send email to student
-        self.email_handler.send_email(
-            recipient=petition.student_mail,
-            subject="[ClockWork] Änderungen angefordert / Changes requested",
-            body=f"PersonalServices hat eine Anpassung Ihrer Angaben / Unterlagen angefordert:\n\n"
-            f"{message}\n\n"
-            f"Bitte melden Sie sich an, um Ihre Angaben zu prüfen und zu ergänzen."
-            f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-            f"\n\n--------------\n\n"
-            f"PersonalServices has requested a revision of your data / documents:\n\n"
-            f"{message}\n\n"
-            f"Please log in to review and amend your personal information or documents."
-            f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"         
-        )
+        email_handler = EmailHandler(petition)
+        email_handler.send_clerk_revision_request_email(message)
+        
         # Change status to clerk_revision
         petition = self.manager.update_petition_status(petition_id, "clerk_revision")
         return petition
@@ -699,29 +554,10 @@ class PetitionHandler:
         # Update petition status to completed
         petition = self.manager.update_petition_status(petition_id, "completed")
         
-        # Send email to student
-        self.email_handler.send_email(
-            recipient=petition.student_mail,
-            subject="[ClockWork] Einstellung abgeschlossen / Employment process completed",
-            body=f"Ihre Einstellung (Antrag {petition.id}) ist abgeschlossen.\n\n"
-            f"Willkommen als Beschäftigte*r der Goethe-Universität!"
-            f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n" 
-            f"\n\n--------------\n\n" 
-            f"Your employment (application ID {petition.id}) has been completed.\n\n" 
-            f" Welcome as employee of Goethe University!"
-            f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n" 
-        )
-        self.email_handler.send_email(
-            recipient=petition.supervisor_mail,
-            subject="[ClockWork] Einstellung abgeschlossen / Employment process completed",
-            body=f"Der Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft ist abgeschlossen.\n\n" 
-            f"\nSie erhalten demnächst den unterschriebenen Arbeitsvertrag von PersonalServices. Bitte geben Sie diesen an die studentische Hilfskraft weiter."
-            f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n" 
-            f"\n\n--------------\n\n" 
-            f"Application {petition.id} for the employment of a student assistant has been completed.\n\n" 
-            f"In a few days, you will be receiving the employment contract from PersonalServices. Please hand it over to the student assistant."
-            f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
-        )
+        # Send completion emails
+        email_handler = EmailHandler(petition)
+        email_handler.send_petition_completion_emails()
+        
         return petition
 
     def get_petitions_clerk(self) -> List[Petition]:
