@@ -146,7 +146,7 @@ class PetitionHandler:
                     recipient=petition.student_mail,
                     subject="[ClockWork] Einstellung als studentische Hilfskraft / Employment as a student assistant",
                     body=f"Für Sie wurde ein Antrag zur Einstellung als studentische Hilfskraft gestellt.\n\n"
-                    f"Bitte nutzen Sie den folgenden Link, um sich anzumelden und dem Antrag zuzustimmen."
+                    f"Bitte nutzen Sie den folgenden Link, um sich anzumelden und dem Antrag zuzustimmen: {petition_url}"
                     f"\n\n--------------\n\n"
                     f"An application has been filed for your employment as a student assistant.\n\n"
                     f"Please use the following link to review and accept the petition: {petition_url}"
@@ -157,13 +157,13 @@ class PetitionHandler:
                 self.email_handler.send_email(
                     recipient=petition.student_mail,
                     subject="[ClockWork] Dokumente hochladen / Upload Documents Required",
-                    body=f"Der Antrag auf Einstellung als studentische Hilfskraft wurde genehemigt. Bitte laden Sie die notwendigen Unterlagen hoch. Benötigt werden\n\n"
+                    body=f"Für Sie wurde ein Antrag zur Einstellung als studentische Hilfskraft gestellt. Laden Sie dazu die notwendigen Unterlagen hoch. Benötigt werden\n\n"
                     f"- Selbstauskunft zur Lohnsteuererklärung (ELStAM)\n\n"
                     f"- Fragebogen zur Sozialversicherung\n\n"
                     f"- aktuelle Studienbescheinigung\n\n"
                     f"- Mitgliedsbescheinigung Ihrer Krankenkasse\n\n"
                     f"\n\n--------------\n\n"
-                    f"The application for employment as a student assistant has been approved. Please upload the required documents to complete your petition. You will need to uploade\n\n"
+                    f"An application has been filed for your employment as a student assistant. Please upload the required documents to complete your petition. You will need to uploade\n\n"
                     f"- Self-disclosure form for income tax (ELStAM form)\n\n"
                     f"- Social Security questionnaire\n\n"
                     f"- current certificate of enrolment\n\n"
@@ -182,6 +182,12 @@ class PetitionHandler:
             if petition.supervisor_mail:
                 self.email_handler.send_email(
                     recipient=petition.supervisor_mail,
+                    subject="[ClockWork] Änderung durch Kostenstellenbeauftragten angefordert / Revision requested by budget approver",
+                    body=f"Für den Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde von einer kostenstellenverantwortlichen Person eine Änderung angefordert. "
+                         f"Bitte melden Sie sich bei ClockWork an überprüfen Sie die Details des Antrags."
+                         f"\n\n--------------\n\n"
+                         f"An revision has been requested for the application {petition.id} for the employment of a new student assistant by another budget approver."
+                         f"Please log in to ClockWork and review the application details."
                 )
 
             # Get all budget positions for this petition
@@ -192,7 +198,7 @@ class PetitionHandler:
                 if budget_position.id != requesting_budget_position.id:
                     self.email_handler.send_email(
                         recipient=budget_position.budget_approver,
-                        subject="[ClockWork] ", 
+                        subject="[ClockWork] Änderung durch andere Kostenstellenbeauftragten angefordert / Revision requested by another budget approver",
                         body=f"Für den Antrag {petition.id} auf Einstellung einer studentischen Hilfskraft wurde von einer anderen kostenstellenverantwortlichen Person eine Änderung angefordert. Der Antrag verzögert sich." 
                         f"\n\n--------------\n\n"
                         f"An revision has been requested for the application {petition.id} for the employment of a new student assistant by another budget approver. The application will be delayed."
