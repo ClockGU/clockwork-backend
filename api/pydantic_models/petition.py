@@ -1,9 +1,11 @@
 from sqlmodel import SQLModel
-from typing import Optional, Literal
+from typing import Optional
 from datetime import date
 import uuid
 from pydantic import field_validator, model_validator
 import re
+
+from api.consts import PetitionStatus
 
 ## these pydantic models are for the manager of the petition
 class PetitionBase(SQLModel):
@@ -18,7 +20,7 @@ class PetitionBase(SQLModel):
     budget_approver: str
     student_username: str
 
-    status: Literal["pending", "approved", "rejected"] = "pending"
+    status: PetitionStatus = PetitionStatus.PENDING
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
@@ -101,7 +103,7 @@ class PetitionRead(SQLModel):
     budget_approver: str
     student_username: str
 
-    status: Literal["pending", "approved", "student_action", "rejected", "approver_action","approver_revision", "clerk_action", "awaiting_signature", "completed", "clerk_revision"] = "pending"
+    status: PetitionStatus = PetitionStatus.PENDING
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
