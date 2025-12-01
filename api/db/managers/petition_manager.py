@@ -141,10 +141,10 @@ class PetitionManager:
         
         return petitions
     
-    def get_student_petitions(self, student_mail: str) -> List[Petition]:
+    def get_student_petitions(self, student_username: str) -> List[Petition]:
         # Retrieve all petitions for a student and check the status
         statement = select(self.schema).where(
-            (self.schema.student_mail == student_mail) & 
+            (self.schema.student_username == student_username) &
             (
             (self.schema.status == "student_action") | 
             (self.schema.status == "awaiting_signature")| 
@@ -213,7 +213,7 @@ class PetitionManager:
         
         return petition
     
-    def get_student_approved_petitions_in_semester(self, student_email: str, start_date: date) -> List[Petition]:
+    def get_student_approved_petitions_in_semester(self, student_username: str, start_date: date) -> List[Petition]:
         """Get student's approved petitions in the same semester as the given start_date"""
         # Determine semester boundaries based on start_date
         year = start_date.year
@@ -235,7 +235,7 @@ class PetitionManager:
         
         # Query petitions with student email, approved status, and within semester date range
         statement = select(self.schema).where(
-            (self.schema.student_mail == student_email) &
+            (self.schema.student_username == student_username) &
             (self.schema.status == "approved") &
             (self.schema.start_date >= semester_start) &
             (self.schema.start_date <= semester_end)

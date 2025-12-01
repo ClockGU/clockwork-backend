@@ -43,6 +43,7 @@ def update_document(
     elstam: Optional[UploadFile] = File(None),
     studienbescheinigung: Optional[UploadFile] = File(None),
     versicherungsbescheinigung: Optional[UploadFile] = File(None),
+    sozialversicherungsbogen: Optional[UploadFile] = File(None),
     handler: StudentDocumentHandler = Depends(get_document_handler),
     employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db)),
     user=Depends(get_current_student),  # Secure the endpoint
@@ -71,7 +72,9 @@ def update_document(
     if studienbescheinigung:
         file_urls["studienbescheinigung_url"] = save_file(studienbescheinigung, upload_dir)  
     if versicherungsbescheinigung:
-        file_urls["versicherungsbescheinigung_url"] = save_file(versicherungsbescheinigung, upload_dir)  
+        file_urls["versicherungsbescheinigung_url"] = save_file(versicherungsbescheinigung, upload_dir)
+    if sozialversicherungsbogen:
+        file_urls["sozialversicherungsbogen_url"] = save_file(sozialversicherungsbogen, upload_dir)
 
     document_data = StudentDocumentsUpdate(**file_urls)  
 

@@ -12,7 +12,7 @@ class Petition(SQLModel, table=True):
     end_date: date
     minutes: int
     ba_degree: bool
-    student_mail: str
+    student_username: str
     supervisor_mail: Optional[str] = None
     
     status: str = Field(default="approver_action", nullable=False)
@@ -32,4 +32,6 @@ class Petition(SQLModel, table=True):
     duration_exce_start: Optional[date] = None
     duration_exce_end: Optional[date] = None
 
-
+    @property
+    def student_mail(self):
+        return f"{self.student_username}@stud.uni-frankfurt.de"

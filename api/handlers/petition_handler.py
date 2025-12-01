@@ -132,8 +132,8 @@ class PetitionHandler:
                 )
 
             # Check if student has uploaded documents before sending email
-            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_mail)
-            is_semester_eligible = self._check_student_semester_eligibility(petition.student_mail, petition.start_date)
+            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_username)
+            is_semester_eligible = self._check_student_semester_eligibility(petition.student_username, petition.start_date)
 
             if has_uploaded_documents and is_semester_eligible:
                 # Generate signature for the petition acceptance link
@@ -297,10 +297,10 @@ class PetitionHandler:
             raise HTTPException(status_code=404, detail=f"No petitions found for user with ID {user_account}")
         return petitions
 
-    def get_student_petitions(self, student_mail: str) -> List[Petition]:
-        petitions = self.manager.get_student_petitions(student_mail)
+    def get_student_petitions(self, student_username: str) -> List[Petition]:
+        petitions = self.manager.get_student_petitions(student_username)
         if not petitions:
-            raise HTTPException(status_code=404, detail=f"No petitions found for student with email {student_mail}")
+            raise HTTPException(status_code=404, detail=f"No petitions found for student username {student_username}")
         return petitions
 
     def get_petitions_by_status(self, status: str) -> List[Petition]:
@@ -337,7 +337,7 @@ class PetitionHandler:
                 )
             if status == "clerk_action":
                 # Check if student has uploaded documents before approving
-                employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+                employee = self.employee_manager.get_employee_by_username(petition.student_username)
                 if not employee:
                     raise HTTPException(
                         status_code=400,
@@ -426,14 +426,14 @@ class PetitionHandler:
         except Exception as e:
             print(f"Error sending budget position update emails: {str(e)}", flush=True)
 
-    def _check_student_semester_eligibility(self, student_email: str, start_date: date) -> bool:
+    def _check_student_semester_eligibility(self, student_username: str, start_date: date) -> bool:
         """
         Check if student is eligible to have a petition in the given semester.
         Returns True if eligible (no approved petition in same semester), False otherwise.
         """
         try:
             existing_petitions = self.manager.get_student_approved_petitions_in_semester(
-                student_email, start_date
+                student_username, start_date
             )
 
             # If there are existing approved petitions in the same semester, student is not eligible
@@ -453,7 +453,7 @@ class PetitionHandler:
 
         # Check if student has uploaded documents before approving
         if approved:
-            employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+            employee = self.employee_manager.get_employee_by_username(petition.student_username)
             if not employee:
                 raise HTTPException(
                     status_code=400,
@@ -464,7 +464,7 @@ class PetitionHandler:
                     status_code=400,
                     detail="You cannot approve the petition unless your employee profile is complete (date of birth and address)."
                 )
-            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_mail)
+            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_username)
             if not has_uploaded_documents:
                 raise HTTPException(
                     status_code=400,
@@ -546,7 +546,7 @@ class PetitionHandler:
         if approved:
             # Create contract PDF and email it to the employee (and student)
             try:
-                employee = self.employee_manager.get_employee_by_email(petition.student_mail)
+                employee = self.employee_manager.get_employee_by_username(petition.student_username)
                 if employee:
                     employee_read = EmployeeRead.model_validate(employee,from_attributes=True)
                     petition_read = PetitionRead.model_validate(petition, from_attributes=True)
@@ -557,7 +557,7 @@ class PetitionHandler:
                     filename = f"Arbeitsvertrag_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
 
                     # Send to employee
-                    if employee.user_email:
+                    if employee.username:
                         self.email_handler.send_email(
                             recipient=employee.user_email,
                             subject="[ClockWork] Ihr Arbeitsvertrag / Your employment contract",
