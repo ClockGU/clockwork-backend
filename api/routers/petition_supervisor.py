@@ -61,8 +61,12 @@ async def create_petition(
         
         email_handler.send_email(
             recipient=budget_position.budget_approver,
-            subject="New petition requires your approval",
-            body=f"New petition is created for budget position: {budget_position.budget_position}. Here is the link to access that petition: {petition_url}"
+            subject="[ClockWork] Neuer Antrag (Einstellung stud. Hilfskraft) / New approval request (new student assistant)",
+            body=f"Sie haben einen Antrag  für die Einstellung einer studentischen Hilfskraft auf die Kostenstelle {budget_position.budget_position} erhalten und müssen diesen freigeben.\n\n"
+            f"Mit diesem Link gelangen Sie zum Antrag und können diesen genehmigen, ablehnen oder eine Änderung anfordern: {petition_url}" 
+            f"\n\n--------------\n\n"
+            f"You received an approval request for the employment of a new student assistant on the budget position {budget_position.budget_position}.\n\n"
+            f"Please use the link to review the request. You can either approve or reject the request or you can demand a revision: {petition_url}"
         )
     
     return created_petition
