@@ -39,9 +39,7 @@ def get_employee_by_user(
     """
     Retrieve an employee record by the user ID (user_account).
     """
-    import remote_pdb; remote_pdb.RemotePdb('0.0.0.0',4444).set_trace() 
     employee = handler.get_employee_by_user_account(user.get("sub"))
-    
     return employee
 
 
