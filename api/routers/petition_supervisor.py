@@ -71,21 +71,14 @@ async def create_petition(
     
     return created_petition
 
-@router.get("/supervisor/petitions/user", response_model=List[PetitionRead])
+@router.get("/supervisor/petitions/", response_model=List[PetitionRead])
 def read_petitions_by_user(
     handler: PetitionHandler = Depends(get_petition_handler),
-    user = Depends(get_current_clerk)
+    user = Depends(get_current_supervisor)
 ):
     petitions = handler.get_petitions_by_user(user.get('sub'))
     return petitions
 
-@router.get("/supervisor/petitions/", response_model=List[PetitionRead])
-def read_petitions(
-    handler: PetitionHandler = Depends(get_petition_handler),
-    user = Depends(get_current_supervisor)
-): 
-    petitions = handler.list_petitions()
-    return petitions
 
 @router.get("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
 def read_petition(
