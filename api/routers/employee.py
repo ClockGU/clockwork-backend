@@ -7,7 +7,7 @@ from datetime import date
 from api.handlers.employee_handler import EmployeeHandler
 from api.pydantic_models.employee import EmployeeUpdate, EmployeeRead
 from api.db.dependencies import get_db
-from api.security import get_current_student,get_current_supervisor, get_current_clerk  # Import the dependency for student authentication
+from api.security import get_current_student, get_current_supervisor, get_current_clerk  # Import the dependency for student authentication
 
 router = APIRouter()
 
@@ -78,3 +78,17 @@ def get_student_data_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+@router.get("/employees/petition/{petition_id}", response_model=EmployeeRead)
+def get_employee_by_petition_id(
+    petition_id: UUID,
+    handler: EmployeeHandler = Depends(get_employee_handler),
+    user=Depends(get_current_clerk),
+):
+    """
+    Retrieve an employee record by the petition ID.
+    Only accessible by CLERK role.
+    """
+    employee = handler.get_employee_by_petition(petition_id)
+    return employee
