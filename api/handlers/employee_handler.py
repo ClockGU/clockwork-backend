@@ -149,3 +149,30 @@ class EmployeeHandler:
         except Exception as e:
             raise self.exc.internal_error("generating student data PDF", e)
 
+    def get_employee_by_petition(self, petition_id: UUID) -> Employee:
+        """
+        Retrieve an employee by the petition ID they are associated with.
+        """
+        # Get the petition
+        petition = self.petition_manager.get_petition(petition_id)
+        if not petition:
+            raise HTTPException(
+                status_code=404, detail=f"Petition with ID {petition_id} not found"
+            )
+        
+        # Get the student username from the petition
+        student_username = petition.student_username
+        if not student_username:
+             raise HTTPException(
+                status_code=404, detail=f"Petition with ID {petition_id} has no associated student username"
+            )
+
+        # Get the employee by username
+        employee = self.manager.get_employee_by_username(student_username)
+        if not employee:
+            raise HTTPException(
+                status_code=404, detail=f"Employee with username {student_username} not found"
+            )
+            
+        return employee
+
