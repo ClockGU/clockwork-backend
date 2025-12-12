@@ -472,6 +472,54 @@ class PetitionHandler:
             # In case of error, allow the petition (fail-open approach)
             return True
 
+    def _validate_employee_data(self, employee) -> None:
+        """
+        Validates that the employee has filled out all fields required for the PDF generation.
+        Raises HTTPException if any data is missing.
+        """
+        missing_fields = []
+
+        # List of simple required string/date fields
+        required_fields = [
+            ("first_name", "Vorname"),
+            ("last_name", "Nachname"),
+            ("date_of_birth", "Geburtsdatum"),
+            ("city_of_birth", "Geburtsort"),
+            ("health_insurance", "Krankenkasse"),
+            ("nationality", "Staatsangehörigkeit"),
+            ("postal_code", "PLZ"),
+            ("address", "Adresse"),
+            ("user_email", "Email"),
+            ("bank_name", "Bank"),
+            ("iban", "IBAN"),
+            ("bic", "BIC"),
+            ("telephone_number", "Telefonnummer"),
+            ("gender", "Geschlecht"),
+            ("married", "Familienstand"), # boolean, but must be set (not None)
+            ("previously_employeed", "Bereits beschäftigt?") # boolean, must be set
+        ]
+
+        for field_attr, field_name in required_fields:
+            value = getattr(employee, field_attr, None)
+            # stricter check: empty strings are not allowed, but False is allowed for booleans
+            if value is None or (isinstance(value, str) and not value.strip()):
+                missing_fields.append(field_name)
+
+        # Logic for previous employment duration
+        # If previously_employeed is True, we must have prev_emp_duration
+        if getattr(employee, "previously_employeed", False) is True:
+            duration = getattr(employee, "prev_emp_duration", None)
+            if not duration or (isinstance(duration, str) and not duration.strip()):
+                missing_fields.append("Zeitraum der vorherigen Beschäftigung")
+
+        if missing_fields:
+            # Join with comma for readable error message
+            missing_str = ", ".join(missing_fields)
+            raise HTTPException(
+                status_code=400,
+                detail=f"Please fill out the following missing fields in your profile: {missing_str}"
+            )
+
     def student_accept_or_reject_petition(self, petition_id: UUID, approved: bool) -> Petition:
         petition = self.manager.get_petition(petition_id)
         if not petition:
@@ -487,11 +535,10 @@ class PetitionHandler:
                     status_code=400,
                     detail="You cannot approve the petition unless you are registered as an employee."
                 )
-            if employee.date_of_birth is None or employee.address is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail="You cannot approve the petition unless your employee profile is complete (date of birth and address)."
-                )
+
+            # Validate all required employee data fields
+            self._validate_employee_data(employee)
+
             has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_username)
             if not has_uploaded_documents:
                 raise HTTPException(

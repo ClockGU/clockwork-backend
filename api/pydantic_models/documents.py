@@ -11,6 +11,7 @@ class StudentDocumentsUpdate(BaseModel):
     elstam_url: Optional[str] = None  # Accept URLs as strings
     studienbescheinigung_url: Optional[str] = None  # Accept URLs as strings
     versicherungsbescheinigung_url: Optional[str] = None  # Accept URLs as strings
+    sozialversicherungsbogen_url: Optional[str] = None  # Accept URLs as strings
 
 class StudentDocumentsRead(BaseModel):
     id: UUID
@@ -18,6 +19,7 @@ class StudentDocumentsRead(BaseModel):
     elstam_url: Optional[str] = None
     studienbescheinigung_url: Optional[str] = None
     versicherungsbescheinigung_url: Optional[str] = None
+    sozialversicherungsbogen_url: Optional[str] = None
 
     class Config:
         orm_mode = True

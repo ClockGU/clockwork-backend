@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from uuid import UUID
 from sqlmodel import Session
+from datetime import date
 
 from api.handlers.employee_handler import EmployeeHandler
 from api.pydantic_models.employee import EmployeeUpdate, EmployeeRead
@@ -51,3 +53,28 @@ def delete_employee_by_user(
     """
     result = handler.delete_employee_by_user_account(user.get("sub"))
     return result
+
+
+@router.get("/employees/student-data-pdf")
+def get_student_data_pdf(
+    username: str = Query(..., description="Username of the student"),
+    petition_id: UUID = Query(..., description="Petition ID"),
+    handler: EmployeeHandler = Depends(get_employee_handler),
+    user=Depends(get_current_supervisor),
+):
+    """
+    Get student data PDF for a given username and petition ID.
+    """
+    # Generate PDF
+    pdf_buffer = handler.get_student_data_pdf(username, petition_id)
+    
+    # Get employee for filename
+    employee = handler.get_employee_by_username(username)
+    filename = f"Student_Data_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
+    
+    # Return as streaming response
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
