@@ -1,3 +1,22 @@
+from enum import Enum
+
+
+class PetitionStatus(str, Enum):
+    """Enum for all possible petition statuses"""
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    STUDENT_ACTION = "student_action"
+    APPROVER_ACTION = "approver_action"
+    APPROVER_REVISION = "approver_revision"
+    STUDENT_REVISION = "student_revision"
+    CLERK_ACTION = "clerk_action"
+    CLERK_REVISION = "clerk_revision"
+    AWAITING_SIGNATURE = "awaiting_signature"
+    COMPLETED = "completed"
+
+
+# PDF Form Field Names
 NAME_FIELD="SHK_Name"
 BIRTHDAY_FIELD="SHK_Geburtsdatum"
 ADDRESS_FIELD="SHK_Wohnort"

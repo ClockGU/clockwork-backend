@@ -3,6 +3,8 @@ from typing import Optional, List
 import uuid
 from datetime import date
 
+from api.consts import PetitionStatus
+
 class Petition(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
     user_account: uuid.UUID
@@ -15,7 +17,7 @@ class Petition(SQLModel, table=True):
     student_username: str
     supervisor_mail: Optional[str] = None
     
-    status: str = Field(default="approver_action", nullable=False)
+    status: str = Field(default=PetitionStatus.APPROVER_ACTION, nullable=False)
 
     # Relationship to budget positions (one-to-many)
     budget_positions: List["BudgetPosition"] = Relationship(back_populates="petition")

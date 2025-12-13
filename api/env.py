@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     SIGNATURE_SECRET_KEY: bytes = b"secret key"
     CLERK_LIST: str = "http://host.docker.internal:8020/users/clerks"
     FRONTEND_URL: str
+    
+    # Admin panel credentials
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD: str = "password"
 
     @property
     def signature_secret_key(self) -> bytes:
