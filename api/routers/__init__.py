@@ -12,11 +12,48 @@ from .web_socket import router as web_socket_router
 
 router = APIRouter()
 
-router.include_router(petition_supervisor_router)
-router.include_router(petition_student_router)
-router.include_router(petition_clerk_router)
-router.include_router(petition_approver_router)
-router.include_router(document_student_router)
-router.include_router(employee_router)
-router.include_router(email_router)
-router.include_router(web_socket_router)
+# Petition Management - Organized by user role
+router.include_router(
+    petition_supervisor_router,
+    tags=["Petitions - Supervisor"],
+    prefix=""
+)
+router.include_router(
+    petition_student_router,
+    tags=["Petitions - Student"],
+    prefix=""
+)
+router.include_router(
+    petition_clerk_router,
+    tags=["Petitions - Clerk"],
+    prefix=""
+)
+router.include_router(
+    petition_approver_router,
+    tags=["Petitions - Approver"],
+    prefix=""
+)
+
+# Employee & Document Management
+router.include_router(
+    employee_router,
+    tags=["Employee Management"],
+    prefix=""
+)
+router.include_router(
+    document_student_router,
+    tags=["Document Management"],
+    prefix=""
+)
+
+# Communication
+router.include_router(
+    email_router,
+    tags=["Email & Notifications"],
+    prefix=""
+)
+router.include_router(
+    web_socket_router,
+    tags=["WebSocket - Real-time Updates"],
+    prefix=""
+)

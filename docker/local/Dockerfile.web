@@ -7,6 +7,9 @@ ENV POETRY_VERSION=1.7.0 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app  
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
 # Install Poetry
 RUN pip install "poetry==$POETRY_VERSION"
 
@@ -25,8 +28,15 @@ RUN pip install remote-pdb --no-cache-dir
 # Copy the application code
 COPY . /app  
 
+# Copy and set permissions for entrypoint script
+COPY docker/local/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Expose the port the api will run on
 EXPOSE 8000
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Command to run the api
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app"]

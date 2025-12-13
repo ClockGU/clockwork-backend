@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlmodel import Session, select
 from datetime import date
 
+from api.consts import PetitionStatus
 from api.db.schema.petition import Petition
 from api.db.schema.budget_position import BudgetPosition
 from api.pydantic_models.petition import PetitionCreate
@@ -146,11 +147,11 @@ class PetitionManager:
         statement = select(self.schema).where(
             (self.schema.student_username == student_username) &
             (
-            (self.schema.status == "student_action") | 
-            (self.schema.status == "awaiting_signature")| 
-            (self.schema.status == "completed") |
-            (self.schema.status == "clerk_revision") |
-            (self.schema.status == "student_revision")
+            (self.schema.status == PetitionStatus.STUDENT_ACTION) | 
+            (self.schema.status == PetitionStatus.AWAITING_SIGNATURE)| 
+            (self.schema.status == PetitionStatus.COMPLETED) |
+            (self.schema.status == PetitionStatus.CLERK_REVISION) |
+            (self.schema.status == PetitionStatus.STUDENT_REVISION)
              )
         )
         result = self.db.execute(statement)
@@ -236,7 +237,7 @@ class PetitionManager:
         # Query petitions with student email, approved status, and within semester date range
         statement = select(self.schema).where(
             (self.schema.student_username == student_username) &
-            (self.schema.status == "approved") &
+            (self.schema.status == PetitionStatus.APPROVED) &
             (self.schema.start_date >= semester_start) &
             (self.schema.start_date <= semester_end)
         )

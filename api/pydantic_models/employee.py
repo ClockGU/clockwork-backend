@@ -41,7 +41,7 @@ class EmployeeUpdate(BaseModel):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previously_employeed: Optional[bool] = None
+    previously_employed: Optional[bool] = None
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
     bic: Optional[str] = None
