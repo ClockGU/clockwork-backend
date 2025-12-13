@@ -41,7 +41,6 @@ def get_current_supervisor(request: Request):
     try:
         # Decode the JWT token using the public key
         payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
-        
         ####check the role of supervisor
         if payload.get("user_role") != UserRole.SUPERVISOR.value:
             raise HTTPException(status_code=403, detail="No permission to access this resource")
@@ -89,13 +88,12 @@ def get_current_student(request: Request, db: Session = Depends(get_db)):
             # Create a new employee entry
             new_employee_data = {
                 "user_account": user_account,  
-                "user_email": payload.get("email"),  
+                "username": payload.get("username"),  
             }
             new_employee = employee_handler.create_employee(new_employee_data)
 
             # Create a new document entry for the employee
             document_handler.manager.create_document({"employee_id": new_employee.id})
-
         return payload
 
     except jwt.ExpiredSignatureError:

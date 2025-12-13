@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel
-from typing import Optional, Literal, List
+from typing import Optional, List
 from datetime import date
 import uuid
 from pydantic import (
@@ -8,6 +8,8 @@ from pydantic import (
     BaseModel
     )
 import re
+
+from api.consts import PetitionStatus
 from .budget_position import BudgetPositionCreate
 
 
@@ -24,7 +26,7 @@ class PetitionUpdateBase(SQLModel):
     # Budget positions as a list - can be updated
     budget_positions: Optional[List[BudgetPositionCreate]] = None
 
-    status: Optional[Literal["pending", "approved", "approver_action","student_action", "rejected", "student_revision"]] = None
+    status: Optional[PetitionStatus] = None
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
