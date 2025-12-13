@@ -1,9 +1,11 @@
 from sqlmodel import SQLModel
-from typing import Optional, Literal, List
+from typing import Optional, List
 from datetime import date
 import uuid
 from pydantic import field_validator, model_validator
 import re
+
+from api.consts import PetitionStatus
 from .budget_position import BudgetPositionRead
 
 
@@ -24,7 +26,7 @@ class PetitionBaseRead(SQLModel):
     duration_exce_end: Optional[date] = None
     time_exce_course: Optional[bool] = None  
     duration_exce_course: Optional[bool] = None 
-    status: Literal["pending", "approved", "student_action", "rejected", "approver_action","approver_revision", "clerk_action", "awaiting_signature", "completed", "clerk_revision", "student_revision"] = "pending"
+    status: PetitionStatus = PetitionStatus.PENDING
 
 
 # PetitionReadBase for clerks/supervisors

@@ -1,7 +1,7 @@
 """add_bic_and_bank_name_to_employee
 
 Revision ID: 76b6eb43b5c0
-Revises: 3feaeef2828f
+Revises: 3d2e4d2bf81b
 Create Date: 2025-12-01 14:40:22.702951
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 import sqlmodel
 # revision identifiers, used by Alembic.
 revision: str = '76b6eb43b5c0'
-down_revision: Union[str, None] = '3feaeef2828f'
+down_revision: Union[str, None] = '3d2e4d2bf81b'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

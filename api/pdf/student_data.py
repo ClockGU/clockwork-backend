@@ -103,7 +103,7 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
                     safe_set_checkbox("keine Angabe", True)
 
             # Previous Employment
-            prev_employed = getattr(employee, "previously_employeed", None)
+            prev_employed = getattr(employee, "previously_employed", None)
             if prev_employed is not None:
                 if prev_employed:
                     safe_set_checkbox("ja Zeitraum", True)

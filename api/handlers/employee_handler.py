@@ -1,7 +1,6 @@
 from typing import List, Optional
 from uuid import UUID
 from sqlmodel import Session
-from fastapi import HTTPException
 from io import BytesIO
 
 from api.db.managers.emploeyee_manager import EmployeeManager
@@ -9,12 +8,14 @@ from api.db.managers.petition_manager import PetitionManager
 from api.db.schema.employee import Employee
 from api.pydantic_models import EmployeeRead, PetitionRead
 from api.pdf.student_data import create_student_data_pdf
+from api.handlers.exception_handler import ExceptionHandler
 
 
 class EmployeeHandler:
     def __init__(self, db: Session):
         self.manager = EmployeeManager(db)
         self.petition_manager = PetitionManager(db)
+        self.exc = ExceptionHandler()
 
     def create_employee(self, employee_data: dict) -> Employee:
         """
@@ -25,12 +26,10 @@ class EmployeeHandler:
             employee_instance = Employee(**employee_data)
             employee = self.manager.create_employee(employee_instance)
             if not employee:
-                raise HTTPException(status_code=400, detail="Employee could not be created")
+                raise self.exc.created_failed("Employee")
             return employee
         except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"An error occurred while creating the employee: {str(e)}"
-            )
+            raise self.exc.internal_error("creating the employee", e)
 
     def get_employee(self, employee_id: UUID) -> Employee:
         """
@@ -38,9 +37,7 @@ class EmployeeHandler:
         """
         employee = self.manager.get_employee(employee_id)
         if not employee:
-            raise HTTPException(
-                status_code=404, detail=f"Employee with ID {employee_id} not found"
-            )
+            raise self.exc.not_found("Employee", str(employee_id))
         return employee
 
     def get_employee_by_user_account(self, user_account: UUID) -> Employee:
@@ -49,9 +46,7 @@ class EmployeeHandler:
         """
         employee = self.manager.get_employee_by_user_account(user_account)
         if not employee:
-            raise HTTPException(
-                status_code=404, detail=f"Employee with user_account {user_account} not found"
-            )
+            raise self.exc.not_found("Employee", message=f"Employee with user_account {user_account} not found")
         return employee
 
     def employee_exists_by_user_account(self, user_account: UUID) -> bool:
@@ -67,7 +62,7 @@ class EmployeeHandler:
         """
         employees = self.manager.get_employees(offset=offset, limit=limit)
         if not employees:
-            raise HTTPException(status_code=404, detail="No employees found")
+            raise self.exc.not_found("Employees", message="No employees found")
         return employees
 
     def update_employee(self, employee_id: UUID, employee_data: dict) -> Employee:
@@ -77,16 +72,12 @@ class EmployeeHandler:
         # Check if the employee exists
         existing_employee = self.manager.get_employee(employee_id)
         if not existing_employee:
-            raise HTTPException(
-                status_code=404, detail=f"Employee with ID {employee_id} not found"
-            )
+            raise self.exc.not_found("Employee", str(employee_id))
 
         # Proceed with the update
         updated_employee = self.manager.update_employee(employee_id, employee_data)
         if not updated_employee:
-            raise HTTPException(
-                status_code=400, detail=f"Employee with ID {employee_id} could not be updated"
-            )
+            raise self.exc.update_failed("Employee", str(employee_id))
         return updated_employee
 
     def delete_employee(self, employee_id: UUID) -> dict:
@@ -96,16 +87,12 @@ class EmployeeHandler:
         # Check if the employee exists
         existing_employee = self.manager.get_employee(employee_id)
         if not existing_employee:
-            raise HTTPException(
-                status_code=404, detail=f"Employee with ID {employee_id} not found"
-            )
+            raise self.exc.not_found("Employee", str(employee_id))
 
         # Proceed with the deletion
         success = self.manager.delete_employee(employee_id)
         if not success:
-            raise HTTPException(
-                status_code=400, detail=f"Employee with ID {employee_id} could not be deleted"
-            )
+            raise self.exc.delete_failed("Employee", str(employee_id))
         return {"detail": "Employee deleted successfully"}
 
     def delete_employee_by_user_account(self, user_account: UUID) -> dict:
@@ -115,16 +102,12 @@ class EmployeeHandler:
         # Retrieve the employee by user_account
         employee = self.manager.get_employee_by_user_account(user_account)
         if not employee:
-            raise HTTPException(
-                status_code=404, detail=f"Employee with user_account {user_account} not found"
-            )
+            raise self.exc.not_found("Employee", message=f"Employee with user_account {user_account} not found")
 
         # Ensure related documents are deleted (handled by cascade)
         success = self.manager.delete_employee(employee.id)
         if not success:
-            raise HTTPException(
-                status_code=400, detail=f"Employee with user_account {user_account} could not be deleted"
-            )
+            raise self.exc.delete_failed("Employee", message=f"Employee with user_account {user_account} could not be deleted")
         return {"detail": "Employee and related documents deleted successfully"}
     
     def get_employee_by_username(self, username: str) -> Employee:
@@ -134,28 +117,26 @@ class EmployeeHandler:
         # Use the EmployeeManager to get the employee by email
         employee = self.manager.get_employee_by_username(username)
         if not employee:
-            raise HTTPException(
-                status_code=404, detail=f"Employee with username {username} not found"
-            )
+            raise self.exc.not_found("Employee", message=f"Employee with username {username} not found")
         return employee
     
-    def get_student_data_pdf(self, username: str, petition_id: UUID) -> BytesIO:
+    def get_student_data_pdf(self, petition_id: UUID) -> BytesIO:
         """
-        Generate and return student data PDF for a given username and petition.
+        Generate and return student data PDF for a given petition ID.
         """
-        # Get employee by username
-        employee = self.manager.get_employee_by_username(username)
-        if not employee:
-            raise HTTPException(
-                status_code=404, detail=f"Employee with username {username} not found"
-            )
-        
         # Get petition
         petition = self.petition_manager.get_petition(petition_id)
         if not petition:
-            raise HTTPException(
-                status_code=404, detail=f"Petition with ID {petition_id} not found"
-            )
+            raise self.exc.not_found("Petition", str(petition_id))
+            
+        student_username = petition.student_username
+        if not student_username:
+             raise self.exc.not_found("Petition", str(petition_id))
+        
+        # Get employee by username
+        employee = self.manager.get_employee_by_username(student_username)
+        if not employee:
+            raise self.exc.not_found("Employee", message=f"Employee with username {student_username} not found")
         
         # Convert to Pydantic models
         employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
@@ -166,10 +147,7 @@ class EmployeeHandler:
             pdf_buffer = create_student_data_pdf(employee_read, petition_read)
             return pdf_buffer
         except Exception as e:
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Failed to generate student data PDF: {str(e)}"
-            )
+            raise self.exc.internal_error("generating student data PDF", e)
 
     def get_employee_by_petition(self, petition_id: UUID) -> Employee:
         """
