@@ -57,19 +57,19 @@ def delete_employee_by_user(
 
 @router.get("/employees/student-data-pdf")
 def get_student_data_pdf(
-    username: str = Query(..., description="Username of the student"),
     petition_id: UUID = Query(..., description="Petition ID"),
     handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_supervisor),
 ):
     """
-    Get student data PDF for a given username and petition ID.
+    Get student data PDF for a given petition ID.
+    Derived the student username from the petition.
     """
     # Generate PDF
-    pdf_buffer = handler.get_student_data_pdf(username, petition_id)
+    pdf_buffer = handler.get_student_data_pdf(petition_id)
     
     # Get employee for filename
-    employee = handler.get_employee_by_username(username)
+    employee = handler.get_employee_by_petition(petition_id)
     filename = f"Student_Data_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
     
     # Return as streaming response

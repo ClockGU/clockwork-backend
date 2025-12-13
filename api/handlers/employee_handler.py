@@ -120,19 +120,23 @@ class EmployeeHandler:
             raise self.exc.not_found("Employee", message=f"Employee with username {username} not found")
         return employee
     
-    def get_student_data_pdf(self, username: str, petition_id: UUID) -> BytesIO:
+    def get_student_data_pdf(self, petition_id: UUID) -> BytesIO:
         """
-        Generate and return student data PDF for a given username and petition.
+        Generate and return student data PDF for a given petition ID.
         """
-        # Get employee by username
-        employee = self.manager.get_employee_by_username(username)
-        if not employee:
-            raise self.exc.not_found("Employee", message=f"Employee with username {username} not found")
-        
         # Get petition
         petition = self.petition_manager.get_petition(petition_id)
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
+            
+        student_username = petition.student_username
+        if not student_username:
+             raise self.exc.not_found("Petition", str(petition_id))
+        
+        # Get employee by username
+        employee = self.manager.get_employee_by_username(student_username)
+        if not employee:
+            raise self.exc.not_found("Employee", message=f"Employee with username {student_username} not found")
         
         # Convert to Pydantic models
         employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
