@@ -7,7 +7,7 @@ from datetime import date
 from api.handlers.employee_handler import EmployeeHandler
 from api.pydantic_models.employee import EmployeeUpdate, EmployeeRead
 from api.db.dependencies import get_db
-from api.security import get_current_student,get_current_supervisor  # Import the dependency for student authentication
+from api.security import get_current_student,get_current_supervisor, get_current_clerk  # Import the dependency for student authentication
 
 router = APIRouter()
 

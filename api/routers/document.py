@@ -114,7 +114,7 @@ def download_file(file_url: str = Query(..., description="The URL of the file to
 def get_documents_by_student_username(
     student_username: str = Query(..., description="The username of the student"),
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    user=Depends(get_current_supervisor),  # Secure the endpoint
+    user=Depends(get_current_clerk),  # Secure the endpoint
 ):
     """
     Retrieve documents by the student's username.
