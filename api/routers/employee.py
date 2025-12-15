@@ -59,7 +59,7 @@ def delete_employee_by_user(
 def get_student_data_pdf(
     petition_id: UUID = Query(..., description="Petition ID"),
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_supervisor),
+    user=Depends(get_current_clerk),
 ):
     """
     Get student data PDF for a given petition ID.

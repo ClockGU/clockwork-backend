@@ -10,7 +10,7 @@ from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.employee_handler import EmployeeHandler
 from api.pydantic_models import StudentDocumentsUpdate, StudentDocumentsRead
 from api.db.dependencies import get_db
-from api.security import get_current_student
+from api.security import get_current_student, get_current_clerk
 
 router = APIRouter()
 
@@ -109,12 +109,6 @@ def download_file(file_url: str = Query(..., description="The URL of the file to
         media_type="application/octet-stream",
         filename=os.path.basename(file_url)
     )
-
-
-
-
-from api.security import get_current_supervisor
-
 
 @router.get("/clerk/documents-by-username/", response_model=StudentDocumentsRead)
 def get_documents_by_student_username(
