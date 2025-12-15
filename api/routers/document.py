@@ -111,24 +111,18 @@ def download_file(file_url: str = Query(..., description="The URL of the file to
     )
 
 
-@router.get("/clerk/documents-by-email/", response_model=StudentDocumentsRead)
-def get_documents_by_email(
-    email: str = Query(..., description="The email of the student"),
+
+
+from api.security import get_current_supervisor
+
+
+@router.get("/clerk/documents-by-username/", response_model=StudentDocumentsRead)
+def get_documents_by_student_username(
+    student_username: str = Query(..., description="The username of the student"),
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db))
+    user=Depends(get_current_supervisor),  # Secure the endpoint
 ):
     """
-    Retrieve a document by the student's email.
+    Retrieve documents by the student's username.
     """
-    # Get the employee associated with the email
-    employee = employee_handler.get_employee_by_email(email)
-    if not employee:
-        raise HTTPException(status_code=404, detail=f"Employee with email {email} not found")
-
-    # Get the documents associated with the employee
-    documents = handler.get_documents_by_employee(employee.id)
-    if not documents:
-        raise HTTPException(status_code=404, detail=f"No documents found for employee with email {email}")
-
-    # Return the first document (assuming one document per employee)
-    return documents[0]
+    return handler.get_documents_by_student_username(student_username)
