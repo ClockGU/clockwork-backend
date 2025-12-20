@@ -14,7 +14,7 @@ class PetitionCreateBase(SQLModel):
     start_date: date
     end_date: date
     minutes: int
-    ba_degree: bool
+
     student_username: str
     supervisor_mail: Optional[str] = None
 

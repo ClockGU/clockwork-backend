@@ -75,6 +75,15 @@ class StudentDocumentHandler:
         document = self.manager.update_document(document_id, document_data)
         if not document:
             raise self.exc.update_failed("Document", str(document_id))
+        
+        # Check if ba_degree_url is present and update petitions
+        if document_data.ba_degree_url:
+            # Get employee to get username
+            employee = self.employee_manager.get_employee(document.employee_id)
+            if employee and employee.username:
+                # Use petition manager to update all petitions
+                self.petition_manager.update_ba_degree_for_student(employee.username)
+
         return document
 
     def update_document_by_employee(

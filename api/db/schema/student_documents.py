@@ -11,6 +11,7 @@ class StudentDocuments(SQLModel, table=True):
     studienbescheinigung_url: Optional[str] = None
     versicherungsbescheinigung_url: Optional[str] = None
     sozialversicherungsbogen_url: Optional[str] = None
+    ba_degree_url: Optional[str] = None
 
     # Relationship to the Employee model
     employee: Optional["Employee"] = Relationship(back_populates="documents")
