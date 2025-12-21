@@ -113,14 +113,5 @@ async def request_revision_from_supervisor(
     updated_petition = handler.request_revision_from_supervisor(petition_id, revision_data.body)
     return updated_petition
 
-@router.patch("/students/petitions/ba-degree/reset")
-async def reset_student_ba_degree(
-    handler: PetitionHandler = Depends(get_petition_handler),
-    user = Depends(get_current_student)
-):
-    """
-    API for students to reset their ba_degree status to False for all petitions.
-    """
-    handler.reset_student_ba_degree(user.get('username'))
-    return {"message": "done"}
+
 

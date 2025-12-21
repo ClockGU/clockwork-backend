@@ -568,12 +568,3 @@ class PetitionHandler:
             raise
         except Exception as e:
             raise self.exc.internal_error("requesting revision", e)
-
-    def reset_student_ba_degree(self, student_username: str) -> None:
-        """
-        Reset ba_degree to False for all petitions of a student.
-        """
-        try:
-            self.manager.reset_ba_degree_for_student(student_username)
-        except Exception as e:
-            raise self.exc.internal_error("resetting ba degree", e)

@@ -252,23 +252,5 @@ class PetitionManager:
         
         return petitions
 
-    def update_ba_degree_for_student(self, student_username: str) -> None:
-        """
-        Update ba_degree to True for all petitions of a student.
-        """
-        petitions = self.get_student_petitions(student_username)
-        for petition in petitions:
-            petition.ba_degree = True
-            self.db.add(petition)
-        self.db.commit()
 
-    def reset_ba_degree_for_student(self, student_username: str) -> None:
-        """
-        Reset ba_degree to False for all petitions of a student.
-        """
-        petitions = self.get_student_petitions(student_username)
-        for petition in petitions:
-            petition.ba_degree = False
-            self.db.add(petition)
-        self.db.commit()
 
