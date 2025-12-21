@@ -115,7 +115,10 @@ class PetitionHandler:
             budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
 
             # Check if student has uploaded documents before sending email
-            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_username)
+            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(
+                petition.student_username, 
+                check_ba_degree=petition.ba_degree
+            )
             is_semester_eligible = self._check_student_semester_eligibility(petition.student_username, petition.start_date)
 
             # Use the existing send_approval_emails method from EmailHandler
@@ -394,7 +397,10 @@ class PetitionHandler:
                 raise self.exc.bad_request("You cannot approve the petition unless you are registered as an employee.")
             if employee.date_of_birth is None or employee.address is None:
                 raise self.exc.bad_request("You cannot approve the petition unless your employee profile is complete (date of birth and address).")
-            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(petition.student_username)
+            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(
+                petition.student_username, 
+                check_ba_degree=petition.ba_degree
+            )
             if not has_uploaded_documents:
                 raise self.exc.bad_request("You cannot approve the petition unless you upload the required documents.")
             # Student accepted, move to clerk_action
