@@ -13,7 +13,7 @@ class Petition(SQLModel, table=True):
     start_date: date
     end_date: date
     minutes: int
-    ba_degree: bool
+    ba_degree: bool = Field(default=False)
     student_username: str
     supervisor_mail: Optional[str] = None
     
