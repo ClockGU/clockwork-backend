@@ -252,5 +252,3 @@ class PetitionManager:
         
         return petitions
 
-
-

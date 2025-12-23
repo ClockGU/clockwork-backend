@@ -44,7 +44,6 @@ def update_document(
     studienbescheinigung: Optional[UploadFile] = File(None),
     versicherungsbescheinigung: Optional[UploadFile] = File(None),
     sozialversicherungsbogen: Optional[UploadFile] = File(None),
-    ba_degree: Optional[UploadFile] = File(None),
     handler: StudentDocumentHandler = Depends(get_document_handler),
     employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db)),
     user=Depends(get_current_student),  # Secure the endpoint
@@ -76,8 +75,6 @@ def update_document(
         file_urls["versicherungsbescheinigung_url"] = save_file(versicherungsbescheinigung, upload_dir)
     if sozialversicherungsbogen:
         file_urls["sozialversicherungsbogen_url"] = save_file(sozialversicherungsbogen, upload_dir)
-    if ba_degree:
-        file_urls["ba_degree_url"] = save_file(ba_degree, upload_dir)
 
     document_data = StudentDocumentsUpdate(**file_urls)  
 

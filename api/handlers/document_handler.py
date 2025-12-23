@@ -66,14 +66,15 @@ class StudentDocumentHandler:
     def update_document(
         self, document_id: UUID, document_data: StudentDocumentsUpdate
     ) -> StudentDocuments:
+        # Check if the document exists
         existing_document = self.manager.get_document(document_id)
         if not existing_document:
             raise self.exc.not_found("Document", str(document_id))
 
+        # Proceed with the update
         document = self.manager.update_document(document_id, document_data)
         if not document:
             raise self.exc.update_failed("Document", str(document_id))
-
         return document
 
     def update_document_by_employee(

@@ -12,7 +12,6 @@ class StudentDocumentsUpdate(BaseModel):
     studienbescheinigung_url: Optional[str] = None  # Accept URLs as strings
     versicherungsbescheinigung_url: Optional[str] = None  # Accept URLs as strings
     sozialversicherungsbogen_url: Optional[str] = None  # Accept URLs as strings
-    ba_degree_url: Optional[str] = None  # Accept URLs as strings
 
 class StudentDocumentsRead(BaseModel):
     id: UUID
@@ -21,7 +20,6 @@ class StudentDocumentsRead(BaseModel):
     studienbescheinigung_url: Optional[str] = None
     versicherungsbescheinigung_url: Optional[str] = None
     sozialversicherungsbogen_url: Optional[str] = None
-    ba_degree_url: Optional[str] = None
 
     class Config:
         orm_mode = True

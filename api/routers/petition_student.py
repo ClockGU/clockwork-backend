@@ -113,5 +113,3 @@ async def request_revision_from_supervisor(
     updated_petition = handler.request_revision_from_supervisor(petition_id, revision_data.body)
     return updated_petition
 
-
-

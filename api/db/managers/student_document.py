@@ -42,13 +42,12 @@ class StudentDocumentManager:
         result = self.db.execute(statement)
         return result.scalars().all()
 
-    def check_student_documents_uploaded(self, student_username: str, check_ba_degree: bool = False) -> bool:
+    def check_student_documents_uploaded(self, student_username: str) -> bool:
         """
         Check if a student has uploaded all required documents.
         
         Args:
             student_username: Username of the student
-            check_ba_degree: Whether to check for BA degree upload
         
         Returns:
             bool: True if all documents are uploaded, False otherwise
@@ -79,9 +78,6 @@ class StudentDocumentManager:
             student_docs.versicherungsbescheinigung_url,
             student_docs.sozialversicherungsbogen_url
         ]
-
-        if check_ba_degree:
-            required_documents.append(student_docs.ba_degree_url)
         
         # Return True only if all documents have non-empty URLs
         return all(doc_url and doc_url.strip() for doc_url in required_documents)
