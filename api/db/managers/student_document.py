@@ -7,6 +7,8 @@ from api.db.schema.employee import Employee
 from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
 
 
+from sqlalchemy.exc import IntegrityError
+        
 class StudentDocumentManager:
     def __init__(self, db: Session):
         self.db = db
@@ -23,10 +25,16 @@ class StudentDocumentManager:
             # Handle Pydantic model
             document = self.schema(**document_data.dict())
 
-        self.db.add(document)
-        self.db.commit()
-        self.db.refresh(document)
-        return document
+        try:
+            self.db.add(document)
+            self.db.commit()
+            self.db.refresh(document)
+            return document
+        except IntegrityError:
+            self.db.rollback()
+            # If document already exists, we can safely ignore this error
+            # as the employee already has a document associated
+            pass
 
     def get_document(self, document_id: UUID) -> Optional[StudentDocuments]:
         """
