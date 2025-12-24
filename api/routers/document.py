@@ -19,7 +19,7 @@ def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandle
     return StudentDocumentHandler(db)
 
 
-@router.get("/documents/", response_model=StudentDocumentsRead)
+@router.get("/documents", response_model=StudentDocumentsRead)
 def get_document(
     handler: StudentDocumentHandler = Depends(get_document_handler),
     employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db)),
@@ -38,7 +38,7 @@ def get_document(
 
 
 
-@router.patch("/documents/")
+@router.patch("/documents")
 def update_document(
     elstam: Optional[UploadFile] = File(None),
     studienbescheinigung: Optional[UploadFile] = File(None),
@@ -97,7 +97,7 @@ def save_file(file: UploadFile, upload_dir: str) -> str:
     return file_path
 
 
-@router.get("/download-file/")
+@router.get("/download-file")
 def download_file(file_url: str = Query(..., description="The URL of the file to download")):
     """
     Takes the URL of a file and returns the actual file.
@@ -113,7 +113,7 @@ def download_file(file_url: str = Query(..., description="The URL of the file to
         filename=os.path.basename(file_url)
     )
 
-@router.get("/clerk/documents-by-username/", response_model=StudentDocumentsRead)
+@router.get("/clerk/documents-by-username", response_model=StudentDocumentsRead)
 def get_documents_by_student_username(
     student_username: str = Query(..., description="The username of the student"),
     handler: StudentDocumentHandler = Depends(get_document_handler),

@@ -16,7 +16,7 @@ def get_employee_handler(db: Session = Depends(get_db)) -> EmployeeHandler:
     return EmployeeHandler(db)
 
 
-@router.patch("/employees/", response_model=EmployeeRead)
+@router.patch("/employees", response_model=EmployeeRead)
 def update_employee_by_user(
     employee_data: EmployeeUpdate,
     handler: EmployeeHandler = Depends(get_employee_handler),
@@ -31,7 +31,7 @@ def update_employee_by_user(
     return updated_employee
 
 
-@router.get("/employees/", response_model=EmployeeRead)
+@router.get("/employees", response_model=EmployeeRead)
 def get_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_student), 
@@ -43,7 +43,7 @@ def get_employee_by_user(
     return employee
 
 
-@router.delete("/employees/")
+@router.delete("/employees")
 def delete_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_student),  # Secure the endpoint

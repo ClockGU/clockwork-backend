@@ -27,7 +27,7 @@ def get_petition_handler(
     return PetitionHandler(db)
 
 #Api to list all the petitions of students
-@router.get("/students/petitions/", response_model=List[PetitionStudentRead])
+@router.get("/students/petitions", response_model=List[PetitionStudentRead])
 def read_petitions(
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_student)

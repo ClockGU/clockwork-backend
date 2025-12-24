@@ -40,7 +40,7 @@ def get_petition_handler(
         ) -> PetitionHandler:
     return PetitionHandler(db)
 
-@router.post("/supervisor/petitions/", response_model=PetitionRead)
+@router.post("/supervisor/petitions", response_model=PetitionRead)
 async def create_petition(
     petition: PetitionSupervisorCreate,
     handler: PetitionHandler = Depends(get_petition_handler),
@@ -71,7 +71,7 @@ async def create_petition(
     
     return created_petition
 
-@router.get("/supervisor/petitions/", response_model=List[PetitionRead])
+@router.get("/supervisor/petitions", response_model=List[PetitionRead])
 def read_petitions_by_user(
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_supervisor)
