@@ -50,6 +50,7 @@ class PetitionRead(PetitionBaseRead):
 class PetitionStudentRead(PetitionBaseRead):
     time_exce_student: Optional[bool] = None
     duration_exce_student: Optional[bool] = None
+    ba_degree: Optional[bool] = None
     
     budget_positions: List[BudgetPositionRead]
 
