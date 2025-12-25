@@ -235,8 +235,7 @@ class EmailHandler:
 
             # Send email to all budget approvers with updated budget positions
             for budget_position in budget_positions:
-                approval_url = f"{settings.FRONTEND_URL}/approver?petition_id={self.petition.id}&signature={signature}"
-                self.send_email(
+                approval_url = f"{settings.FRONTEND_URL}/approver?petition_id={self.petition.id}&signature={signature}&budget_position_id={budget_position.id}"                self.send_email(
                     recipient=budget_position.budget_approver,
                     subject="[ClockWork] Antrag aktualisiert / Application updated",
                     body=f"Der Antrag {self.petition.id} wurde aktualisiert.\n\n"
