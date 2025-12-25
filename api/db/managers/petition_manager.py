@@ -151,8 +151,9 @@ class PetitionManager:
             (self.schema.status == PetitionStatus.AWAITING_SIGNATURE)| 
             (self.schema.status == PetitionStatus.COMPLETED) |
             (self.schema.status == PetitionStatus.CLERK_REVISION) |
-            (self.schema.status == PetitionStatus.STUDENT_REVISION)
-             )
+            (self.schema.status == PetitionStatus.STUDENT_REVISION) |
+            (self.schema.status == PetitionStatus.CLERK_ACTION) 
+            )
         )
         result = self.db.execute(statement)
         petitions = result.scalars().all()
