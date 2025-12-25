@@ -82,18 +82,19 @@ def get_current_student(request: Request, db: Session = Depends(get_db)):
         employee_handler = EmployeeHandler(db)
         document_handler = StudentDocumentHandler(db)
 
-        # Check if an employee entry exists
-        
-        if not employee_handler.employee_exists_by_user_account(user_account):
-            # Create a new employee entry
-            new_employee_data = {
-                "user_account": user_account,  
-                "username": payload.get("username"),  
-            }
-            new_employee = employee_handler.create_employee(new_employee_data)
+        # Prepare employee data
+        new_employee_data = {
+            "user_account": user_account,  
+            "username": payload.get("username"),  
+        }
 
-            # Create a new document entry for the employee
-            document_handler.manager.create_document({"employee_id": new_employee.id})
+        # Get or create employee implementation to handle concurrency
+        employee, created = employee_handler.get_or_create_employee(new_employee_data)
+        
+        if created:
+             # Create a new document entry for the employee only if it was just created
+            document_handler.manager.create_document({"employee_id": employee.id})
+        
         return payload
 
     except jwt.ExpiredSignatureError:

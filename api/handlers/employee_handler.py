@@ -1,6 +1,8 @@
-from typing import List
+from typing import List, Optional
+from fastapi import HTTPException
 from uuid import UUID
 from sqlmodel import Session
+from sqlalchemy.exc import IntegrityError
 from io import BytesIO
 
 from api.db.managers.emploeyee_manager import EmployeeManager
@@ -28,8 +30,24 @@ class EmployeeHandler:
             if not employee:
                 raise self.exc.created_failed("Employee")
             return employee
+        except IntegrityError:
+            raise self.exc.conflict("Employee with this user account already exists")
         except Exception as e:
             raise self.exc.internal_error("creating the employee", e)
+
+    def get_or_create_employee(self, employee_data: dict) -> tuple[Employee, bool]:
+        """
+        Create a new employee, or return existing one if unique constraint violated.
+        Returns: (employee, created) where created is True if a new record was inserted.
+        """
+        try:
+            return self.create_employee(employee_data), True
+        except HTTPException as e:
+            if e.status_code == 409: # Conflict
+                 # If conflict, retrieve the existing employee
+                 # user_account is required in employee_data for this to work
+                 return self.get_employee_by_user_account(employee_data["user_account"]), False
+            raise e
 
     def get_employee(self, employee_id: UUID) -> Employee:
         """
