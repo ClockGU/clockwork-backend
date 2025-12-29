@@ -178,7 +178,7 @@ class PetitionHandler:
             raise self.exc.not_found("Petition", str(petition_id))
         return petition
 
-    def get_petition_for_approver_action(self, petition_id: UUID) -> Petition:
+    def get_petition_for_approver_action(self, petition_id: UUID, budget_position_id: UUID) -> Petition:
         petition = self.manager.get_petition(petition_id)
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
@@ -186,6 +186,12 @@ class PetitionHandler:
         if petition.status != PetitionStatus.APPROVER_ACTION:
              raise self.exc.invalid_status(petition.status, message=f"you have already performed an action")
         
+        # Check if the budget position is already approved
+        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+        for bp in budget_positions:
+            if bp.id == budget_position_id and bp.budget_position_approved:
+                 raise self.exc.bad_request("This budget position has already been approved")
+
         return petition
 
     def update_petition(self, petition_id: UUID, petition_data: PetitionCreate) -> Petition:
