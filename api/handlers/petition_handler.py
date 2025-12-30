@@ -1,4 +1,5 @@
 from typing import List, Optional
+from fastapi import HTTPException
 from uuid import UUID
 from sqlmodel import Session
 from datetime import date
@@ -62,6 +63,9 @@ class PetitionHandler:
             if budget_position.petition_id != petition_id:
                 raise self.exc.bad_request("Budget position does not belong to this petition")
 
+            if budget_position.budget_position_approved:
+                raise self.exc.bad_request("You have already approved this budget position")
+    
             # Update the budget position status
             updated_budget_position = self.budget_position_manager.update_budget_position_status(budget_position_id, budget_position_approved)
             if not updated_budget_position:
@@ -101,7 +105,7 @@ class PetitionHandler:
 
             return petition
 
-        except self.exc.custom as e:
+        except HTTPException as e:
             raise
         except Exception as e:
             raise self.exc.internal_error("updating budget position", e)
@@ -172,6 +176,22 @@ class PetitionHandler:
         petition = self.manager.get_petition(petition_id)
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
+        return petition
+
+    def get_petition_for_approver_action(self, petition_id: UUID, budget_position_id: UUID) -> Petition:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            raise self.exc.not_found("Petition", str(petition_id))
+        
+        if petition.status != PetitionStatus.APPROVER_ACTION:
+             raise self.exc.invalid_status(petition.status, message=f"you have already performed an action")
+        
+        # Check if the budget position is already approved
+        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+        for bp in budget_positions:
+            if bp.id == budget_position_id and bp.budget_position_approved:
+                 raise self.exc.bad_request("This budget position has already been approved")
+
         return petition
 
     def update_petition(self, petition_id: UUID, petition_data: PetitionCreate) -> Petition:
@@ -283,7 +303,7 @@ class PetitionHandler:
             
             return petition
 
-        except self.exc.custom as e:
+        except HTTPException as e:
             raise
         except Exception as e:
             raise self.exc.internal_error("updating petition status", e)
@@ -465,7 +485,7 @@ class PetitionHandler:
                 email_handler.send_contract_pdf_email(contract_pdf_buffer, employee.user_email)
                         
             except Exception as e:
-                print(f"Error creating/sending contract PDF: {str(e)}", flush=True)
+                raise self.exc.internal_error("creating/sending contract PDF", e)
 
         return petition
 
@@ -523,7 +543,7 @@ class PetitionHandler:
                 return []
 
             return unique
-        except self.exc.custom as e:
+        except HTTPException as e:
             raise
         except Exception as e:
             raise self.exc.internal_error("fetching clerk petitions", e)
@@ -570,7 +590,7 @@ class PetitionHandler:
             
             return petition
             
-        except self.exc.custom as e:
+        except HTTPException as e:
             raise
         except Exception as e:
             raise self.exc.internal_error("requesting revision", e)
