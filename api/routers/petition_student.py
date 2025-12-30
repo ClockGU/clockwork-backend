@@ -67,7 +67,8 @@ async def update_petition_acceptance(
 async def student_accept_or_reject_petition(
     petition_id: UUID,
     action: PetitionStudentUpdate,
-    handler: PetitionHandler = Depends(get_petition_handler)
+    handler: PetitionHandler = Depends(get_petition_handler),
+    user = Depends(get_current_student)
 ):
     """
     API for students to accept or reject their petition.
@@ -87,7 +88,8 @@ async def student_accept_or_reject_petition(
 @router.patch("/students/petitions/{petition_id}/revision-done", response_model=PetitionStudentRead)
 async def mark_revision_done(
     petition_id: UUID,
-    handler: PetitionHandler = Depends(get_petition_handler)
+    handler: PetitionHandler = Depends(get_petition_handler),
+    user = Depends(get_current_student)
 ):
     """
     API for students to mark their petition as revision done.
@@ -100,7 +102,8 @@ async def mark_revision_done(
 async def request_revision_from_supervisor(
     petition_id: UUID,
     revision_data: PetitionStudentUpdateRequest,
-    handler: PetitionHandler = Depends(get_petition_handler)
+    handler: PetitionHandler = Depends(get_petition_handler),
+    user = Depends(get_current_student)
 ):
     """
     API for students to request revision from supervisor.

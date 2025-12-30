@@ -5,6 +5,8 @@ from sqlmodel import Session, select
 from api.db.schema.employee import Employee
 
 
+from sqlalchemy.exc import IntegrityError
+
 class EmployeeManager:
     def __init__(self, db: Session):
         self.db = db
@@ -14,10 +16,14 @@ class EmployeeManager:
         """
         Create a new employee record.
         """
-        self.db.add(employee_data)
-        self.db.commit()
-        self.db.refresh(employee_data)
-        return employee_data
+        try:
+            self.db.add(employee_data)
+            self.db.commit()
+            self.db.refresh(employee_data)
+            return employee_data
+        except IntegrityError:
+            self.db.rollback()
+            return self.get_employee_by_user_account(employee_data.user_account)
 
     def get_employee(self, employee_id: UUID) -> Optional[Employee]:
         """

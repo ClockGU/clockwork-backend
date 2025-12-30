@@ -4,7 +4,7 @@ import uuid
 
 class StudentDocuments(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
-    employee_id: uuid.UUID = Field(foreign_key="employee.id", nullable=False)
+    employee_id: uuid.UUID = Field(foreign_key="employee.id", nullable=False, sa_column_kwargs={"unique": True})
 
     # Document fields
     elstam_url: Optional[str] = None
