@@ -285,28 +285,12 @@ class EmailHandler:
         except Exception as e:
             print(f"Error sending clerk approval email: {str(e)}", flush=True)
 
-    def send_contract_pdf_email(self, contract_pdf_buffer, employee_email: str) -> None:
+    def send_contract_pdf_email(self, contract_pdf_buffer) -> None:
         """Send contract PDF to employee and student"""
         if not self.petition:
             raise ValueError("Petition is required for this email operation")
         
         try:
-            # Send to employee/supervisor
-            self.send_email(
-                recipient=employee_email,
-                subject="[ClockWork] Arbeitsvertrag / Employment contract",
-                body=f"Anbei finden Sie den Arbeitsvertrag für den Antrag {self.petition.id}.\n\n"
-                f"Bitte drucken Sie den Vertrag aus, unterschreiben Sie ihn und reichen Sie ihn bei PersonalServices ein."
-                f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                f"\n\n--------------\n\n"
-                f"Please find attached the employment contract for application {self.petition.id}.\n\n"
-                f"Please print the contract, sign it and submit it to PersonalServices."
-                f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                attachment_bytes=contract_pdf_buffer.getvalue(),
-                attachment_filename=f"contract_{self.petition.id}.pdf"
-            )
-
-            # Send to student
             self.send_email(
                 recipient=self.petition.student_mail,
                 subject="[ClockWork] Arbeitsvertrag / Employment contract",
