@@ -466,10 +466,10 @@ class EmailHandler:
                 recipient=self.petition.student_mail,
                 subject="[ClockWork] Einstellung als studentische Hilfskraft / Employment as a student assistant",
                 body=f"Für Sie wurde ein Antrag zur Einstellung als studentische Hilfskraft gestellt.\n\n"
-                f"Bitte nutzen Sie den folgenden Link, um sich anzumelden und dem Antrag zuzustimmen: {petition_url}"
+                f"Wir haben alle notwendigen Daten, um den Antrag zu akzeptieren oder abzulehnen.\n\n"
                 f"\n\n--------------\n\n"
                 f"An application has been filed for your employment as a student assistant.\n\n"
-                f"Please use the following link to review and accept the petition: {petition_url}"
+                f"We have all your data you need to accept or reject the application."
             )
         except Exception as e:
-            print(f"Error sending student acceptance link email: {str(e)}", flush=True)
+            raise HTTPException(status_code=500, detail=f"Error sending student acceptance link email: {str(e)}")

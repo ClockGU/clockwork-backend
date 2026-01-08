@@ -335,7 +335,7 @@ class PetitionHandler:
             email_handler.send_budget_position_update_emails(budget_positions)
 
         except Exception as e:
-            print(f"Error sending budget position update emails: {str(e)}", flush=True)
+            raise self.exc.internal_error("sending budget position update emails", e)
 
     def _check_student_semester_eligibility(self, student_username: str, start_date: date) -> bool:
         """
@@ -351,7 +351,7 @@ class PetitionHandler:
             return len(existing_petitions) != 0
 
         except Exception as e:
-            print(f"Error checking student semester eligibility: {str(e)}", flush=True)
+            raise self.exc.internal_error("checking student semester eligibility", e)
             # In case of error, allow the petition (fail-open approach)
             return True
 
