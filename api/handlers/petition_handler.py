@@ -445,6 +445,7 @@ class PetitionHandler:
         petition = self.manager.get_petition(petition_id)
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
+
         if petition.status == PetitionStatus.CLERK_ACTION:
             return self.approve_petition_as_clerk(petition_id, approved)
         elif petition.status == PetitionStatus.AWAITING_SIGNATURE and approved:
@@ -473,8 +474,7 @@ class PetitionHandler:
             try:
                 employee = self.employee_manager.get_employee_by_username(petition.student_username)
                 if not employee:
-                    print(f"Employee not found for petition {petition.id}", flush=True)
-                    return petition
+                    raise self.exc.not_found("Employee", petition.student_username)
                     
                 employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
                 petition_read = PetitionRead.model_validate(petition, from_attributes=True)
@@ -482,7 +482,7 @@ class PetitionHandler:
                 contract_pdf_buffer = create_contract_pdf(employee_read, petition_read)
                 
                 # Send contract PDF via email
-                email_handler.send_contract_pdf_email(contract_pdf_buffer, employee.user_email)
+                email_handler.send_contract_pdf_email(contract_pdf_buffer)
                         
             except Exception as e:
                 raise self.exc.internal_error("creating/sending contract PDF", e)
