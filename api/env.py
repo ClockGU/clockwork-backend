@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "password"
 
+    ALLOWED_HOSTS: list[str] = ["*"]
+
     @property
     def signature_secret_key(self) -> bytes:
         return self.SIGNATURE_SECRET_KEY.encode() if isinstance(self.SIGNATURE_SECRET_KEY, str) else self.SIGNATURE_SECRET_KEY
