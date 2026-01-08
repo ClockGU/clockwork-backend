@@ -431,6 +431,7 @@ class EmailHandler:
             raise ValueError("Petition is required for this email operation")
         
         try:
+            dashboard_url = f"{settings.FRONTEND_URL}/dashboard/student"
             self.send_email(
                 recipient=self.petition.student_mail,
                 subject="[ClockWork] Dokumente hochladen / Upload Documents Required",
@@ -439,6 +440,7 @@ class EmailHandler:
                 f"- Fragebogen zur Sozialversicherung\n\n"
                 f"- aktuelle Studienbescheinigung\n\n"
                 f"- Mitgliedsbescheinigung Ihrer Krankenkasse\n\n"
+                f"Das Student-Dashboard ist unter folgendem Link erreichbar: {dashboard_url}\n\n"
                 f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
                 f"\n\n--------------\n\n"
                 f"An application has been filed for your employment as a student assistant. Please upload the required documents to complete your petition. You will need to uploade\n\n"
@@ -446,6 +448,7 @@ class EmailHandler:
                 f"- Social Security questionnaire\n\n"
                 f"- current certificate of enrolment\n\n"
                 f"- Health insurance membership certificate\n\n"
+                f"The student dashboard can be accessed from this link: {dashboard_url}\n\n"
                 f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n"
             )
         except Exception as e:
