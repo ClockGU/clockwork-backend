@@ -235,12 +235,14 @@ class PetitionManager:
                 semester_start = date(year - 1, 10, 1)
                 semester_end = date(year, 3, 31)
         
-        # Query petitions with student email, approved status, and within semester date range
+        # Query petitions with student email, approved status, and overlapping dates with the semester
         statement = select(self.schema).where(
             (self.schema.student_username == student_username) &
             (self.schema.status == PetitionStatus.APPROVED) &
-            (self.schema.start_date >= semester_start) &
-            (self.schema.start_date <= semester_end)
+            (
+            (self.schema.start_date >= semester_start) |
+            (self.schema.end_date <= semester_end)  
+            ) 
         )
         result = self.db.execute(statement)
         petitions = result.scalars().all()
