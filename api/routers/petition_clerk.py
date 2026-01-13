@@ -12,6 +12,7 @@ from api.pydantic_models import (
 from api.db.dependencies import get_db
 from api.security import get_current_clerk
 from api.routers.web_socket import send_data_to_clerks
+from api.consts import PetitionStatus
 
 router = APIRouter()
 
@@ -42,7 +43,7 @@ def delete_petition(
 
 # 3. API to update a petition
 @router.patch("/clerk/petitions/{petition_id}")
-def update_petition_as_clerk(
+async def update_petition_as_clerk(
     petition_id: UUID,
     petition_data: PetitionClerkUpdate,
     handler: PetitionHandler = Depends(get_petition_handler),
@@ -54,6 +55,8 @@ def update_petition_as_clerk(
     )
     if updated_petition.status == 'rejected':
         updated_petition = handler.delete_petition(petition_id)
+   
+    await send_data_to_clerks(handler.get_petitions_clerk())
    
     return updated_petition
 
