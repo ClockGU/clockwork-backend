@@ -35,4 +35,4 @@ class Employee(SQLModel, table=True):
 
     @property
     def user_email(self):
-        return f"{self.username}@stud.uni-frankfurt.de"
+        return f"{self.username}@uni-frankfurt.de"
