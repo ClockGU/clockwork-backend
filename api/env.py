@@ -1,4 +1,8 @@
-from pydantic_settings import BaseSettings
+from typing import Annotated
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, NoDecode
+
 
 class Settings(BaseSettings):
     APP_ENV: str = "development"  
@@ -18,7 +22,20 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "password"
 
-    ALLOWED_HOSTS: list[str] = ["*"]
+    ALLOWED_HOSTS: Annotated[list[str], NoDecode] = ["*"]
+
+    @field_validator("ALLOWED_HOSTS", mode="before")
+    @classmethod
+    def split_allowed_hosts(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, str):
+            s = v.strip()
+            if s in ("", "*"):
+                return ["*"]
+            # split by comma, trim whitespace, drop empties
+            return [h.strip() for h in s.split(",") if h.strip()]
+        return v
 
     @property
     def signature_secret_key(self) -> bytes:
