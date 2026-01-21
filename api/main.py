@@ -11,8 +11,12 @@ from api.security import get_current_supervisor, get_current_student
 from api.routers import router
 from api.admin import setup_admin
 from api.env import settings
+from api.events.petition_events import register_petition_events
 
 app = FastAPI()
+
+# Register event listeners
+register_petition_events()
 
 # Add session middleware for admin authentication
 app.add_middleware(

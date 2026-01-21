@@ -50,12 +50,21 @@ async def send_data_to_clerks(data: str):
 
     """
     clerks = get_all_clerks()
+    
+    # Process data to ensure it is a list of dicts
+    processed_data = []
+    for item in data:
+        if isinstance(item, dict):
+            processed_data.append(item)
+        else:
+            processed_data.append(item.dict(by_alias=True, exclude_none=True))
+
     for client_id in clerks:
         await manager.send_message(
             client_id, 
              dumps({
                 "type": "updated_petitions",
-                "data": [petition.dict(by_alias=True, exclude_none=True) for petition in data] 
+                "data": processed_data 
             }, cls=UUIDEncoder)
         )
 

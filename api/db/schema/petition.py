@@ -37,4 +37,4 @@ class Petition(SQLModel, table=True):
 
     @property
     def student_mail(self):
-        return f"{self.student_username}@stud.uni-frankfurt.de"
+        return f"{self.student_username}@uni-frankfurt.de"
