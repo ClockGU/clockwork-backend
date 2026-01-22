@@ -12,6 +12,7 @@ from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.schema.petition import Petition
 from api.env import settings
 from api.handlers.email_handler import EmailHandler
+from api.handlers.timeline_handler import TimelineHandler
 from api.handlers.exception_handler import ExceptionHandler
 from api.pydantic_models import (
     EmployeeRead, 
@@ -28,6 +29,7 @@ class PetitionHandler:
         self.budget_position_manager = BudgetPositionManager(db)
         self.student_document_manager = StudentDocumentManager(db)
         self.employee_manager = EmployeeManager(db)
+        self.timeline_handler = TimelineHandler(db)
         self.db = db
         self.exc = ExceptionHandler()
 
@@ -36,6 +38,10 @@ class PetitionHandler:
             petition = self.manager.create_petition(petition_data)
             if not petition:
                 raise self.exc.created_failed("Petition")
+                
+            # Initialize timeline
+            self.timeline_handler.initialize_timeline(petition.id)
+            
             return petition
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)
@@ -232,6 +238,9 @@ class PetitionHandler:
         existing_petition = self.manager.get_petition(petition_id)
         if not existing_petition:
             raise self.exc.not_found("Petition", str(petition_id))
+
+        # Delete timeline first
+        self.timeline_handler.delete_timeline(petition_id)
 
         # Proceed with the deletion
         success = self.manager.delete_petition(petition_id)
