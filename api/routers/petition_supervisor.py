@@ -90,7 +90,7 @@ def read_petition(
     return petition
 
 @router.patch("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
-def update_petition(
+async def update_petition(
     petition_id: UUID,
     petition: PetitionSupervisorUpdate,
     handler: PetitionHandler = Depends(get_petition_handler),

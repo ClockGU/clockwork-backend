@@ -15,12 +15,13 @@ class PetitionTimelineManager:
 
     def get_timeline(self, petition_id: UUID) -> Optional[PetitionTimeline]:
         statement = select(PetitionTimeline).where(PetitionTimeline.petition_id == petition_id)
-        return self.db.exec(statement).first()
+        return self.db.execute(statement).scalars().first()
 
-    def update_timeline(self, timeline: PetitionTimeline) -> PetitionTimeline:
+    def update_timeline(self, timeline: PetitionTimeline, commit: bool = True) -> PetitionTimeline:
         self.db.add(timeline)
-        self.db.commit()
-        self.db.refresh(timeline)
+        if commit:
+            self.db.commit()
+            self.db.refresh(timeline)
         return timeline
 
     def delete_timeline(self, petition_id: UUID) -> bool:

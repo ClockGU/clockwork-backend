@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 from api.db.managers.timeline_manager import PetitionTimelineManager
 from api.db.schema.timeline import PetitionTimeline
 from api.consts import PetitionStatus
+from sqlalchemy.orm.attributes import flag_modified
 
 class TimelineHandler:
     def __init__(self, db: Session):
@@ -15,7 +16,6 @@ class TimelineHandler:
         Creates the initial timeline for a new petition.
         Initial log: '-' -> 'approver_action'
         """
-        # Create initial data structure
         berlin_now = datetime.now(ZoneInfo("Europe/Berlin"))
         initial_data = {
             "logs": [
@@ -43,3 +43,29 @@ class TimelineHandler:
         Deletes the timeline associated with a petition.
         """
         return self.manager.delete_timeline(petition_id)
+
+    def log_status_change(self, petition_id: UUID, from_status: str, to_status: str, commit: bool = True) -> PetitionTimeline:
+        """
+        Logs a status change event to the timeline.
+        """
+        timeline = self.manager.get_timeline(petition_id)
+        if not timeline:
+            timeline = self.initialize_timeline(petition_id)
+            
+        berlin_now = datetime.now(ZoneInfo("Europe/Berlin"))
+        new_entry = {
+            "timestamp": berlin_now.isoformat(),
+            "from_status": from_status,
+            "to_status": to_status
+        }
+        
+        data = dict(timeline.data)
+        if "logs" not in data:
+            data["logs"] = []
+            
+        data["logs"].append(new_entry)
+        timeline.data = data
+        flag_modified(timeline, "data")
+        timeline.last_updated_at = berlin_now
+        
+        return self.manager.update_timeline(timeline, commit=commit)
