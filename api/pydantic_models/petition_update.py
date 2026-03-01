@@ -104,6 +104,22 @@ class PetitionUpdateBase(SQLModel):
         return values
 
     @model_validator(mode="after")
+    def validate_duration_requirement(cls, values):
+        if values.start_date and values.end_date:
+            days_diff = (values.end_date - values.start_date).days
+            if days_diff < 364:
+                if not values.duration_exce_name:
+                    raise ValueError("Contract duration is less than 1 year, duration_exception fields must be provided")
+        return values
+
+    @model_validator(mode="after")
+    def validate_time_requirement(cls, values):
+        if values.minutes is not None and values.minutes < 2400:
+            if not values.time_exce_name:
+                raise ValueError("Worktime is less than 40h/month, time_exception fields must be provided")
+        return values
+
+    @model_validator(mode="after")
     def validate_budget_percentage_sum(cls, values):
         """Validate that budget position percentages sum up to 100 if budget_positions are provided"""
         budget_positions = values.budget_positions
