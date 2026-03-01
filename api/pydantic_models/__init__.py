@@ -18,6 +18,7 @@ from .petition_update import (
     PetitionClerkUpdate,
     PetitionApproverUpdate,
     ClerkRevisionRequest,
+    ClerkDeletionRequest,
     PetitionStudentUpdateRequest
     )
 
