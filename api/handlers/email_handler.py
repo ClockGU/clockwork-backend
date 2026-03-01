@@ -473,3 +473,50 @@ class EmailHandler:
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error sending student acceptance link email: {str(e)}")
+
+    def send_clerk_deletion_email(self, reason: str, budget_positions: list) -> None:
+        """Send email when clerk deletes a petition"""
+        if not self.petition:
+            raise ValueError("Petition is required for this email operation")
+        
+        try:
+            reason_text = f"\n\nBegründung:\n{reason}" if reason else ""
+            reason_text_en = f"\n\nReason:\n{reason}" if reason else ""
+
+            # Send email to supervisor
+            if self.petition.supervisor_mail:
+                self.send_email(
+                    recipient=self.petition.supervisor_mail,
+                    subject="[ClockWork] Antrag gelöscht / Application deleted",
+                    body=f"Ihr Antrag {self.petition.id} wurde von PersonalServices gelöscht.{reason_text}"
+                    f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                    f"\n\n--------------\n\n"
+                    f"Your application {self.petition.id} has been deleted by PersonalServices.{reason_text_en}"
+                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
+                )
+            
+            # Send email to student
+            if self.petition.student_mail:
+                self.send_email(
+                    recipient=self.petition.student_mail,
+                    subject="[ClockWork] Antrag gelöscht / Application deleted",
+                    body=f"Ihr Antrag {self.petition.id} zur Einstellung als studentische Hilfskraft wurde von PersonalServices gelöscht.{reason_text}"
+                    f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                    f"\n\n--------------\n\n"
+                    f"Your application {self.petition.id} for employment as a student assistant has been deleted by PersonalServices.{reason_text_en}"
+                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
+                )
+
+            # Send email to all budget approvers
+            for budget_position in budget_positions:
+                self.send_email(
+                    recipient=budget_position.budget_approver,
+                    subject="[ClockWork] Antrag gelöscht / Application deleted",
+                    body=f"Der Antrag {self.petition.id} wurde von PersonalServices gelöscht.{reason_text}"
+                    f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                    f"\n\n--------------\n\n"
+                    f"The application {self.petition.id} has been deleted by PersonalServices.{reason_text_en}"
+                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
+                )
+        except Exception as e:
+            print(f"Error sending clerk deletion email: {str(e)}", flush=True)

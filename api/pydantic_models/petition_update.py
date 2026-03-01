@@ -172,5 +172,8 @@ class PetitionApproverUpdate(PetitionUpdateBase):
 class ClerkRevisionRequest(BaseModel):
     message: str
 
+class ClerkDeletionRequest(BaseModel):
+    reason: str = ""
+
 class PetitionStudentUpdateRequest(BaseModel):
     body: str
