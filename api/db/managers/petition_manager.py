@@ -152,7 +152,9 @@ class PetitionManager:
             (self.schema.status == PetitionStatus.COMPLETED) |
             (self.schema.status == PetitionStatus.CLERK_REVISION) |
             (self.schema.status == PetitionStatus.STUDENT_REVISION) |
-            (self.schema.status == PetitionStatus.CLERK_ACTION) 
+            (self.schema.status == PetitionStatus.CLERK_ACTION) |
+            (self.schema.status == PetitionStatus.APPROVER_ACTION) |
+            (self.schema.status == PetitionStatus.APPROVER_REVISION)
             )
         )
         result = self.db.execute(statement)
