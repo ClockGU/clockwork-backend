@@ -98,9 +98,25 @@ class EmailHandler:
                     f"Please confirm your application at the following link:\n{petition_url}\n\n"
                     f"You are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
                 )
-                
+
         except Exception as e:
             print(f"Error sending approval emails: {str(e)}", flush=True)
+
+    def send_petition_creation_student_email(self) -> None:
+        """Send email to student when their petition is initially created by the supervisor"""
+        if not self.petition:
+            raise ValueError("Petition is required for this email operation")
+
+        if self.petition.student_mail:
+            self.send_email(
+                recipient=self.petition.student_mail,
+                subject="[ClockWork] Neuer Antrag erstellt / New application created",
+                body=f"Ihr Antrag {self.petition.id} für die Einstellung als studentische Hilfskraft wurde von Ihrem Vorgesetzten erstellt und wird nun von den Kostenstellenverantwortlichen geprüft.\n\n"
+                     f"Sie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}.\n"
+                     f"\n\n--------------\n\n"
+                     f"Your application {self.petition.id} for employment as a student assistant has been created by your supervisor and is now pending review by the budget approvers.\n\n"
+                     f"You are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}.\n"
+            )
 
     def send_revision_request_email(self, requesting_budget_position: "BudgetPosition", budget_positions: list, message: Optional[str] = None) -> None:
         """Send email when a budget approver requests revision"""
