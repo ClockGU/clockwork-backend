@@ -12,6 +12,8 @@ from api.routers import router
 from api.admin import setup_admin
 from api.env import settings
 from api.events.petition_events import register_petition_events
+from api.cron.cron_manager import CronManager
+from contextlib import asynccontextmanager
 
 import os
 import time
@@ -20,7 +22,17 @@ import time
 os.environ['TZ'] = 'Europe/Berlin'
 time.tzset()
 
-app = FastAPI()
+cron_manager = CronManager()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Start the scheduler
+    cron_manager.start()
+    yield
+    # Shutdown: Stop the scheduler
+    cron_manager.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 # Register event listeners
 register_petition_events()

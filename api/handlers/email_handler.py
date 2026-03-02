@@ -457,3 +457,50 @@ class EmailHandler:
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error sending student acceptance link email: {str(e)}")
+
+    def send_inactivity_warning_email(self, role: str, budget_positions: list) -> None:
+        """Send warning email about petition inactivity"""
+        if not self.petition:
+            raise ValueError("Petition is required for this email operation")
+            
+        try:
+            subject = "[ClockWork] Erinnerung: Antrag auf Einstellung / Reminder: Employment Application"
+            body_de = f"Bitte bearbeiten Sie den Antrag {self.petition.id} zeitnah, andernfalls wird er automatisch gelöscht.\n\n"
+            body_en = f"Please process application {self.petition.id} promptly, otherwise it will be automatically deleted.\n\n"
+            full_body = f"{body_de}--------------\n\n{body_en}"
+            
+            if role == "student" and self.petition.student_mail:
+                self.send_email(recipient=self.petition.student_mail, subject=subject, body=full_body)
+            elif role == "supervisor" and self.petition.supervisor_mail:
+                self.send_email(recipient=self.petition.supervisor_mail, subject=subject, body=full_body)
+            elif role == "approver":
+                for bp in budget_positions:
+                    if not bp.budget_position_approved:
+                        self.send_email(recipient=bp.budget_approver, subject=subject, body=full_body)
+        except Exception as e:
+            print(f"Error sending inactivity warning email: {str(e)}", flush=True)
+
+    def send_inactivity_deletion_email(self, role: str, budget_positions: list) -> None:
+        """Notify all relevant parties that petition was deleted due to inactivity"""
+        if not self.petition:
+            raise ValueError("Petition is required for this email operation")
+            
+        try:
+            subject = "[ClockWork] Antrag auf Einstellung gelöscht / Employment Application Deleted"
+            body_de = f"Der Antrag {self.petition.id} wurde aufgrund mangelnder Aktivität automatisch gelöscht.\n\n"
+            body_en = f"The application {self.petition.id} was automatically deleted due to inactivity.\n\n"
+            full_body = f"{body_de}--------------\n\n{body_en}"
+            
+            # Notify everyone involved
+            if self.petition.student_mail:
+                self.send_email(recipient=self.petition.student_mail, subject=subject, body=full_body)
+            if self.petition.supervisor_mail:
+                self.send_email(recipient=self.petition.supervisor_mail, subject=subject, body=full_body)
+            
+            # Notify all budget approvers
+            for bp in budget_positions:
+                self.send_email(recipient=bp.budget_approver, subject=subject, body=full_body)
+                
+        except Exception as e:
+            print(f"Error sending inactivity deletion email: {str(e)}", flush=True)
+

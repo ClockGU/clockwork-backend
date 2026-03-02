@@ -64,6 +64,19 @@ class TimelineHandler:
             data["logs"] = []
             
         data["logs"].append(new_entry)
+        
+        # Reset specific notifications counts every time a status transition actually occurs
+        if "notifications" in data:
+            data["notifications"]["student"] = {"count": 0, "last_sent": None}
+            data["notifications"]["supervisor"] = {"count": 0, "last_sent": None}
+            data["notifications"]["approver"] = {"count": 0, "last_sent": None}
+        else:
+             data["notifications"] = {
+                "student": {"count": 0, "last_sent": None},
+                "supervisor": {"count": 0, "last_sent": None},
+                "approver": {"count": 0, "last_sent": None}
+            }
+
         timeline.data = data
         flag_modified(timeline, "data")
         timeline.last_updated_at = berlin_now

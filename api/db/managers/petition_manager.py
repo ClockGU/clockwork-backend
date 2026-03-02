@@ -6,6 +6,7 @@ from datetime import date
 from api.consts import PetitionStatus
 from api.db.schema.petition import Petition
 from api.db.schema.budget_position import BudgetPosition
+from api.db.schema.timeline import PetitionTimeline
 from api.pydantic_models.petition import PetitionCreate
 
 class PetitionManager:
@@ -254,6 +255,14 @@ class PetitionManager:
             petition.budget_positions = budget_result.scalars().all()
         
         return petitions
+
+    def get_petitions_with_timeline(self) -> List[tuple[Petition, Optional[PetitionTimeline]]]:
+        """Fetch all petitions mapped with their timelines"""
+        statement = select(self.schema, PetitionTimeline).join(
+            PetitionTimeline, self.schema.id == PetitionTimeline.petition_id, isouter=True
+        )
+        result = self.db.exec(statement).all()
+        return result
 
 
 
