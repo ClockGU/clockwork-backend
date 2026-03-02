@@ -248,6 +248,32 @@ class PetitionHandler:
             raise self.exc.delete_failed("Petition", str(petition_id))
         return {"detail": "Petition deleted successfully"}
 
+    def handle_inactivity_warning(self, petition_id: UUID, role: str) -> None:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            return
+            
+        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+        
+        email_handler = EmailHandler(petition)
+        email_handler.send_inactivity_warning_email(role, budget_positions)
+        
+        # Increment the timeline notification counter
+        self.timeline_handler.update_notification_status(petition_id, role)
+
+    def handle_inactivity_deletion(self, petition_id: UUID, role: str) -> None:
+        petition = self.manager.get_petition(petition_id)
+        if not petition:
+            return
+            
+        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+        
+        email_handler = EmailHandler(petition)
+        email_handler.send_inactivity_deletion_email(role, budget_positions)
+        
+        # Automatically purge the petition and timeline natively from db
+        self.delete_petition(petition_id)
+
     def get_petitions_by_user(self, user_account: UUID) -> List[Petition]:
         petitions = self.manager.get_petitions_by_user(user_account)
         if not petitions:
@@ -265,6 +291,10 @@ class PetitionHandler:
         if not petitions:
             raise self.exc.not_found("Petitions", message=f"No petitions found with status '{status}'")
         return petitions
+        
+    def get_petitions_with_timeline(self):
+        """Fetch all petitions mapped with their timelines"""
+        return self.manager.get_petitions_with_timeline()
     
     def check_petition_exists(self, petition_id: UUID) -> None:
         # Check if the petition exists
