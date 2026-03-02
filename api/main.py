@@ -13,6 +13,13 @@ from api.admin import setup_admin
 from api.env import settings
 from api.events.petition_events import register_petition_events
 
+import os
+import time
+
+# Set global timezone explicitly for the entire backend application
+os.environ['TZ'] = 'Europe/Berlin'
+time.tzset()
+
 app = FastAPI()
 
 # Register event listeners
