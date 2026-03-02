@@ -69,3 +69,32 @@ class TimelineHandler:
         timeline.last_updated_at = berlin_now
         
         return self.manager.update_timeline(timeline, commit=commit)
+
+    def update_notification_status(self, petition_id: UUID, role: str) -> PetitionTimeline:
+        """
+        Updates the notification status for a specific role (student, supervisor, approver).
+        Increments count and sets last_sent to now.
+        """
+        timeline = self.manager.get_timeline(petition_id)
+        if not timeline:
+             return None
+
+        berlin_now = datetime.now(ZoneInfo("Europe/Berlin"))
+        data = dict(timeline.data)
+        
+        if "notifications" not in data:
+             data["notifications"] = {
+                "student": {"count": 0, "last_sent": None},
+                "supervisor": {"count": 0, "last_sent": None},
+                "approver": {"count": 0, "last_sent": None}
+            }
+            
+        if role in data["notifications"]:
+            data["notifications"][role]["count"] += 1
+            data["notifications"][role]["last_sent"] = berlin_now.isoformat()
+            
+        timeline.data = data
+        flag_modified(timeline, "data")
+        timeline.last_updated_at = berlin_now
+        
+        return self.manager.update_timeline(timeline)
