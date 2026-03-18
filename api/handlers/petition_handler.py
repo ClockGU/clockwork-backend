@@ -46,7 +46,8 @@ class PetitionHandler:
               budget_position_approved: bool,
               message: Optional[str] = None,
               revision_requested: bool = False,
-              rejected: bool = False
+              rejected: bool = False,
+              subject: Optional[str] = None
               ) -> Petition:
 
         """Update budget position approval and handle petition status accordingly"""
@@ -98,7 +99,7 @@ class PetitionHandler:
                 petition = self.manager.update_petition_status(petition_id, PetitionStatus.APPROVER_REVISION)
 
                 #send rejection emails
-                self._send_revision_request_email(petition, updated_budget_position, message)
+                self._send_revision_request_email(petition, updated_budget_position, message, subject)
 
             # Load budget positions
             petition.budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
@@ -140,7 +141,7 @@ class PetitionHandler:
         except Exception as e:
             print(f"Error sending approval emails: {str(e)}", flush=True)
 
-    def _send_revision_request_email(self, petition: Petition, requesting_budget_position, message: Optional[str] = None) -> None:
+    def _send_revision_request_email(self, petition: Petition, requesting_budget_position, message: Optional[str] = None, subject: Optional[str] = None) -> None:
         """Send email when a budget approver requests revision"""
         try:
             email_handler = EmailHandler(petition)
@@ -148,7 +149,7 @@ class PetitionHandler:
             # Get all budget positions for this petition
             budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
 
-            email_handler.send_revision_request_email(requesting_budget_position, budget_positions, message)
+            email_handler.send_revision_request_email(requesting_budget_position, budget_positions, message, subject)
 
         except Exception as e:
             print(f"Error sending revision request email: {str(e)}", flush=True)
@@ -489,7 +490,7 @@ class PetitionHandler:
 
         return petition
 
-    def request_revision_from_student(self, petition_id: UUID, message: str) -> Petition:
+    def request_revision_from_student(self, petition_id: UUID, message: str, subject: Optional[str] = None) -> Petition:
         petition = self.manager.get_petition(petition_id)
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
@@ -498,7 +499,7 @@ class PetitionHandler:
 
         # Send email to student
         email_handler = EmailHandler(petition)
-        email_handler.send_clerk_revision_request_email(message)
+        email_handler.send_clerk_revision_request_email(message, subject)
         
         # Change status to clerk_revision
         petition = self.manager.update_petition_status(petition_id, PetitionStatus.CLERK_REVISION)
@@ -561,7 +562,7 @@ class PetitionHandler:
 
         return petition
 
-    def request_revision_from_supervisor(self, petition_id: UUID, text: str) -> Petition:
+    def request_revision_from_supervisor(self, petition_id: UUID, text: str, subject: Optional[str] = None) -> Petition:
         """
         Student requests revision from supervisor.
         Sends email to supervisor and changes status to 'student_revision'.
@@ -581,7 +582,7 @@ class PetitionHandler:
             # Send email to supervisor using EmailHandler
             if petition.supervisor_mail:
                 email_handler = EmailHandler(petition)
-                email_handler.send_student_revision_request_email(text)
+                email_handler.send_student_revision_request_email(text, subject)
 
             # Update petition status to student_revision
             petition = self.manager.update_petition_status(petition_id, PetitionStatus.STUDENT_REVISION)

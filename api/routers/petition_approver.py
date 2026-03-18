@@ -45,7 +45,8 @@ def update_budget_position_approval(
         budget_position_id=budget_position_id,
         budget_position_approved=approval_data.budget_position_approved,
         message=approval_data.message,
-        revision_requested=approval_data.revision_requested
+        revision_requested=approval_data.revision_requested,
+        subject=approval_data.subject
     )
 
     return updated_petition

@@ -69,7 +69,8 @@ async def request_revision_from_student(
 ):
     updated_petition = handler.request_revision_from_student(
         petition_id=petition_id,
-        message=revision.message
+        message=revision.message,
+        subject=revision.subject
     )
     await send_data_to_clerks(handler.get_petitions_clerk())
     return updated_petition

@@ -113,7 +113,7 @@ async def request_revision_from_supervisor(
     if not revision_data.body:
         raise HTTPException(status_code=400, detail="Revision request text is required")
     
-    updated_petition = handler.request_revision_from_supervisor(petition_id, revision_data.body)
+    updated_petition = handler.request_revision_from_supervisor(petition_id, revision_data.body, subject=revision_data.subject)
     return updated_petition
 
 

@@ -154,6 +154,8 @@ class PetitionApproverUpdate(PetitionUpdateBase):
 
 class ClerkRevisionRequest(BaseModel):
     message: str
+    subject: Optional[str] = None
 
 class PetitionStudentUpdateRequest(BaseModel):
     body: str
+    subject: Optional[str] = None

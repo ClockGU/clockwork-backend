@@ -102,19 +102,20 @@ class EmailHandler:
         except Exception as e:
             print(f"Error sending approval emails: {str(e)}", flush=True)
 
-    def send_revision_request_email(self, requesting_budget_position: "BudgetPosition", budget_positions: list, message: Optional[str] = None) -> None:
+    def send_revision_request_email(self, requesting_budget_position: "BudgetPosition", budget_positions: list, message: Optional[str] = None, subject: Optional[str] = None) -> None:
         """Send email when a budget approver requests revision"""
         if not self.petition:
             raise ValueError("Petition is required for this email operation")
         
         try:
             revision_message = message if message else "No specific message provided."
+            email_subject = subject if subject else "[ClockWork] Änderungen angefordert / Changes requested"
 
             # Send email to supervisor
             if self.petition.supervisor_mail:
                 self.send_email(
                     recipient=self.petition.supervisor_mail,
-                    subject="[ClockWork] Änderungen angefordert / Changes requested",
+                    subject=email_subject,
                     body=f"Der Kostenstellenverantwortliche {requesting_budget_position.budget_approver} hat eine Änderung an Ihrem Antrag {self.petition.id} angefordert:\n\n"
                     f"{revision_message}\n\n"
                     f"Bitte melden Sie sich an, um die Änderungen vorzunehmen."
@@ -131,7 +132,7 @@ class EmailHandler:
                 if budget_position.budget_approver != requesting_budget_position.budget_approver:
                     self.send_email(
                         recipient=budget_position.budget_approver,
-                        subject="[ClockWork] Änderungen angefordert / Changes requested",
+                        subject=email_subject,
                         body=f"Der Kostenstellenverantwortliche {requesting_budget_position.budget_approver} hat eine Änderung an dem Antrag {self.petition.id} angefordert:\n\n"
                         f"{revision_message}\n\n"
                         f"Sie werden benachrichtigt, sobald die Änderungen vorgenommen wurden."
@@ -310,15 +311,16 @@ class EmailHandler:
         except Exception as e:
             print(f"Error sending contract PDF: {str(e)}", flush=True)
 
-    def send_clerk_revision_request_email(self, message: str) -> None:
+    def send_clerk_revision_request_email(self, message: str, subject: Optional[str] = None) -> None:
         """Send email when clerk requests revision from student"""
         if not self.petition:
             raise ValueError("Petition is required for this email operation")
         
         try:
+            email_subject = subject if subject else "[ClockWork] Änderungen angefordert / Changes requested"
             self.send_email(
                 recipient=self.petition.student_mail,
-                subject="[ClockWork] Änderungen angefordert / Changes requested",
+                subject=email_subject,
                 body=f"PersonalServices hat eine Anpassung Ihrer Angaben / Unterlagen angefordert:\n\n"
                 f"{message}\n\n"
                 f"Bitte melden Sie sich an, um Ihre Angaben zu prüfen und zu ergänzen."
@@ -365,16 +367,17 @@ class EmailHandler:
         except Exception as e:
             print(f"Error sending petition completion emails: {str(e)}", flush=True)
 
-    def send_student_revision_request_email(self, text: str) -> None:
+    def send_student_revision_request_email(self, text: str, subject: Optional[str] = None) -> None:
         """Send email when student requests revision from supervisor"""
         if not self.petition:
             raise ValueError("Petition is required for this email operation")
         
         try:
+            email_subject = subject if subject else "[ClockWork] Änderungen angefordert / Changes requested"
             if self.petition.supervisor_mail:
                 self.send_email(
                     recipient=self.petition.supervisor_mail,
-                    subject="[ClockWork] Änderungen angefordert / Changes requested",
+                    subject=email_subject,
                     body=f"Die studentische Hilfskraft hat eine Änderung an dem Antrag {self.petition.id} angefordert:\n\n"
                     f"{text}\n\n"
                     f"Bitte melden Sie sich an, um die Änderungen vorzunehmen."
