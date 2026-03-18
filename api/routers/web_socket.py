@@ -17,6 +17,7 @@ from api.handlers import (
     ConnectionManager
     )
 from api.env import settings
+from api.security import get_current_clerk
 
 
 manager = ConnectionManager()
@@ -73,6 +74,7 @@ async def websocket_endpoint(
     client_id: str,
     websocket: WebSocket, 
     handler: PetitionHandler = Depends(get_petition_handler),
+    user: dict = Depends(get_current_clerk),
     ):
     clerk_ids = get_all_clerks()
     if client_id not in clerk_ids:
