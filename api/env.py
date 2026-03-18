@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "password"
 
+    TIMEZONE: str = "Europe/Berlin"
+
     ALLOWED_HOSTS: Annotated[list[str], NoDecode] = ["*"]
 
     @field_validator("ALLOWED_HOSTS", mode="before")

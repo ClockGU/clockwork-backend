@@ -3,6 +3,8 @@ from sqlalchemy import Column, JSON, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 import uuid
 from datetime import datetime
+from zoneinfo import ZoneInfo
+from api.env import settings
 from typing import Dict, Any
 
 class PetitionTimeline(SQLModel, table=True):
@@ -22,4 +24,4 @@ class PetitionTimeline(SQLModel, table=True):
     # Stores { "logs": [...], "notifications": {...} }
     data: Dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
     
-    last_updated_at: datetime = Field(default_factory=datetime.now, index=True)
+    last_updated_at: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo(settings.TIMEZONE)), index=True)

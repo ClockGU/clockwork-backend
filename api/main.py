@@ -19,7 +19,7 @@ import os
 import time
 
 # Set global timezone explicitly for the entire backend application
-os.environ['TZ'] = 'Europe/Berlin'
+os.environ['TZ'] = settings.TIMEZONE
 time.tzset()
 
 cron_manager = CronManager()

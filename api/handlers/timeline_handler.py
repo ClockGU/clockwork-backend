@@ -1,6 +1,8 @@
 from uuid import UUID
 from sqlmodel import Session
 from datetime import datetime
+from zoneinfo import ZoneInfo
+from api.env import settings
 from api.db.managers.timeline_manager import PetitionTimelineManager
 from api.db.schema.timeline import PetitionTimeline
 from api.consts import PetitionStatus
@@ -15,7 +17,7 @@ class TimelineHandler:
         Creates the initial timeline for a new petition.
         Initial log: '-' -> 'approver_action'
         """
-        berlin_now = datetime.now()
+        berlin_now = datetime.now(ZoneInfo(settings.TIMEZONE))
         initial_data = {
             "logs": [
                 {
@@ -52,7 +54,7 @@ class TimelineHandler:
         if not timeline:
             timeline = self.initialize_timeline(petition_id)
             
-        berlin_now = datetime.now()
+        berlin_now = datetime.now(ZoneInfo(settings.TIMEZONE))
         new_entry = {
             "timestamp": berlin_now.isoformat(),
             "from_status": from_status,
@@ -79,7 +81,7 @@ class TimelineHandler:
         if not timeline:
              return None
 
-        berlin_now = datetime.now(ZoneInfo("Europe/Berlin"))
+        berlin_now = datetime.now(ZoneInfo(settings.TIMEZONE))
         data = dict(timeline.data)
         
         if "notifications" not in data:
