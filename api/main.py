@@ -11,9 +11,28 @@ from api.security import get_current_supervisor, get_current_student
 from api.routers import router
 from api.admin import setup_admin
 from api.env import settings
+from contextlib import asynccontextmanager
 from api.events.petition_events import register_petition_events
+from api.cron.cron_manager import CronManager
 
-app = FastAPI()
+import os
+import time
+
+# Set global timezone explicitly for the entire backend application
+os.environ['TZ'] = settings.TIMEZONE
+time.tzset()
+
+cron_manager = CronManager()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Start the scheduler
+    cron_manager.start()
+    yield
+    # Shutdown: Stop the scheduler
+    cron_manager.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 # Register event listeners
 register_petition_events()

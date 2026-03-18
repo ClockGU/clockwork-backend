@@ -6,14 +6,12 @@ services:
       POSTGRES_DB: db_app
       POSTGRES_USER: db_user
       POSTGRES_PASSWORD: db_pass
+      TZ: Europe/Berlin
     restart: always
     image: postgres:15.5-alpine
     ports:
       - "5433:5432"
-    
 
-      
-      
   clockwork-web:
     build:
       context: .
@@ -25,6 +23,7 @@ services:
       - .:/app
     environment:
       - APP_ENV=development
+      - TZ=Europe/Berlin
       - DATABASE_URL=postgresql://db_user:db_pass@clockwork-db:5432/db_app
       - JWT_PUBLIC_KEY_PATH=./certs/public.pem
       - JWT_ALGORITHM=RS256
@@ -41,19 +40,9 @@ services:
       - mailhog
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    
 
   mailhog:
     image: mailhog/mailhog
     ports:
       - "1025:1025"
       - "8025:8025"
-    
-
-
-
-
-
-
-
-
