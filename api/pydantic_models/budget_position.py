@@ -34,5 +34,6 @@ class BudgetPositionApprovalUpdate(BaseModel):
     budget_position_approved: bool
     message: Optional[str] = ""
     revision_requested: bool = False
+    subject: Optional[str] = None
 
     
