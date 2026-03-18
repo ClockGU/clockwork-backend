@@ -12,12 +12,10 @@ from api.handlers.timeline_handler import TimelineHandler
 
 logger = logging.getLogger(__name__)
 
-def session_before_flush(session, flush_context, instances):
+def log_timeline_on_flush(session, flush_context, instances):
     """
     Event listener called before session flush.
-    Iterates over modified instances to:
-    1. Log status changes to PetitionTimeline.
-    2. Notify clerks of status changes via WebSocket.
+    Logs status changes to PetitionTimeline.
     """
     for target in session.dirty:
         if not isinstance(target, Petition):
@@ -33,6 +31,19 @@ def session_before_flush(session, flush_context, instances):
                 timeline_handler.log_status_change(target.id, old_status, new_status, commit=False)
             except Exception as e:
                 logger.error(f"Failed to log timeline event: {e}")
+
+def notify_clerks_on_flush(session, flush_context, instances):
+    """
+    Event listener called before session flush.
+    Notifies clerks of status changes via WebSocket.
+    """
+    for target in session.dirty:
+        if not isinstance(target, Petition):
+            continue
+
+        hist = get_history(target, 'status')
+        if hist.has_changes():
+            new_status = target.status
 
             relevant_statuses = [
                 PetitionStatus.AWAITING_SIGNATURE, 
@@ -60,4 +71,5 @@ def session_before_flush(session, flush_context, instances):
                     logger.error(f"Failed to schedule WebSocket notification: {e}")
 
 def register_petition_events():
-    event.listen(Session, 'before_flush', session_before_flush)
+    event.listen(Session, 'before_flush', log_timeline_on_flush)
+    event.listen(Session, 'before_flush', notify_clerks_on_flush)
