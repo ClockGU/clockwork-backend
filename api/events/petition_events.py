@@ -1,4 +1,4 @@
-from sqlalchemy import event, inspect
+from sqlalchemy import event
 from sqlalchemy.orm.attributes import get_history
 from sqlalchemy.orm import object_session
 import asyncio
@@ -6,8 +6,9 @@ import logging
 
 from api.db.schema.petition import Petition
 from api.consts import PetitionStatus
-from api.routers.web_socket import send_data_to_clerks
+from api.routers.web_socket import send_serialized_data_to_clerks
 from api.handlers.petition_handler import PetitionHandler
+from api.pydantic_models import PetitionRead
 
 logger = logging.getLogger(__name__)
 
@@ -34,15 +35,17 @@ def petition_after_update(mapper, connection, target):
                 session = object_session(target)
                 if session:
                     handler = PetitionHandler(session)
-
                     petitions = handler.get_petitions_clerk()
+
                     logger.info(f"Found {len(petitions)} clerk petitions to send.")
-                    
-                    # Serialize eagerly to avoid session detachment issues in async loop
-                    petitions_data = [p.dict(by_alias=True, exclude_none=True) for p in petitions]
+
+                    petition_data = [
+                        PetitionRead.model_validate(p, from_attributes=True).model_dump(mode="json")
+                        for p in petitions
+                    ]
 
                     loop = asyncio.get_running_loop()
-                    loop.create_task(send_data_to_clerks(petitions_data))
+                    loop.create_task(send_serialized_data_to_clerks(petition_data))
                 else:
                     logger.warning("No session found for petition object. Skipping WebSocket notification.")
 
