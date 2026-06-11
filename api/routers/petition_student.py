@@ -12,7 +12,6 @@ from api.pydantic_models import (
 )   
 from api.db.dependencies import get_db
 from api.security import get_current_supervisor, get_current_student, verify_signature
-from api.routers.web_socket import send_data_to_clerks
 
 router = APIRouter()
 
@@ -58,8 +57,6 @@ async def update_petition_acceptance(
     )
     if updated_petition.status == 'rejected':
         updated_petition = handler.delete_petition(petition_id)
-    else:
-        await send_data_to_clerks(handler.get_petitions_clerk())
     
     return updated_petition
 
@@ -80,8 +77,6 @@ async def student_accept_or_reject_petition(
     )
     if updated_petition.status == 'rejected':
         updated_petition = handler.delete_petition(petition_id)
-    else:
-        await send_data_to_clerks(handler.get_petitions_clerk())
     
     return updated_petition
 
@@ -95,7 +90,6 @@ async def mark_revision_done(
     API for students to mark their petition as revision done.
     """
     updated_petition = handler.mark_revision_done_student(petition_id)
-    await send_data_to_clerks(handler.get_petitions_clerk())
     return updated_petition
 
 @router.patch("/students/petitions/{petition_id}/request-revision", response_model=PetitionStudentRead)

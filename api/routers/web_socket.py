@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from fastapi import  (
     APIRouter, 
     Depends,
@@ -17,7 +17,6 @@ from api.handlers import (
     ConnectionManager
     )
 from api.env import settings
-
 
 manager = ConnectionManager()
 
@@ -44,7 +43,7 @@ def get_all_clerks():
         return response.json().get("clerks", [])
     return []
 
-async def send_data_to_clerks(data: str):
+async def send_serialized_data_to_clerks(data: List[Dict]):
     """
     Send data to a specific WebSocket connection using the user ID.
 
@@ -52,10 +51,10 @@ async def send_data_to_clerks(data: str):
     clerks = get_all_clerks()
     for client_id in clerks:
         await manager.send_message(
-            client_id, 
+            client_id,
              dumps({
                 "type": "updated_petitions",
-                "data": [petition.dict(by_alias=True, exclude_none=True) for petition in data] 
+                "data": data
             }, cls=UUIDEncoder)
         )
 
