@@ -1,22 +1,21 @@
-from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from typing import Dict
 
 from api.db.dependencies import get_db, engine
 from api.security import get_current_supervisor, get_current_student
 from api.routers import router
 from api.admin import setup_admin
 from api.env import settings
-from api.events.petition_events import register_petition_events
+from api.events import register_all_events
 
 app = FastAPI()
 
 # Register event listeners
-register_petition_events()
+register_all_events()
 
 # Add session middleware for admin authentication
 app.add_middleware(
