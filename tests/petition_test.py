@@ -1,9 +1,10 @@
+import json
 import uuid
-from fastapi.testclient import TestClient
+
+import anyio
+import httpx
 import pytest
 
-
-from api.db.schema.petition import Petition
 
 # Helper function to return sample petition data matching your PetitionCreate schema.
 def sample_petition_data():
@@ -120,3 +121,35 @@ def test_delete_petition_not_found(client):
     assert response.status_code == 404
     data = response.json()
     assert data["detail"] == "Petition not found"
+
+@pytest.mark.anyio
+async def test_clerk_petition_websocket(petition_student_action, student_documents, clerk_ws_setup):
+    ws = clerk_ws_setup
+
+    async with anyio.create_task_group() as tg:
+        tg.start_soon(ws.app, ws.ws_scope, ws.receive, ws.send)
+
+        await ws.c2s.put({"type": "websocket.connect"})
+        assert (await ws.s2c.get())["type"] == "websocket.accept"
+
+        # On connect: petition is STUDENT_ACTION → not clerk-relevant → empty list
+        initial = json.loads((await ws.s2c.get())["text"])
+        assert initial == {"type": "new_petition", "data": []}
+
+        # Student accepts → petition transitions to CLERK_ACTION
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=ws.app), base_url="http://test"
+        ) as http:
+            response = await http.patch(
+                f"/students/petitions/{petition_student_action.id}/student-action",
+                json={"approved": True},
+            )
+        assert response.status_code == 200
+
+        # after_update fires → send_serialized_data_to_clerks pushes updated petition
+        push = json.loads((await ws.s2c.get())["text"])
+        assert push["type"] == "updated_petitions"
+        assert len(push["data"]) == 1
+        assert push["data"][0]["id"] == str(petition_student_action.id)
+
+        await ws.c2s.put({"type": "websocket.disconnect", "code": 1000})
