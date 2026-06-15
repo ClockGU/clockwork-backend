@@ -7,7 +7,6 @@ import hashlib
 import base64
 import secrets
 from api.env import settings
-from api.handlers import ConnectionManager
 from api.handlers.employee_handler import EmployeeHandler
 from api.handlers.document_handler import StudentDocumentHandler
 from api.db.dependencies import get_db
