@@ -107,26 +107,3 @@ async def websocket_endpoint(client_id: str, websocket: WebSocket,
             await websocket.receive_json()
     except WebSocketDisconnect:
         manager.remove_connection(client_id)
-
-
-import json
-
-
-@router.post("/send-data/{user_id}")
-async def send_data(user_id: str):
-    """
-    API endpoint to send data to a specific WebSocket connection.
-
-    Args:
-        user_id (str): The ID of the user (client_id) to send the data to.
-
-    Returns:
-        dict: A response indicating success or failure.
-    """
-    try:
-        # Send sample data to the WebSocket
-        await send_data_to_clerks(json.dumps({23: 'Hello World'}))
-
-        return {"success": True, "message": "Data sent successfully"}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
