@@ -18,7 +18,7 @@ from api.handlers import (
     PetitionHandler,
 )
 from api.env import settings
-from api.websockets.managers import ClerkConnectionManager, WebsocketConnectionManager
+from api.websockets.managers import ClerkConnectionManager, WebsocketConnectionManager, get_clerk_connection_manager
 
 router = APIRouter()
 
@@ -48,7 +48,7 @@ def get_all_clerks():
     return []
 
 
-async def send_serialized_data_to_clerks(data: List[Dict], manager: WebsocketConnectionManager = ClerkConnectionManager):
+async def send_serialized_data_to_clerks(data: List[Dict], manager: WebsocketConnectionManager = Depends(get_clerk_connection_manager)):
     """
     Send data to a specific WebSocket connection using the user ID.
     """
@@ -65,7 +65,7 @@ async def send_serialized_data_to_clerks(data: List[Dict], manager: WebsocketCon
 
 @router.websocket("/ws/{client_id}")
 async def websocket_endpoint(client_id: str, websocket: WebSocket,
-                             manager: WebsocketConnectionManager = ClerkConnectionManager,
+                             manager: WebsocketConnectionManager = Depends(get_clerk_connection_manager),
                              handler: PetitionHandler = Depends(get_petition_handler)) -> None:
 
     """
@@ -106,7 +106,7 @@ async def websocket_endpoint(client_id: str, websocket: WebSocket,
         while True:
             await websocket.receive_json()
     except WebSocketDisconnect:
-        await manager.disconnect(client_id, 1008)
+        manager.remove_connection(client_id)
 
 
 import json

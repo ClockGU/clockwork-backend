@@ -25,7 +25,10 @@ class WebsocketConnectionManager:
     async def disconnect(self, client_id: str, code: int):
         if client_id in self.active_connections:
             await self.active_connections[client_id].close(code)
-            del self.active_connections[client_id]
+            self.remove_connection(client_id)
+
+    def remove_connection(self, client_id: str):
+        del self.active_connections[client_id]
 
     async def send_message(self, client_id: str, message: str):
         if client_id in self.active_connections and self.is_authenticated:
