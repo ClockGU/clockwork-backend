@@ -57,6 +57,10 @@ def authenticate_clerk(user: dict):
     return user
 
 
+def auth_clerk_from_token(token: str):
+    authenticate_clerk(user=decode_user_jwt(token=token))
+
+
 def get_current_supervisor(request: Request):
     """
     decode the JWT token to inject user in api and checks the role of supervisor
@@ -138,12 +142,6 @@ def get_current_clerk(user: dict = Depends(decode_user_jwt)) -> dict:
     """
     authenticate_clerk(user)
     return user
-
-
-def get_clerk_connection_manager() -> ConnectionManager:
-    def authenticate(token: str) -> None:
-        authenticate_clerk(user=decode_user_jwt(token=token))
-    return ConnectionManager(authenticate)
 
 
 # for email signature

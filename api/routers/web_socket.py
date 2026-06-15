@@ -19,9 +19,7 @@ from api.handlers import (
     ConnectionManager
 )
 from api.env import settings
-from api.security import get_clerk_connection_manager
-
-ClerkConnectionManager = get_clerk_connection_manager()
+from api.handlers import ClerkConnectionManager
 
 router = APIRouter()
 
@@ -68,7 +66,7 @@ async def send_serialized_data_to_clerks(data: List[Dict], manager: ConnectionMa
 
 @router.websocket("/ws/{client_id}")
 async def websocket_endpoint(client_id: str, websocket: WebSocket,
-                             manager: ConnectionManager = Depends(get_clerk_connection_manager),
+                             manager: ConnectionManager = ClerkConnectionManager,
                              handler: PetitionHandler = Depends(get_petition_handler)) -> None:
 
     """
