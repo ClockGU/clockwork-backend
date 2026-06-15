@@ -16,10 +16,9 @@ import requests
 from api.db.dependencies import get_db
 from api.handlers import (
     PetitionHandler,
-    ConnectionManager
 )
 from api.env import settings
-from api.websockets.managers import ClerkConnectionManager
+from api.websockets.managers import ClerkConnectionManager, WebsocketConnectionManager
 
 router = APIRouter()
 
@@ -49,7 +48,7 @@ def get_all_clerks():
     return []
 
 
-async def send_serialized_data_to_clerks(data: List[Dict], manager: ConnectionManager = ClerkConnectionManager):
+async def send_serialized_data_to_clerks(data: List[Dict], manager: WebsocketConnectionManager = ClerkConnectionManager):
     """
     Send data to a specific WebSocket connection using the user ID.
     """
@@ -66,7 +65,7 @@ async def send_serialized_data_to_clerks(data: List[Dict], manager: ConnectionMa
 
 @router.websocket("/ws/{client_id}")
 async def websocket_endpoint(client_id: str, websocket: WebSocket,
-                             manager: ConnectionManager = ClerkConnectionManager,
+                             manager: WebsocketConnectionManager = ClerkConnectionManager,
                              handler: PetitionHandler = Depends(get_petition_handler)) -> None:
 
     """
