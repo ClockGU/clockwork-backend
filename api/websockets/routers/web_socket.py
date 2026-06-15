@@ -19,7 +19,7 @@ from api.handlers import (
     ConnectionManager
 )
 from api.env import settings
-from api.handlers import ClerkConnectionManager
+from api.websockets.managers import ClerkConnectionManager
 
 router = APIRouter()
 
