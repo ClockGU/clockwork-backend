@@ -4,7 +4,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from typing import Dict, Any
 
 
-class ConnectionManager:
+class WebsocketConnectionManager:
     def __init__(self, authenticator_func: Callable[[str], Any]):
         self.active_connections: Dict[str, WebSocket] = {}
         self.is_authenticated = False

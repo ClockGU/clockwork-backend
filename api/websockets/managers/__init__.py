@@ -1,4 +1,4 @@
 from api.security import auth_clerk_from_token
-from api.websockets.managers.base_manager import ConnectionManager
+from api.websockets.managers.base_manager import WebsocketConnectionManager
 
-ClerkConnectionManager = ConnectionManager(auth_clerk_from_token)
+ClerkConnectionManager = WebsocketConnectionManager(auth_clerk_from_token)
