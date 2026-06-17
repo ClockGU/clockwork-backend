@@ -48,19 +48,20 @@ def get_all_clerks():
     return []
 
 
-async def send_serialized_data_to_clerks(data: List[Dict], manager: WebsocketConnectionManager = Depends(get_clerk_connection_manager)):
+async def send_serialized_data_to_clerks(data: List[Dict]):
     """
     Send data to a specific WebSocket connection using the user ID.
     """
-    clerks = get_all_clerks()
-    for client_id in clerks:
-        await manager.send_message(
-            client_id,
-            dumps({
+    manager = get_clerk_connection_manager()
+    await manager.broadcast(
+        dumps(
+            {
                 "type": "updated_petitions",
                 "data": data
-            }, cls=UUIDEncoder)
+            },
+            cls=UUIDEncoder
         )
+    )
 
 
 @router.websocket("/ws/{client_id}")
