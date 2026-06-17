@@ -70,6 +70,14 @@ def client(db_session):
 
 
 @pytest.fixture
+def get_clerk_connection_manager_fixture_callable():
+    def mock_auth(token):
+        if token != "some_valid_token":
+            raise ValueError("invalid token")
+    _websocket_manager = WebsocketConnectionManager(mock_auth)
+    return lambda: _websocket_manager
+
+@pytest.fixture
 def petition_student_action(db_session):
     petition = Petition(
         user_account=uuid.uuid4(),
@@ -109,6 +117,12 @@ def mock_clerk_list(monkeypatch):
 
 
 @pytest.fixture
+def mock_get_clerk_connection_manager(monkeypatch, get_clerk_connection_manager_fixture_callable):
+    import api.websockets.routers.web_socket as ws_module
+    monkeypatch.setattr(ws_module, "get_clerk_connection_manager", get_clerk_connection_manager_fixture_callable)
+
+
+@pytest.fixture
 def student_employee(db_session):
     employee = Employee(
         user_account=uuid.uuid4(),
@@ -136,11 +150,9 @@ def student_documents(db_session, student_employee):
 
 
 @pytest.fixture
-async def clerk_ws_setup(db_session, mock_clerk_list):
-    def mock_auth(token):
-        if token != "some_valid_token":
-            raise ValueError("invalid token")
-    app.dependency_overrides[get_clerk_connection_manager] = lambda: WebsocketConnectionManager(mock_auth)
+async def clerk_ws_setup(db_session, mock_clerk_list, mock_get_clerk_connection_manager, get_clerk_connection_manager_fixture_callable):
+
+    app.dependency_overrides[get_clerk_connection_manager] = get_clerk_connection_manager_fixture_callable
     app.dependency_overrides[get_current_student] = lambda: {}
     app.dependency_overrides[get_db] = lambda: db_session
 

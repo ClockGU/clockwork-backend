@@ -134,9 +134,14 @@ async def test_clerk_petition_websocket(petition_student_action, student_documen
 
         await ws.c2s.put({"type": "websocket.connect"})
         assert (await ws.s2c.get())["type"] == "websocket.accept"
+        await ws.c2s.put({
+              "type": "websocket.receive",
+              "text": json.dumps({"type": "auth", "token": "some_valid_token"})
+        })
 
         # On connect: petition is STUDENT_ACTION → not clerk-relevant → empty list
-        initial = json.loads((await ws.s2c.get())["text"])
+        websocket_message = await ws.s2c.get()
+        initial = json.loads(websocket_message["text"])
         assert initial == {"type": "new_petition", "data": []}
 
         # Student accepts → petition transitions to CLERK_ACTION
@@ -147,8 +152,8 @@ async def test_clerk_petition_websocket(petition_student_action, student_documen
                 f"/students/petitions/{petition_student_action.id}/student-action",
                 json={"approved": True},
             )
-        assert response.status_code == 200
 
+            assert response.status_code == 200
         # after_update fires → send_serialized_data_to_clerks pushes updated petition
         push = json.loads((await ws.s2c.get())["text"])
         assert push["type"] == "updated_petitions"
