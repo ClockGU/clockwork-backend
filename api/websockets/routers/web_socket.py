@@ -87,9 +87,9 @@ async def websocket_endpoint(client_id: str, websocket: WebSocket,
         return
 
     if data.get("type", "") == "auth" and data.get("token", None) is not None:
-        manager.authenticate(data.get("token"))
+        manager.authenticate(client_id, data.get("token"))
 
-    if manager.is_authenticated:
+    if manager.is_authenticated(client_id):
         petitions = handler.get_petitions_clerk()
         await manager.send_message(
             client_id,
@@ -105,4 +105,4 @@ async def websocket_endpoint(client_id: str, websocket: WebSocket,
         while True:
             await websocket.receive_json()
     except WebSocketDisconnect:
-        manager.remove_connection(client_id)
+        await manager.disconnect(client_id, 1008)
