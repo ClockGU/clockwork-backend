@@ -85,11 +85,15 @@ class StudentDocumentManager:
             student_docs.elstam_url,
             student_docs.studienbescheinigung_url,
             student_docs.versicherungsbescheinigung_url,
-            student_docs.sozialversicherungsbogen_url
+            student_docs.sozialversicherungsbogen_url,
+            student_docs.id_photo_url
         ]
 
         if check_ba_degree:
             required_documents.append(student_docs.ba_degree_url)
+        # TODO: Use global consts instead of magic string
+        if employee.nationality and employee.nationality.lower() != "deutsch":
+            required_documents.append(student_docs.residence_permit_url)
         
         # Return True only if all documents have non-empty URLs
         return all(doc_url and doc_url.strip() for doc_url in required_documents)
