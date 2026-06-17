@@ -153,3 +153,17 @@ async def test_clerk_petition_websocket(petition_student_action, student_documen
         assert push["data"][0]["id"] == str(petition_student_action.id)
 
         await ws.c2s.put({"type": "websocket.disconnect", "code": 1000})
+
+@pytest.mark.anyio
+async def test_websocket_invalid_id(client, clerk_ws_setup):
+    ws = clerk_ws_setup
+    ws.ws_scope["path"] = "/ws/invalid_id"
+    ws.ws_scope["raw_path"] = b"/ws/invalid_id"
+    async with anyio.create_task_group() as tg:
+        tg.start_soon(ws.app, ws.ws_scope, ws.receive, ws.send)
+        await ws.c2s.put({"type": "websocket.connect"})
+        assert (await ws.s2c.get())["type"] == "websocket.accept"
+
+        close_message = await ws.s2c.get()
+        assert close_message["type"] == "websocket.close"
+        assert close_message["code"] == 1008

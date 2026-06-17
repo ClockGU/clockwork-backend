@@ -16,8 +16,15 @@ from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.employee import Employee
 from api.db.schema.student_documents import StudentDocuments
 from api.env import settings
+import asyncio
+from types import SimpleNamespace
+from api.main import app
+from api.security import get_current_student
 
 # Get project root
+from api.websockets.managers import get_clerk_connection_manager, WebsocketConnectionManager
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Database configuration
@@ -77,7 +84,7 @@ def petition_student_action(db_session):
     )
     db_session.add(petition)
     db_session.flush()
-
+    db_session.commit()
     budget_position = BudgetPosition(
         petition_id=petition.id,
         budget_position="SHK",
@@ -97,7 +104,7 @@ def anyio_backend():
 
 @pytest.fixture
 def mock_clerk_list(monkeypatch):
-    import api.routers.web_socket as ws_module
+    import api.websockets.routers.web_socket as ws_module
     monkeypatch.setattr(ws_module, "get_all_clerks", lambda: ["clerk1"])
 
 
@@ -130,12 +137,7 @@ def student_documents(db_session, student_employee):
 
 @pytest.fixture
 async def clerk_ws_setup(db_session, mock_clerk_list):
-    import asyncio
-    from types import SimpleNamespace
-    from api.main import app
-    from api.security import get_current_student
-    from api.db.dependencies import get_db
-
+    app.dependency_overrides[get_clerk_connection_manager] = lambda: WebsocketConnectionManager(lambda: None)
     app.dependency_overrides[get_current_student] = lambda: {}
     app.dependency_overrides[get_db] = lambda: db_session
 
