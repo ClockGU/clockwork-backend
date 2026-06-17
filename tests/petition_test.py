@@ -1,5 +1,7 @@
 import json
-import time
+from datetime import datetime
+
+from freezegun import freeze_time
 import uuid
 
 import anyio
@@ -172,12 +174,12 @@ async def test_websocket_invalid_id(client, clerk_ws_setup):
 @pytest.mark.anyio
 async def test_websocket_no_auth_sent(client, clerk_ws_setup):
     ws = clerk_ws_setup
-
-    async with anyio.create_task_group() as tg:
-        tg.start_soon(ws.app, ws.ws_scope, ws.receive, ws.send)
-        await ws.c2s.put({"type": "websocket.connect"})
-        assert (await ws.s2c.get())["type"] == "websocket.accept"
-        time.sleep(31)  # Wait for the auth timeout (30s) to trigger
-        close_message = await ws.s2c.get()
-        assert close_message["type"] == "websocket.close"
-        assert close_message["code"] == 1008
+    with freeze_time(datetime.now()) as freezer:
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(ws.app, ws.ws_scope, ws.receive, ws.send)
+            await ws.c2s.put({"type": "websocket.connect"})
+            assert (await ws.s2c.get())["type"] == "websocket.accept"
+            freezer.tick(31)  # Wait for the auth timeout (30s) to trigger
+            close_message = await ws.s2c.get()
+            assert close_message["type"] == "websocket.close"
+            assert close_message["code"] == 1008
