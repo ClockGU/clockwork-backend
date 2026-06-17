@@ -74,12 +74,11 @@ async def websocket_endpoint(client_id: str, websocket: WebSocket,
     pending petitions and any subsequent updates. If authentication fails or if there is a timeout while waiting
     for the authentication message, the connection will be closed with an appropriate status code.
     """
-
+    await manager.connect(client_id, websocket)
     clerk_ids = get_all_clerks()
     if client_id not in clerk_ids:
-        raise RuntimeError(f"Invalid user id: {client_id}")
-
-    await manager.connect(client_id, websocket)
+        await manager.disconnect(client_id, 1008)
+        return
     try:
         data = await asyncio.wait_for(websocket.receive_json(), timeout=30.0)
     except asyncio.TimeoutError:
