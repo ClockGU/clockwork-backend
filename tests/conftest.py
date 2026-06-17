@@ -1,13 +1,14 @@
 # tests/conftest.py
+import os
 import uuid
 import pytest
 from datetime import date
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker
 from alembic.config import Config
 from alembic import command
 from pathlib import Path
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Session
 
 from api.consts import PetitionStatus
 from api.db.dependencies import get_db
@@ -15,11 +16,14 @@ from api.db.schema.petition import Petition
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.employee import Employee
 from api.db.schema.student_documents import StudentDocuments
-from api.env import settings
 import asyncio
 from types import SimpleNamespace
+
+from api.env import settings
 from api.main import app
 from api.security import get_current_student
+import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Get project root
 from api.websockets.managers import get_clerk_connection_manager, WebsocketConnectionManager
@@ -28,9 +32,11 @@ from api.websockets.managers import get_clerk_connection_manager, WebsocketConne
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Database configuration
-TEST_DB_URL = settings.DATABASE_URL
-engine = create_engine(TEST_DB_URL)
-TestingSessionLocal = sessionmaker()
+DB_URI = settings.DATABASE_URL.replace("/db_app", "/postgres")
+TEST_DB_URL = ""
+engine: Engine
+TestingSessionLocal: Session
+
 
 # Alembic configuration
 def run_migrations():
@@ -39,13 +45,42 @@ def run_migrations():
     config.set_main_option("sqlalchemy.url", TEST_DB_URL)
     command.upgrade(config, "head")
 
+
+def create_test_database():
+    conn = psycopg2.connect(
+        DB_URI
+    )
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM pg_database WHERE datname = 'test_db'")
+    if not cur.fetchone():
+      cur.execute("CREATE DATABASE test_db")
+    cur.close()
+    conn.close()
+
+
+def drop_test_database():
+    conn = psycopg2.connect(DB_URI)
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cur = conn.cursor()
+    cur.execute("DROP DATABASE IF EXISTS test_db")
+    cur.close()
+    conn.close()
+
+
 # Fixtures
 @pytest.fixture(scope="session", autouse=True)
 def apply_migrations():
-    SQLModel.metadata.create_all(engine)  # Create tables first
+    create_test_database()
+    # point engine at test_db, not the real one
+    global engine, TestingSessionLocal, TEST_DB_URL
+    TEST_DB_URL = settings.DATABASE_URL.replace("/your_real_db", "/test_db")
+    engine = create_engine(TEST_DB_URL)
+    TestingSessionLocal = sessionmaker(bind=engine)
     run_migrations()
     yield
-    SQLModel.metadata.drop_all(engine)
+    drop_test_database()
+
 
 @pytest.fixture
 def db_session():
