@@ -91,7 +91,7 @@ class StudentDocumentManager:
 
         if check_ba_degree:
             required_documents.append(student_docs.ba_degree_url)
-            
+        # TODO: Use global consts instead of magic string
         if employee.nationality and employee.nationality.lower() != "deutsch":
             required_documents.append(student_docs.residence_permit_url)
         
