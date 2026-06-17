@@ -69,6 +69,7 @@ def update_document(
     document = documents[0]
 
     # Save files and generate URLs
+    # TODO: Make this dynamic to avoid repetition
     file_urls = {}
     if elstam:
         file_urls["elstam_url"] = save_file(elstam, upload_dir)  
