@@ -6,7 +6,7 @@ import logging
 
 from api.db.schema.petition import Petition
 from api.consts import PetitionStatus
-from api.routers.web_socket import send_serialized_data_to_clerks
+from api.websockets.routers.web_socket import send_serialized_data_to_clerks
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import PetitionRead
 

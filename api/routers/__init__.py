@@ -7,7 +7,7 @@ from .petition_approver import router as petition_approver_router
 from .document import router as document_student_router
 from .employee import router as employee_router
 from .email import router as email_router
-from .web_socket import router as web_socket_router
+from api.websockets.routers.web_socket import router as web_socket_router
 
 
 router = APIRouter()

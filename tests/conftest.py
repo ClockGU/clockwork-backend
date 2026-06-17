@@ -1,13 +1,14 @@
 # tests/conftest.py
+import os
 import uuid
 import pytest
 from datetime import date
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker
 from alembic.config import Config
 from alembic import command
 from pathlib import Path
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Session
 
 from api.consts import PetitionStatus
 from api.db.dependencies import get_db
@@ -15,15 +16,27 @@ from api.db.schema.petition import Petition
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.employee import Employee
 from api.db.schema.student_documents import StudentDocuments
+import asyncio
+from types import SimpleNamespace
+
 from api.env import settings
+from api.main import app
+from api.security import get_current_student
+import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Get project root
+from api.websockets.managers import get_clerk_connection_manager, WebsocketConnectionManager
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Database configuration
-TEST_DB_URL = settings.DATABASE_URL
-engine = create_engine(TEST_DB_URL)
-TestingSessionLocal = sessionmaker()
+DB_URI = settings.DATABASE_URL.replace("/db_app", "/postgres")
+TEST_DB_URL = ""
+engine: Engine
+TestingSessionLocal: Session
+
 
 # Alembic configuration
 def run_migrations():
@@ -32,13 +45,42 @@ def run_migrations():
     config.set_main_option("sqlalchemy.url", TEST_DB_URL)
     command.upgrade(config, "head")
 
+
+def create_test_database():
+    conn = psycopg2.connect(
+        DB_URI
+    )
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM pg_database WHERE datname = 'test_db'")
+    if not cur.fetchone():
+      cur.execute("CREATE DATABASE test_db")
+    cur.close()
+    conn.close()
+
+
+def drop_test_database():
+    conn = psycopg2.connect(DB_URI)
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cur = conn.cursor()
+    cur.execute("DROP DATABASE IF EXISTS test_db")
+    cur.close()
+    conn.close()
+
+
 # Fixtures
 @pytest.fixture(scope="session", autouse=True)
 def apply_migrations():
-    SQLModel.metadata.create_all(engine)  # Create tables first
+    create_test_database()
+    # point engine at test_db, not the real one
+    global engine, TestingSessionLocal, TEST_DB_URL
+    TEST_DB_URL = settings.DATABASE_URL.replace("/your_real_db", "/test_db")
+    engine = create_engine(TEST_DB_URL)
+    TestingSessionLocal = sessionmaker(bind=engine)
     run_migrations()
     yield
-    SQLModel.metadata.drop_all(engine)
+    drop_test_database()
+
 
 @pytest.fixture
 def db_session():
@@ -63,6 +105,14 @@ def client(db_session):
 
 
 @pytest.fixture
+def get_clerk_connection_manager_fixture_callable():
+    def mock_auth(token):
+        if token != "some_valid_token":
+            raise ValueError("invalid token")
+    _websocket_manager = WebsocketConnectionManager(mock_auth)
+    return lambda: _websocket_manager
+
+@pytest.fixture
 def petition_student_action(db_session):
     petition = Petition(
         user_account=uuid.uuid4(),
@@ -77,7 +127,7 @@ def petition_student_action(db_session):
     )
     db_session.add(petition)
     db_session.flush()
-
+    db_session.commit()
     budget_position = BudgetPosition(
         petition_id=petition.id,
         budget_position="SHK",
@@ -97,8 +147,14 @@ def anyio_backend():
 
 @pytest.fixture
 def mock_clerk_list(monkeypatch):
-    import api.routers.web_socket as ws_module
+    import api.websockets.routers.web_socket as ws_module
     monkeypatch.setattr(ws_module, "get_all_clerks", lambda: ["clerk1"])
+
+
+@pytest.fixture
+def mock_get_clerk_connection_manager(monkeypatch, get_clerk_connection_manager_fixture_callable):
+    import api.websockets.routers.web_socket as ws_module
+    monkeypatch.setattr(ws_module, "get_clerk_connection_manager", get_clerk_connection_manager_fixture_callable)
 
 
 @pytest.fixture
@@ -129,13 +185,9 @@ def student_documents(db_session, student_employee):
 
 
 @pytest.fixture
-async def clerk_ws_setup(db_session, mock_clerk_list):
-    import asyncio
-    from types import SimpleNamespace
-    from api.main import app
-    from api.security import get_current_student
-    from api.db.dependencies import get_db
+async def clerk_ws_setup(db_session, mock_clerk_list, mock_get_clerk_connection_manager, get_clerk_connection_manager_fixture_callable):
 
+    app.dependency_overrides[get_clerk_connection_manager] = get_clerk_connection_manager_fixture_callable
     app.dependency_overrides[get_current_student] = lambda: {}
     app.dependency_overrides[get_db] = lambda: db_session
 
