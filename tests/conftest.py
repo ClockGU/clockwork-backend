@@ -137,7 +137,10 @@ def student_documents(db_session, student_employee):
 
 @pytest.fixture
 async def clerk_ws_setup(db_session, mock_clerk_list):
-    app.dependency_overrides[get_clerk_connection_manager] = lambda: WebsocketConnectionManager(lambda: None)
+    def mock_auth(token):
+        if token != "some_valid_token":
+            raise ValueError("invalid token")
+    app.dependency_overrides[get_clerk_connection_manager] = lambda: WebsocketConnectionManager(mock_auth)
     app.dependency_overrides[get_current_student] = lambda: {}
     app.dependency_overrides[get_db] = lambda: db_session
 

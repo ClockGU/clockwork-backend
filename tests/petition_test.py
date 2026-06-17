@@ -183,3 +183,20 @@ async def test_websocket_no_auth_sent(client, clerk_ws_setup):
             close_message = await ws.s2c.get()
             assert close_message["type"] == "websocket.close"
             assert close_message["code"] == 1008
+
+@pytest.mark.anyio
+async def test_websocket_auth_sent(client, clerk_ws_setup):
+    ws = clerk_ws_setup
+    async with anyio.create_task_group() as tg:
+        tg.start_soon(ws.app, ws.ws_scope, ws.receive, ws.send)
+        await ws.c2s.put({"type": "websocket.connect"})
+        assert (await ws.s2c.get())["type"] == "websocket.accept"
+        await ws.c2s.put({
+              "type": "websocket.receive",
+              "text": json.dumps({"type": "auth", "token": "some_valid_token"})
+        })
+        websocket_message = await ws.s2c.get()
+        recieved_data = json.loads(websocket_message["text"])
+        assert recieved_data["type"] == "new_petition"
+        assert recieved_data["data"] == []
+        await ws.c2s.put({"type": "websocket.disconnect", "code": 1000})
