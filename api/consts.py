@@ -29,3 +29,5 @@ SIGNITURE_DATE_FIELD="Freigabe_Datum"
 CONTRACT_PDF_TEMPLATE="SHK_Arbeitsvertrag_ab_01-02-2025_Rv5_Plain.pdf"
 PDF_TEMPLATE_DIR="api/pdf/templates/"
 PERSONAL_DATA_PDF_TEMPLATE="SHK_Personal-Stammdatenblatt_ab_01_01_2025_Plain.pdf"
+LEGAL_REGULAR_WORKTIME = 2400 # 40 hours * 60 minutes as per legal requirements
+LEGAL_REGULAR_CONTRACT_LENGTH = 364 # 1 year in days minus 1 for inclusive dates

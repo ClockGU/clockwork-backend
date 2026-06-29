@@ -9,7 +9,7 @@ from pydantic import (
     )
 import re
 
-from api.consts import PetitionStatus
+from api.consts import PetitionStatus, LEGAL_REGULAR_CONTRACT_LENGTH, LEGAL_REGULAR_WORKTIME
 from .budget_position import BudgetPositionCreate
 
 
@@ -104,6 +104,22 @@ class PetitionUpdateBase(SQLModel):
         return values
 
     @model_validator(mode="after")
+    def validate_duration_requirement(cls, values):
+        if values.start_date and values.end_date:
+            days_diff = (values.end_date - values.start_date).days
+            if days_diff < LEGAL_REGULAR_CONTRACT_LENGTH:
+                if not values.duration_exce_name:
+                    raise ValueError("Contract duration is less than 1 year, duration_exception fields must be provided")
+        return values
+
+    @model_validator(mode="after")
+    def validate_time_requirement(cls, values):
+        if values.minutes is not None and values.minutes < LEGAL_REGULAR_WORKTIME:
+            if not values.time_exce_name:
+                raise ValueError("Worktime is less than 40h/month, time_exception fields must be provided")
+        return values
+
+    @model_validator(mode="after")
     def validate_budget_percentage_sum(cls, values):
         """Validate that budget position percentages sum up to 100 if budget_positions are provided"""
         budget_positions = values.budget_positions
@@ -114,6 +130,7 @@ class PetitionUpdateBase(SQLModel):
                 raise ValueError("At least one budget position is required if budget_positions is provided")
             
             # Calculate total percentage
+            # TODO: Change Percentage from decimal representation to intiger representation (e.g., 25% as 25) to avoid floating point issues
             total_percentage = sum(budget_pos.percentage for budget_pos in budget_positions)
             
             # Check if total percentage equals 100
