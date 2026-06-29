@@ -144,15 +144,13 @@ class PetitionManager:
     
     def get_student_petitions(self, student_username: str) -> List[Petition]:
         # Retrieve all petitions for a student and check the status
+        # TODO: Get rid of unnecessary statuses APPROVED, REJECTED, PENDING
         statement = select(self.schema).where(
             (self.schema.student_username == student_username) &
             (
-            (self.schema.status == PetitionStatus.STUDENT_ACTION) | 
-            (self.schema.status == PetitionStatus.AWAITING_SIGNATURE)| 
-            (self.schema.status == PetitionStatus.COMPLETED) |
-            (self.schema.status == PetitionStatus.CLERK_REVISION) |
-            (self.schema.status == PetitionStatus.STUDENT_REVISION) |
-            (self.schema.status == PetitionStatus.CLERK_ACTION) 
+            (self.schema.status != PetitionStatus.APPROVED) |
+            (self.schema.status != PetitionStatus.REJECTED)|
+            (self.schema.status != PetitionStatus.PENDING)
             )
         )
         result = self.db.execute(statement)

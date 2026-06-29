@@ -36,6 +36,11 @@ class PetitionHandler:
             petition = self.manager.create_petition(petition_data)
             if not petition:
                 raise self.exc.created_failed("Petition")
+                
+            # Send notification email to student
+            email_handler = EmailHandler(petition)
+            email_handler.send_petition_creation_student_email()
+            
             return petition
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)

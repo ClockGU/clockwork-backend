@@ -3,6 +3,8 @@ from enum import Enum
 
 class PetitionStatus(str, Enum):
     """Enum for all possible petition statuses"""
+    # TODO: Get rid of unnecessary statuses APPROVED, REJECTED, PENDING
+    # APPROVED and REJECTED are not actual statuses, rather used in the approval step.
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
