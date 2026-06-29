@@ -5,6 +5,7 @@ import uuid
 from pydantic import field_validator, model_validator, BaseModel
 import re
 from .budget_position import BudgetPositionCreate
+from api.consts import LEGAL_REGULAR_WORKTIME, LEGAL_REGULAR_CONTRACT_LENGTH
 
 
 class PetitionCreateBase(SQLModel):
@@ -98,14 +99,14 @@ class PetitionCreateBase(SQLModel):
     def validate_duration_requirement(cls, values):
         if values.start_date and values.end_date:
             days_diff = (values.end_date - values.start_date).days
-            if days_diff < 364:  # roughly 1 year (365 days) minus 1 for inclusive dates
+            if days_diff < LEGAL_REGULAR_CONTRACT_LENGTH:  # roughly 1 year (365 days) minus 1 for inclusive dates
                 if not values.duration_exce_name:
                     raise ValueError("Contract duration is less than 1 year, duration_exception fields must be provided")
         return values
 
     @model_validator(mode="after")
     def validate_time_requirement(cls, values):
-        if values.minutes is not None and values.minutes < 2400: # 40 hours * 60 minutes
+        if values.minutes is not None and values.minutes < LEGAL_REGULAR_WORKTIME: # 40 hours * 60 minutes
             if not values.time_exce_name:
                 raise ValueError("Worktime is less than 40h/month, time_exception fields must be provided")
         return values
@@ -119,6 +120,7 @@ class PetitionCreateBase(SQLModel):
             raise ValueError("At least one budget position is required")
         
         # Calculate total percentage (individual validations are handled by BudgetPositionCreate)
+        # TODO: Change Percentage from decimal representation to intiger representation (e.g., 25% as 25) to avoid floating point issues
         total_percentage = sum(budget_pos.percentage for budget_pos in budget_positions)
         
         # Check if total percentage equals 100 (with small tolerance for floating point precision)
