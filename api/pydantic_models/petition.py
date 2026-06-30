@@ -22,7 +22,7 @@ class PetitionExceptionBase(SQLModel):
     duration_exce_end: Optional[date] = None
 
 
-class PetitionBase(SQLModel, PetitionExceptionBase):
+class PetitionBase(PetitionExceptionBase):
     """
     Base model for Petition with common fields used for validation.
     """
