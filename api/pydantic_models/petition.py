@@ -33,8 +33,6 @@ class PetitionBase(SQLModel):
     duration_exce_start: Optional[date] = None
     duration_exce_end: Optional[date] = None
 
-class PetitionCreate(PetitionBase):
-    pass
 
 class PetitionRead(SQLModel):
     id: uuid.UUID

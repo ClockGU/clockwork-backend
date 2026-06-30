@@ -6,7 +6,7 @@ from datetime import date
 from api.consts import PetitionStatus
 from api.db.schema.petition import Petition
 from api.db.schema.budget_position import BudgetPosition
-from api.pydantic_models.petition import PetitionCreate
+from api.pydantic_models import PetitionCreate
 
 class PetitionManager:
     def __init__(self, db: Session):
