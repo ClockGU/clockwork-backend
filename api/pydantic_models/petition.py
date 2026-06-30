@@ -2,12 +2,13 @@ from sqlmodel import SQLModel
 from typing import Optional
 from datetime import date
 import uuid
-
-
 from api.consts import PetitionStatus
 
-## these pydantic models are for the manager of the petition
+
 class PetitionBase(SQLModel):
+    """
+    Base model for Petition with common fields used for validation.
+    """
     user_account: Optional[uuid.UUID] = None
     org_unit: str
     eos_number: str
@@ -18,6 +19,7 @@ class PetitionBase(SQLModel):
     budget_position: str
     budget_approver: str
     student_username: str
+    supervisor_mail: Optional[str] = None
 
     status: PetitionStatus = PetitionStatus.SUPERVISOR_ACTION
 
