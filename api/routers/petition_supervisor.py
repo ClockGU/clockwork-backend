@@ -8,9 +8,8 @@ from datetime import date
 from api.env import settings
 from api.handlers import PetitionHandler, EmailHandler
 from api.pydantic_models import (
-    PetitionSupervisorCreate,
     PetitionRead,
-    PetitionSupervisorUpdate
+    PetitionSupervisorUpdate, PetitionCreate
 )
 from api.db.dependencies import get_db
 from api.security import (
@@ -42,7 +41,7 @@ def get_petition_handler(
 
 @router.post("/supervisor/petitions", response_model=PetitionRead)
 async def create_petition(
-    petition: PetitionSupervisorCreate,
+    petition: PetitionCreate,
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_supervisor)
 ):

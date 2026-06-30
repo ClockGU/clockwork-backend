@@ -11,15 +11,6 @@ class PetitionCreateBase(PetitionBase, PetitionValidationMixin):
     budget_positions: List[BudgetPositionCreate]
 
 
-class PetitionSupervisorCreate(PetitionCreateBase):
-    """
-    Pydantic model for creating a new petition.
-    Inherits from PetitionCreateBase.
-    """
-
-    pass
-
-
 class PetitionCreate(PetitionCreateBase):
     """
     Pydantic model for creating a new petition.
