@@ -1,11 +1,6 @@
-from sqlmodel import SQLModel
-from typing import Optional, Literal, List
-from datetime import date
-import uuid
-from pydantic import field_validator, model_validator, BaseModel
-import re
+from typing import List
+from pydantic import BaseModel
 from .budget_position import BudgetPositionCreate
-from api.consts import LEGAL_REGULAR_WORKTIME, LEGAL_REGULAR_CONTRACT_LENGTH
 from .petition import PetitionBase
 from .validators.petition_validators import PetitionValidationMixin
 
