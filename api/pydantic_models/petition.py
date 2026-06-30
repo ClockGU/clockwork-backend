@@ -33,21 +33,3 @@ class PetitionBase(SQLModel):
     duration_exce_start: Optional[date] = None
     duration_exce_end: Optional[date] = None
 
-
-class PetitionStudentBase(SQLModel):
-    start_date: date
-    end_date: date
-    minutes: int
-    student_username: str
-    time_exce_student: Optional[str] = None
-    time_exce_name: Optional[str] = None
-    time_exce_start: Optional[date] = None
-    time_exce_end: Optional[date] = None
-    duration_exce_student: Optional[str] = None
-    duration_exce_name: Optional[str] = None
-    duration_exce_start: Optional[date] = None
-    duration_exce_end: Optional[date] = None
-
-class PetitionStudentUpdate(PetitionStudentBase):
-    pass
-#all the updates should also hve to have validations and all fiels should be optional
