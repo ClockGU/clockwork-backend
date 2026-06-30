@@ -503,7 +503,7 @@ class PetitionHandler:
                     raise self.exc.not_found("Employee", petition.student_username)
                     
                 employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
-                petition_read = PetitionRead.model_validate(petition, from_attributes=True)
+                petition_read = PetitionRead.model_validate(petition)
                 
                 contract_pdf_buffer = create_contract_pdf(employee_read, petition_read)
                 

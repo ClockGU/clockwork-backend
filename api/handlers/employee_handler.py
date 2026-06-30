@@ -140,7 +140,7 @@ class EmployeeHandler:
         
         # Convert to Pydantic models
         employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
-        petition_read = PetitionRead.model_validate(petition, from_attributes=True)
+        petition_read = PetitionRead.model_validate(petition)
         
         # Generate PDF
         try:

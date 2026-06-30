@@ -40,7 +40,7 @@ def petition_after_update(mapper, connection, target):
                     logger.info(f"Found {len(petitions)} clerk petitions to send.")
 
                     petition_data = [
-                        PetitionRead.model_validate(p, from_attributes=True).model_dump(mode="json")
+                        PetitionRead.model_validate(p).model_dump(mode="json")
                         for p in petitions
                     ]
 
