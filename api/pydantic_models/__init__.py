@@ -6,11 +6,8 @@ from .petition_read import (
 
 from .petition_create import (
     PetitionSupervisorCreate,
-    PetitionStudentAction,
     PetitionCreate
-    
-    
-    )
+)
 
 from .petition_update import (
     PetitionSupervisorUpdate, 

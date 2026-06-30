@@ -20,10 +20,6 @@ class PetitionSupervisorCreate(PetitionCreateBase):
     pass
 
 
-class PetitionStudentAction(BaseModel):
-    approved: bool
-
-
 class PetitionCreate(PetitionCreateBase):
     """
     Pydantic model for creating a new petition.
