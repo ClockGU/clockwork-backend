@@ -17,7 +17,7 @@ class BudgetPositionCreate(BudgetPositionBase, BudgetPositionValidationMixin):
 class BudgetPositionRead(BudgetPositionBase):
     id: uuid.UUID
 
-
+# TODO: Check where this is used and if we need it.
 class BudgetPositionApprovalUpdate(BaseModel):
     budget_position_approved: bool
     message: Optional[str] = ""
