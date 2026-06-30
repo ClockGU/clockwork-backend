@@ -1,4 +1,10 @@
+import uuid
+from datetime import date
+from types import SimpleNamespace
+
 import pytest
+
+from api.consts import PetitionStatus
 
 
 @pytest.fixture
@@ -19,4 +25,27 @@ def budget_position():
     return {
         "budget_position": "SHK",
         "budget_approver": "approver@uni-frankfurt.de",
+        "budget_position_approved": False
     }
+
+
+@pytest.fixture
+def orm_petition(base_petition):
+    return SimpleNamespace(
+        id=uuid.uuid4(),
+        user_account=uuid.uuid4(),
+        status=PetitionStatus.APPROVER_ACTION,
+        supervisor_mail=None,
+        budget_positions=[],
+        time_exce_student=None,
+        time_exce_course=None,
+        time_exce_name=None,
+        time_exce_start=None,
+        time_exce_end=None,
+        time_exce_time=None,
+        duration_exce_course=None,
+        duration_exce_name=None,
+        duration_exce_start=None,
+        duration_exce_end=None,
+        **base_petition,
+    )
