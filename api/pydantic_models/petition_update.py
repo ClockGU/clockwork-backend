@@ -171,9 +171,11 @@ class PetitionApproverUpdate(PetitionUpdateBase):
 
 class ClerkRevisionRequest(BaseModel):
     message: str
+    subject: Optional[str] = None
 
 class ClerkDeletionRequest(BaseModel):
     reason: str = ""
 
 class PetitionStudentUpdateRequest(BaseModel):
     body: str
+    subject: Optional[str] = None
