@@ -24,7 +24,8 @@ class PetitionValidationMixin:
         # Accept either 5 digits OR 'F' followed by 5 digits
         if not re.match(r"^(F\d{6})$", eos_number):
             raise ValueError(
-                "eos_number must be either 5 digits or start with 'F' followed by 5 digits (e.g., F12345 or 12345)")
+                "eos_number must be either 5 digits or start with 'F' followed by 5 digits (e.g., F12345 or 12345)"
+            )
         return eos_number
 
     @field_validator("budget_positions")
@@ -42,11 +43,13 @@ class PetitionValidationMixin:
             values.time_exce_name,
             values.time_exce_start,
             values.time_exce_end,
-            values.time_exce_time
+            values.time_exce_time,
         ]
         provided = [field for field in time_exc_fields if field is not None]
         if len(provided) > 0 and len(provided) != len(time_exc_fields):
-            raise ValueError("All time_exc fields must be provided together or not at all")
+            raise ValueError(
+                "All time_exc fields must be provided together or not at all"
+            )
         return values
 
     @model_validator(mode="after")
@@ -56,27 +59,37 @@ class PetitionValidationMixin:
             values.duration_exce_course,
             values.duration_exce_name,
             values.duration_exce_start,
-            values.duration_exce_end
+            values.duration_exce_end,
         ]
         provided = [field for field in duration_exc_fields if field is not None]
         if len(provided) > 0 and len(provided) != len(duration_exc_fields):
-            raise ValueError("All duration_exc fields must be provided together or not at all")
+            raise ValueError(
+                "All duration_exc fields must be provided together or not at all"
+            )
         return values
 
     @model_validator(mode="after")
     def validate_duration_requirement(cls, values):
         if values.start_date and values.end_date:
             days_diff = (values.end_date - values.start_date).days
-            if days_diff < LEGAL_REGULAR_CONTRACT_LENGTH:  # roughly 1 year (365 days) minus 1 for inclusive dates
+            if (
+                days_diff < LEGAL_REGULAR_CONTRACT_LENGTH
+            ):  # roughly 1 year (365 days) minus 1 for inclusive dates
                 if not values.duration_exce_name:
-                    raise ValueError("Contract duration is less than 1 year, duration_exception fields must be provided")
+                    raise ValueError(
+                        "Contract duration is less than 1 year, duration_exception fields must be provided"
+                    )
         return values
 
     @model_validator(mode="after")
     def validate_time_requirement(cls, values):
-        if values.minutes is not None and values.minutes < LEGAL_REGULAR_WORKTIME: # 40 hours * 60 minutes
+        if (
+            values.minutes is not None and values.minutes < LEGAL_REGULAR_WORKTIME
+        ):  # 40 hours * 60 minutes
             if not values.time_exce_name:
-                raise ValueError("Worktime is less than 40h/month, time_exception fields must be provided")
+                raise ValueError(
+                    "Worktime is less than 40h/month, time_exception fields must be provided"
+                )
         return values
 
     @model_validator(mode="after")
@@ -93,6 +106,8 @@ class PetitionValidationMixin:
 
         # Check if total percentage equals 100 (with small tolerance for floating point precision)
         if abs(total_percentage - 100.0) > 0.01:
-            raise ValueError(f"Total budget position percentages must sum to 100, but got {total_percentage}")
+            raise ValueError(
+                f"Total budget position percentages must sum to 100, but got {total_percentage}"
+            )
 
         return values

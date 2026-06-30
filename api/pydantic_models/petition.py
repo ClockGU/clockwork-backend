@@ -1,7 +1,9 @@
-from sqlmodel import SQLModel
-from typing import Optional, List
-from datetime import date
 import uuid
+from datetime import date
+from typing import List, Optional
+
+from sqlmodel import SQLModel
+
 from api.consts import PetitionStatus
 from api.pydantic_models.budget_position import BudgetPositionBase
 
@@ -20,11 +22,11 @@ class PetitionExceptionBase(SQLModel):
     duration_exce_end: Optional[date] = None
 
 
-
 class PetitionBase(SQLModel, PetitionExceptionBase):
     """
     Base model for Petition with common fields used for validation.
     """
+
     user_account: Optional[uuid.UUID] = None
     org_unit: str
     eos_number: str
@@ -39,4 +41,3 @@ class PetitionBase(SQLModel, PetitionExceptionBase):
     budget_positions: List[BudgetPositionBase]
 
     status: PetitionStatus = PetitionStatus.SUPERVISOR_ACTION
-
