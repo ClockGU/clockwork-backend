@@ -13,6 +13,7 @@ from api.pydantic_models import (
 from api.db.dependencies import get_db
 from api.security import get_current_clerk
 from api.consts import PetitionStatus
+from api.websockets.routers.web_socket import send_serialized_data_to_clerks
 
 router = APIRouter()
 
@@ -40,7 +41,7 @@ async def delete_petition(
     user = Depends(get_current_clerk)
 ):
     success = handler.delete_petition_as_clerk(petition_id, deletion_request.reason)
-    await send_data_to_clerks(handler.get_petitions_clerk())
+    await send_serialized_data_to_clerks([petition.dict(by_alias=True, exclude_none=True) for petition in handler.get_petitions_clerk()])
     return success
 # 3. API to update a petition
 @router.patch("/clerk/petitions/{petition_id}")
