@@ -1,11 +1,7 @@
-from sqlmodel import SQLModel
 from typing import Optional, List
-from datetime import date
 import uuid
-from pydantic import field_validator, model_validator
-import re
 
-from api.consts import PetitionStatus
+
 from .budget_position import BudgetPositionRead
 from .petition import PetitionBase
 
@@ -13,19 +9,11 @@ from .petition import PetitionBase
 # Base class for shared fields
 class PetitionBaseRead(PetitionBase):
     id: uuid.UUID
+    budget_positions: List[BudgetPositionRead]
+
 
 # PetitionReadBase for clerks/supervisors
 class PetitionRead(PetitionBaseRead):
-    id: uuid.UUID
-    user_account: Optional[uuid.UUID] = None
-    org_unit: str
-    eos_number: str
-    ba_degree: bool
-    time_exce_student: Optional[bool] = None
-    time_exce_course: Optional[bool] = None  
-    duration_exce_course: Optional[bool] = None  
-    duration_exce_student: Optional[bool] = None
-    budget_positions: List[BudgetPositionRead]
 
     class Config:
         orm_mode = True
