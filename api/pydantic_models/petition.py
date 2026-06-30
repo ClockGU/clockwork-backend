@@ -4,8 +4,22 @@ from datetime import date
 import uuid
 from api.consts import PetitionStatus
 
+class PetitionExceptionBase(SQLModel):
+    time_exce_student: Optional[bool] = None
+    time_exce_course: Optional[bool] = None
+    time_exce_name: Optional[str] = None
+    time_exce_start: Optional[date] = None
+    time_exce_end: Optional[date] = None
+    time_exce_time: Optional[int] = None
 
-class PetitionBase(SQLModel):
+    duration_exce_course: Optional[bool] = None
+    duration_exce_name: Optional[str] = None
+    duration_exce_start: Optional[date] = None
+    duration_exce_end: Optional[date] = None
+
+
+
+class PetitionBase(SQLModel, PetitionExceptionBase):
     """
     Base model for Petition with common fields used for validation.
     """
@@ -22,16 +36,4 @@ class PetitionBase(SQLModel):
     supervisor_mail: Optional[str] = None
 
     status: PetitionStatus = PetitionStatus.SUPERVISOR_ACTION
-
-    time_exce_student: Optional[bool] = None
-    time_exce_course: Optional[bool] = None
-    time_exce_name: Optional[str] = None
-    time_exce_start: Optional[date] = None
-    time_exce_end: Optional[date] = None
-    time_exce_time: Optional[int] = None
-
-    duration_exce_course: Optional[bool] = None
-    duration_exce_name: Optional[str] = None
-    duration_exce_start: Optional[date] = None
-    duration_exce_end: Optional[date] = None
 
