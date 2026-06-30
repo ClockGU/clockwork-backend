@@ -26,7 +26,7 @@ class PetitionBaseRead(SQLModel):
     duration_exce_end: Optional[date] = None
     time_exce_course: Optional[bool] = None  
     duration_exce_course: Optional[bool] = None 
-    status: PetitionStatus = PetitionStatus.PENDING
+    status: PetitionStatus = PetitionStatus.SUPERVISOR_ACTION
 
 
 # PetitionReadBase for clerks/supervisors

@@ -20,7 +20,7 @@ class PetitionBase(SQLModel):
     budget_approver: str
     student_username: str
 
-    status: PetitionStatus = PetitionStatus.PENDING
+    status: PetitionStatus = PetitionStatus.SUPERVISOR_ACTION
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None
@@ -103,7 +103,7 @@ class PetitionRead(SQLModel):
     budget_approver: str
     student_username: str
 
-    status: PetitionStatus = PetitionStatus.PENDING
+    status: PetitionStatus = PetitionStatus.SUPERVISOR_ACTION
 
     time_exce_student: Optional[bool] = None
     time_exce_course: Optional[bool] = None

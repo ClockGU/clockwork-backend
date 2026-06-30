@@ -149,8 +149,7 @@ class PetitionManager:
             (self.schema.student_username == student_username) &
             (
             (self.schema.status != PetitionStatus.APPROVED) |
-            (self.schema.status != PetitionStatus.REJECTED)|
-            (self.schema.status != PetitionStatus.PENDING)
+            (self.schema.status != PetitionStatus.REJECTED)
             )
         )
         result = self.db.execute(statement)
