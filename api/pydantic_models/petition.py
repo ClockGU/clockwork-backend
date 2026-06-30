@@ -1,8 +1,10 @@
 from sqlmodel import SQLModel
-from typing import Optional
+from typing import Optional, List
 from datetime import date
 import uuid
 from api.consts import PetitionStatus
+from api.pydantic_models.budget_position import BudgetPositionBase
+
 
 class PetitionExceptionBase(SQLModel):
     time_exce_student: Optional[bool] = None
@@ -30,10 +32,11 @@ class PetitionBase(SQLModel, PetitionExceptionBase):
     end_date: date
     minutes: int
     ba_degree: bool
-    budget_position: str
-    budget_approver: str
+
     student_username: str
     supervisor_mail: Optional[str] = None
+
+    budget_positions: List[BudgetPositionBase]
 
     status: PetitionStatus = PetitionStatus.SUPERVISOR_ACTION
 

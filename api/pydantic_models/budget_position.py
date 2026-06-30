@@ -3,9 +3,15 @@ import uuid
 from pydantic import BaseModel, field_validator, model_validator
 import re
 
+from sqlmodel import SQLModel
 
 
-class BudgetPositionCreate(BaseModel):
+class BudgetPositionBase(SQLModel):
+    budget_position: str
+    budget_approver: str
+    percentage: float
+
+class BudgetPositionCreate(BudgetPositionBase):
     budget_position: str
     budget_approver: str
     percentage: float  
