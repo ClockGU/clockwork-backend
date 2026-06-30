@@ -9,6 +9,7 @@ class BudgetPositionBase(SQLModel):
     budget_position: str
     budget_approver: str
     percentage: float
+    budget_position_approved: bool
 
 class BudgetPositionCreate(BudgetPositionBase, BudgetPositionValidationMixin):
     pass
