@@ -14,12 +14,9 @@ class BudgetPositionBase(SQLModel):
 class BudgetPositionCreate(BudgetPositionBase, BudgetPositionValidationMixin):
     pass
 
-class BudgetPositionRead(BaseModel):
+class BudgetPositionRead(BudgetPositionBase):
     id: uuid.UUID
-    budget_position: str
-    budget_approver: str
-    budget_position_approved: bool
-    percentage: float
+
 
 class BudgetPositionApprovalUpdate(BaseModel):
     budget_position_approved: bool
