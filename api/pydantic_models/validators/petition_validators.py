@@ -97,9 +97,6 @@ class PetitionValidationMixin:
         """Validate that budget position percentages sum up to 100"""
         budget_positions = values.budget_positions
 
-        if not budget_positions:
-            raise ValueError("At least one budget position is required.")
-
         # Calculate total percentage (individual validations are handled by BudgetPositionCreate)
         # TODO: Change Percentage from decimal representation to intiger representation (e.g., 25% as 25) to avoid floating point issues
         total_percentage = sum(budget_pos.percentage for budget_pos in budget_positions)
