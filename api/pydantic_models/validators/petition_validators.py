@@ -24,7 +24,7 @@ class PetitionValidationMixin:
         # Accept either 5 digits OR 'F' followed by 5 digits
         if not re.match(r"^(F\d{6})$", eos_number):
             raise ValueError(
-                "eos_number must be either 5 digits or start with 'F' followed by 5 digits (e.g., F12345 or 12345)"
+                "eos_number must be of the format FXXXXXX (Example: F12345)."
             )
         return eos_number
 
@@ -98,7 +98,7 @@ class PetitionValidationMixin:
         budget_positions = values.budget_positions
 
         if not budget_positions:
-            raise ValueError("At least one budget position is required")
+            raise ValueError("At least one budget position is required.")
 
         # Calculate total percentage (individual validations are handled by BudgetPositionCreate)
         # TODO: Change Percentage from decimal representation to intiger representation (e.g., 25% as 25) to avoid floating point issues
