@@ -1,3 +1,13 @@
+"""
+Implementation of Pydantic models for updating petitions.
+The choice to overwrite the model_validate method is made to ensure that when updating
+a petition, the new data is validated against the same rules as when creating a petition.
+This ensures that the petition remains valid after updates.
+
+Subclasses of PetitionUpdateBase can be created for different user roles (e.g., supervisor, clerk, student)
+and implement role-specific validation logic if needed.
+"""
+
 from sqlmodel import SQLModel
 from typing import Optional, List, Type, Any, Union, Dict
 from datetime import date
@@ -50,6 +60,16 @@ class PetitionUpdateBase(SQLModel):
         context: Union[Dict[str, Any], None] = None,
         update: Union[Dict[str, Any], None] = None,
     ) -> _TSQLModel:
+        """
+        Implementation of pydantic model validation for updating a petition.
+
+        On update a petition has to be still valid as if it was created.
+        Therefore, we merge the existing petition data with the new data
+        and validate it against the PetitionCreate model.
+
+        We stricten the type of obj to the respective model class since the
+        fastapi routes will use it as parser on the route anyway.
+        """
         merged = existing.model_dump() | obj
         PetitionCreate.model_validate(merged)
         return super(PetitionUpdateBase, cls).model_validate(obj, strict=strict,from_attributes=from_attributes, context=context, update=update)
