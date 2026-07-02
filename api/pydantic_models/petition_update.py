@@ -104,12 +104,6 @@ class PetitionStudentUpdate(BaseModel, StudentUpdateValidator):
     """
     approved: bool
 
-class PetitionApproverUpdate(PetitionUpdateBase):
-    """
-    Pydantic model for updating a petition by student.
-    May have different permissions than supervisor and clerk updates.
-    """
-    pass
 
 class ClerkRevisionRequest(BaseModel):
     message: str
