@@ -133,3 +133,10 @@ class SupervisorUpdateValidator(RoleUpdateValidator):
     supervisor to update the petition.
     """
     allowed_petition_statuses = [PetitionStatus.STUDENT_REVISION, PetitionStatus.APPROVER_REVISION]
+
+class StudentUpdateValidator(RoleUpdateValidator):
+    """
+    Mixin class to validate that the petition status is in the correct status for a
+    student to update the petition.
+    """
+    allowed_petition_statuses = [PetitionStatus.CLERK_REVISION,]

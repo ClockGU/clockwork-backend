@@ -19,7 +19,7 @@ from sqlmodel.main import _TSQLModel
 from api.consts import PetitionStatus
 from . import PetitionCreate
 from .budget_position import BudgetPositionCreate
-from .validators.petition_validators import SupervisorActionValidator
+from .validators.petition_validators import SupervisorActionValidator, StudentUpdateValidator
 from ..db.schema import Petition
 
 
@@ -97,7 +97,7 @@ class PetitionClerkUpdate(BaseModel):
     """
     approved : bool
 
-class PetitionStudentUpdate(BaseModel):
+class PetitionStudentUpdate(BaseModel, StudentUpdateValidator):
     """
     Pydantic model for student petition acceptance.
     Only allows status updates with specific values.
