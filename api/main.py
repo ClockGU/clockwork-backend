@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends
+from pydantic import ValidationError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import JSONResponse
 
 from api.db.dependencies import get_db, engine
 from api.security import get_current_supervisor, get_current_student
@@ -73,6 +75,21 @@ def custom_openapi():
     return app.openapi_schema
 
 app.openapi = custom_openapi
+
+@app.exception_handler(ValidationError)
+async def pydantic_validation_handler(request, exc: ValidationError):
+    messages = []
+    for err in exc.errors():
+        ctx = err.get("ctx") or {}
+        original = ctx.get("error")
+        if isinstance(original, Exception):
+            messages.append(str(original))
+        else:
+            messages.append(err["msg"])
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "\n".join(messages)},
+    )
 
 @app.get("/checksupervisor")
 def check_supervisor(
