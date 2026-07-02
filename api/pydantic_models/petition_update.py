@@ -19,7 +19,7 @@ from sqlmodel.main import _TSQLModel
 from api.consts import PetitionStatus
 from . import PetitionCreate
 from .budget_position import BudgetPositionCreate
-from .validators.petition_validators import SupervisorActionValidator, StudentUpdateValidator
+from .validators.petition_validators import SupervisorUpdateValidator, StudentUpdateValidator
 from ..db.schema import Petition
 
 
@@ -53,7 +53,7 @@ class PetitionUpdateBase(SQLModel):
     @classmethod
     def model_validate(
         cls: Type[_TSQLModel],
-        obj: _TSQLModel,
+        obj: Any,
         existing: Petition,
         *,
         strict: Union[bool, None] = None,
@@ -75,13 +75,15 @@ class PetitionUpdateBase(SQLModel):
         In order to utilize mixin validator classes that require access to the existing petition
         it is added to the context dict.
         """
-        merged = existing.model_dump() | obj.model_dump(exclude_unset=True)
+        merged = existing.model_dump() | obj
         PetitionCreate.model_validate(merged)
         context = {**(context or {}), "existing": existing}
-        return super(PetitionUpdateBase, cls).model_validate(merged, strict=strict,from_attributes=from_attributes, context=context, update=update)
+        return super(PetitionUpdateBase, cls).model_validate(obj, strict=strict,from_attributes=from_attributes, context=context, update=update)
 
+class PetitionUpdate(PetitionUpdateBase):
+    pass
 
-class PetitionSupervisorUpdate(PetitionUpdateBase, SupervisorActionValidator):
+class PetitionSupervisorUpdate(PetitionUpdate, SupervisorUpdateValidator):
     """
     Pydantic model for updating a petition by supervisor.
     Inherits from PetitionUpdateBase.
@@ -90,14 +92,14 @@ class PetitionSupervisorUpdate(PetitionUpdateBase, SupervisorActionValidator):
     pass
 
 
-class PetitionClerkUpdate(BaseModel):
+class PetitionClerkUpdate(PetitionUpdate):
     """
     Pydantic model for updating a petition by clerk.
     May have different permissions than supervisor updates.
     """
     approved : bool
 
-class PetitionStudentUpdate(BaseModel, StudentUpdateValidator):
+class PetitionStudentUpdate(PetitionUpdate, StudentUpdateValidator):
     """
     Pydantic model for student petition acceptance.
     Only allows status updates with specific values.
@@ -115,3 +117,5 @@ class ClerkDeletionRequest(BaseModel):
 class PetitionStudentUpdateRequest(BaseModel):
     body: str
     subject: Optional[str] = None
+
+UpdateModel = Union[PetitionSupervisorUpdate, PetitionClerkUpdate, PetitionStudentUpdate]
