@@ -8,7 +8,7 @@ from api.db.managers import PetitionManager
 from api.pydantic_models import PetitionSupervisorUpdate
 
 
-def get_supervisor_petition_update_model(petition_id:UUID, body:dict, db: Session = Depends(get_db) ):
+def get_supervisor_petition_update_model(petition_id:UUID, body:dict, db: Session = Depends(get_db)) -> PetitionSupervisorUpdate:
     """
     Returns a PetitionSupervisorUpdate model instance with the provided petition_id and body.
     """
