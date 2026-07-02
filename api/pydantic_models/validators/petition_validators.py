@@ -1,4 +1,5 @@
 import re
+from typing import ClassVar, Self
 
 from pydantic import field_validator, model_validator
 
@@ -109,18 +110,26 @@ class PetitionValidationMixin:
 
         return values
 
+class RoleUpdateValidator:
+    """
+    Base class for role-based update validators.
+    Subclasses should define the allowed petition statuses
+    in which the specific role is allowed to update petitions.
+    """
+    allowed_petition_statuses: ClassVar[list[PetitionStatus]]
+    @model_validator(mode="after")
+    def validate_status_in_supervisor_action(self, info) -> Self:
+        existing = info.context.get("existing", None)
+        if not existing: raise RuntimeError("UpdateModelValidator requires an existing model instance in context")
+        if existing.status not in self.allowed_petition_statuses:
+            raise ValueError(
+                f"Petition status must be one of ({self.allowed_petition_statuses}) for this role to update a petition."
+            )
+        return self
 
-class SupervisorUpdateValidator:
+class SupervisorUpdateValidator(RoleUpdateValidator):
     """
     Mixin class to validate that the petition status is in the correct status for a
     supervisor to update the petition.
     """
-    @model_validator(mode="after")
-    def validate_status_in_supervisor_action(cls, values, info):
-        existing = info.context.get("existing", None)
-        if not existing: raise RuntimeError("UpdateModelValidator requires an existing model instance in context")
-        if existing.status not in [PetitionStatus.STUDENT_REVISION, PetitionStatus.APPROVER_REVISION]:
-            raise ValueError(
-                f"Petition status must be one of ({PetitionStatus.STUDENT_REVISION, PetitionStatus.APPROVER_REVISION}) for supervisors to update a petition."
-            )
-        return values
+    allowed_petition_statuses = [PetitionStatus.STUDENT_REVISION, PetitionStatus.APPROVER_REVISION]
