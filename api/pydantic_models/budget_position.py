@@ -1,6 +1,6 @@
 from typing import Optional
 import uuid
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from .validators.budget_position_validators import BudgetPositionValidationMixin
 from sqlmodel import SQLModel
 
@@ -11,8 +11,12 @@ class BudgetPositionBase(SQLModel):
     percentage: float
     budget_position_approved: bool
 
+
 class BudgetPositionCreate(BudgetPositionBase, BudgetPositionValidationMixin):
-    pass
+    budget_position: str
+    budget_approver: str
+    percentage: float
+
 
 class BudgetPositionRead(BudgetPositionBase):
     id: uuid.UUID
