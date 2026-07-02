@@ -1,7 +1,7 @@
 import re
 from typing import ClassVar, Self
 
-from pydantic import field_validator, model_validator
+from pydantic import field_validator, model_validator, ValidationError
 
 from api.consts import LEGAL_REGULAR_CONTRACT_LENGTH, LEGAL_REGULAR_WORKTIME, PetitionStatus
 
@@ -39,15 +39,13 @@ class PetitionValidationMixin:
     def validate_time_exc(cls, values):
         # Ensure all time_exc fields are either fully provided or all are None
         time_exc_fields = [
-            values.time_exce_student,
-            values.time_exce_course,
             values.time_exce_name,
             values.time_exce_start,
             values.time_exce_end,
             values.time_exce_time,
         ]
         provided = [field for field in time_exc_fields if field is not None]
-        if len(provided) > 0 and len(provided) != len(time_exc_fields):
+        if (values.time_exce_student is None or values.time_exce_student is False) and len(provided) > 0 and len(provided) != len(time_exc_fields):
             raise ValueError(
                 "All time_exc fields must be provided together or not at all"
             )
@@ -57,13 +55,12 @@ class PetitionValidationMixin:
     def validate_duration_exc(cls, values):
         # Ensure all duration_exc fields are either fully provided or all are None
         duration_exc_fields = [
-            values.duration_exce_course,
             values.duration_exce_name,
             values.duration_exce_start,
             values.duration_exce_end,
         ]
         provided = [field for field in duration_exc_fields if field is not None]
-        if len(provided) > 0 and len(provided) != len(duration_exc_fields):
+        if (values.duration_exce_course is None or values.duration_exce_course is False) and len(provided) > 0 and len(provided) != len(duration_exc_fields):
             raise ValueError(
                 "All duration_exc fields must be provided together or not at all"
             )
