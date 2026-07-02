@@ -91,7 +91,7 @@ def update_petition(
     petition_id: UUID,
     petition: PetitionSupervisorUpdate = Depends(get_supervisor_petition_update_model),
     handler: PetitionHandler = Depends(get_petition_handler),
-    # user = Depends(get_current_supervisor)
+    user = Depends(get_current_supervisor)
 ):
     updated_petition = handler.update_petition(petition_id, petition)
     return updated_petition

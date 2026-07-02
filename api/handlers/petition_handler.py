@@ -202,7 +202,7 @@ class PetitionHandler:
 
         return petition
 
-    def update_petition(self, petition_id: UUID, petition_data: PetitionSupervisorUpdate) -> Petition:
+    def update_petition(self, petition_id: UUID, petition_data: PetitionUpdateModel) -> Petition:
 
         update_data = petition_data.model_dump(exclude_unset=True)
 

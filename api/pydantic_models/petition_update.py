@@ -118,4 +118,4 @@ class PetitionStudentUpdateRequest(BaseModel):
     body: str
     subject: Optional[str] = None
 
-UpdateModel = Union[PetitionSupervisorUpdate, PetitionClerkUpdate, PetitionStudentUpdate]
+PetitionUpdateModel = Union[PetitionSupervisorUpdate, PetitionClerkUpdate, PetitionStudentUpdate]
