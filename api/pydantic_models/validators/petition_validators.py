@@ -2,7 +2,7 @@ import re
 
 from pydantic import field_validator, model_validator
 
-from api.consts import LEGAL_REGULAR_CONTRACT_LENGTH, LEGAL_REGULAR_WORKTIME
+from api.consts import LEGAL_REGULAR_CONTRACT_LENGTH, LEGAL_REGULAR_WORKTIME, PetitionStatus
 
 
 class PetitionValidationMixin:
@@ -107,4 +107,20 @@ class PetitionValidationMixin:
                 f"Total budget position percentages must sum to 100, but got {total_percentage}"
             )
 
+        return values
+
+
+class SupervisorUpdateValidator:
+    """
+    Mixin class to validate that the petition status is in the correct status for a
+    supervisor to update the petition.
+    """
+    @model_validator(mode="after")
+    def validate_status_in_supervisor_action(cls, values, info):
+        existing = info.context.get("existing", None)
+        if not existing: raise RuntimeError("UpdateModelValidator requires an existing model instance in context")
+        if existing.status not in [PetitionStatus.STUDENT_REVISION, PetitionStatus.APPROVER_REVISION]:
+            raise ValueError(
+                f"Petition status must be one of ({PetitionStatus.STUDENT_REVISION, PetitionStatus.APPROVER_REVISION}) for supervisors to update a petition."
+            )
         return values

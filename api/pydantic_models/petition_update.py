@@ -19,6 +19,7 @@ from sqlmodel.main import _TSQLModel
 from api.consts import PetitionStatus
 from . import PetitionCreate
 from .budget_position import BudgetPositionCreate
+from .validators.petition_validators import SupervisorActionValidator
 from ..db.schema import Petition
 
 
@@ -69,16 +70,22 @@ class PetitionUpdateBase(SQLModel):
 
         We stricten the type of obj to the respective model class since the
         fastapi routes will use it as parser on the route anyway.
+
+        Addition of existing to context.
+        In order to utilize mixin validator classes that require access to the existing petition
+        it is added to the context dict.
         """
         merged = existing.model_dump() | obj.model_dump(exclude_unset=True)
         PetitionCreate.model_validate(merged)
-        return super(PetitionUpdateBase, cls).model_validate(obj, strict=strict,from_attributes=from_attributes, context=context, update=update)
+        context = {**(context or {}), "existing": existing}
+        return super(PetitionUpdateBase, cls).model_validate(merged, strict=strict,from_attributes=from_attributes, context=context, update=update)
 
 
-class PetitionSupervisorUpdate(PetitionUpdateBase):
+class PetitionSupervisorUpdate(PetitionUpdateBase, SupervisorActionValidator):
     """
     Pydantic model for updating a petition by supervisor.
     Inherits from PetitionUpdateBase.
+    Adds validation restricting updates for Supervisor role to petitions in status SUPERVISOR_ACTION.
     """
     pass
 
