@@ -19,9 +19,11 @@ from api.pydantic_models import (
     PetitionCreate
     ) 
 from api.pdf.contract import create_contract_pdf
+from api.pydantic_models.petition_update import PetitionSupervisorUpdate
 
 
 # TODO: replace the status of petition with enums
+
 class PetitionHandler:
     def __init__(self, db: Session):
         self.manager = PetitionManager(db)
@@ -200,28 +202,24 @@ class PetitionHandler:
 
         return petition
 
-    def update_petition(self, petition_id: UUID, petition_data: PetitionCreate) -> Petition:
-        # Check if the petition exists
-        existing_petition = self.manager.get_petition(petition_id)
-        if not existing_petition:
-            raise self.exc.not_found("Petition", str(petition_id))
+    def update_petition(self, petition_id: UUID, petition_data: PetitionSupervisorUpdate) -> Petition:
 
-        if not (existing_petition.status == PetitionStatus.APPROVER_REVISION or existing_petition.status == PetitionStatus.STUDENT_REVISION or existing_petition.status == PetitionStatus.APPROVER_ACTION):
-            raise self.exc.forbidden("You don't have permission to update this petition at this stage")
-        budget_positions_updated = hasattr(petition_data, 'budget_positions') and petition_data.budget_positions is not None
+        update_data = petition_data.model_dump(exclude_unset=True)
+
+        budget_positions_updated = update_data.get("budget_positions", None)
 
         # Proceed with the update
-        petition = self.manager.update_petition(petition_id, petition_data)
+        petition = self.manager.update_petition(petition_id, update_data)
         if not petition:
             raise self.exc.update_failed("Petition", str(petition_id))
 
-        # This makes approved budget positiions unapproved again
-        if not budget_positions_updated and petition.status == PetitionStatus.STUDENT_REVISION:
+        # This makes approved budget positions unapproved again
+        if not budget_positions_updated:
             budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
             for budget_position in budget_positions:
                 if budget_position.budget_position_approved:
                     self.budget_position_manager.update_budget_position_status(
-                        budget_position.id, 
+                        budget_position.id,
                         False
                     )
 

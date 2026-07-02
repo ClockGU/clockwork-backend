@@ -1,12 +1,16 @@
 from typing import List, Optional
 from uuid import UUID
+
+from sqlalchemy import delete
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 from datetime import date
 
 from api.consts import PetitionStatus
 from api.db.schema.petition import Petition
 from api.db.schema.budget_position import BudgetPosition
-from api.pydantic_models import PetitionCreate
+from api.pydantic_models import PetitionCreate, PetitionRead
+
 
 class PetitionManager:
     def __init__(self, db: Session):
@@ -43,17 +47,13 @@ class PetitionManager:
 
     def get_petition(self, petition_id: UUID) -> Optional[Petition]:
         # Retrieve a single petition by its UUID with budget positions
-        statement = select(self.schema).where(self.schema.id == petition_id)
+        statement = (
+            select(self.schema)
+            .where(self.schema.id == petition_id)
+            .options(selectinload(self.schema.budget_positions))
+        )
         result = self.db.execute(statement)
-        petition = result.scalar_one_or_none()
-        
-        if petition:
-            # Load budget positions
-            budget_statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
-            budget_result = self.db.execute(budget_statement)
-            petition.budget_positions = budget_result.scalars().all()
-        
-        return petition
+        return result.scalar_one_or_none()
 
     def get_petitions(self, offset: int = 0, limit: int = 100) -> List[Petition]:
         # Use SQLModel's select with explicit session execution
@@ -69,40 +69,32 @@ class PetitionManager:
         
         return petitions
 
-    def update_petition(self, petition_id: UUID, petition_data: PetitionCreate) -> Optional[Petition]:
+    def update_petition(self, petition_id: UUID, petition_data: dict) -> Optional[Petition]:
         # Find the petition first
         petition = self.db.get(self.schema, petition_id)
         if not petition:
             return None
 
         # Extract budget positions from update data
-        budget_positions_data = petition_data.budget_positions
+        budget_positions_data = petition_data.pop('budget_positions', None)
         
         # Update petition fields (excluding budget_positions)
-        updated_data = petition_data.model_dump(exclude_unset=True, exclude={'budget_positions'})
-        for key, value in updated_data.items():
+        for key, value in petition_data.items():
             setattr(petition, key, value)
 
         # Handle budget positions update
         if budget_positions_data:
             # Delete existing budget positions
-            existing_budget_positions = self.db.execute(
-                select(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
-            ).scalars().all()
-            
-            for existing_bp in existing_budget_positions:
-                self.db.delete(existing_bp)
-            
+            self.db.execute(
+                delete(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
+            )
             # Create new budget positions
-            for budget_pos_data in budget_positions_data:
-                budget_position = BudgetPosition(
-                    petition_id=petition.id,
-                    budget_position=budget_pos_data.budget_position,
-                    budget_approver=budget_pos_data.budget_approver,
-                    budget_position_approved=False,
-                    percentage=budget_pos_data.percentage
-                )
-                self.db.add(budget_position)
+            self.db.add_all(
+                [BudgetPosition(
+                petition_id=petition_id,
+                **(budget_position | {"budget_position_approved": False})
+            ) for budget_position in budget_positions_data]
+            )
 
         self.db.add(petition)
         self.db.commit()
