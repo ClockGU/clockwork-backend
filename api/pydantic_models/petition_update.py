@@ -52,7 +52,7 @@ class PetitionUpdateBase(SQLModel):
     @classmethod
     def model_validate(
         cls: Type[_TSQLModel],
-        obj: Any,
+        obj: _TSQLModel,
         existing: Petition,
         *,
         strict: Union[bool, None] = None,
@@ -70,7 +70,7 @@ class PetitionUpdateBase(SQLModel):
         We stricten the type of obj to the respective model class since the
         fastapi routes will use it as parser on the route anyway.
         """
-        merged = existing.model_dump() | obj
+        merged = existing.model_dump() | obj.model_dump(exclude_unset=True)
         PetitionCreate.model_validate(merged)
         return super(PetitionUpdateBase, cls).model_validate(obj, strict=strict,from_attributes=from_attributes, context=context, update=update)
 
