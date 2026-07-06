@@ -547,36 +547,21 @@ class PetitionHandler:
 
         return petition
 
-    def request_revision_from_supervisor(self, petition_id: UUID, text: str, subject: Optional[str] = None) -> Petition:
+    def request_revision_from_supervisor(self, petition: Petition, text: str, subject: Optional[str] = None) -> Petition:
         """
         Student requests revision from supervisor.
         Sends email to supervisor and changes status to 'student_revision'.
         """
-        try:
-            # Get petition
-            petition = self.manager.get_petition(petition_id)
-            if not petition:
-                raise self.exc.not_found("Petition", str(petition_id))
-            
-            # Check if petition is in a valid status for student to request revision
-            # Students can request revision when petition is in student_action, clerk_revision, or awaiting_signature
-            valid_statuses = [PetitionStatus.STUDENT_ACTION, PetitionStatus.CLERK_REVISION]
-            if petition.status not in valid_statuses:
-                raise self.exc.invalid_status(petition.status, message=f"Student cannot request revision at this stage. Current status: {petition.status}")
-            
-            # Send email to supervisor using EmailHandler
-            if petition.supervisor_mail:
-                email_handler = EmailHandler(petition)
-                email_handler.send_student_revision_request_email(text, subject)
+        # Check if petition is in a valid status for student to request revision
+        # Students can request revision when petition is in student_action, clerk_revision, or awaiting_signature
+        valid_statuses = [PetitionStatus.STUDENT_ACTION, PetitionStatus.CLERK_REVISION]
+        if petition.status not in valid_statuses:
+            raise self.exc.invalid_status(petition.status, message=f"Student cannot request revision at this stage. Current status: {petition.status}")
 
-            # Update petition status to student_revision
-            petition = self.manager.update_petition_status(petition_id, PetitionStatus.STUDENT_REVISION)
-            if not petition:
-                raise self.exc.update_failed("Petition", message="Failed to update petition status")
-            
-            return petition
-            
-        except HTTPException as e:
-            raise
-        except Exception as e:
-            raise self.exc.internal_error("requesting revision", e)
+        email_handler = EmailHandler(petition)
+        email_handler.send_student_revision_request_email(text, subject)
+
+        # Update petition status to student_revision
+        petition = self.manager.update_petition_status(petition, PetitionStatus.STUDENT_REVISION)
+
+        return petition
