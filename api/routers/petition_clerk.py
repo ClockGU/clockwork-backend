@@ -3,6 +3,7 @@ from typing import List
 from uuid import UUID
 from sqlmodel import Session
 
+from api.db.managers.dependencies import get_specified_petition
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
     PetitionRead, 
@@ -11,6 +12,7 @@ from api.pydantic_models import (
     ClerkDeletionRequest
     )
 from api.db.dependencies import get_db
+from api.pydantic_models.dependencies import get_clerk_petition_update_model
 from api.security import get_current_clerk
 from api.consts import PetitionStatus
 from api.websockets.routers.web_socket import send_serialized_data_to_clerks
@@ -46,17 +48,17 @@ async def delete_petition(
 # 3. API to update a petition
 @router.patch("/clerk/petitions/{petition_id}")
 async def update_petition_as_clerk(
-    petition_id: UUID,
-    petition_data: PetitionClerkUpdate,
+    petition: Depends(get_specified_petition),
+    petition_data: Depends(get_clerk_petition_update_model),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)  
 ):
     updated_petition = handler.update_petition_as_clerk(
-        petition_id=petition_id,
+        petition=petition,
         approved=petition_data.approved
     )
     if updated_petition.status == 'rejected':
-        updated_petition = handler.delete_petition(petition_id)
+        updated_petition = handler.delete_petition(petition)
    
    
     return updated_petition
