@@ -50,7 +50,7 @@ class StudentDocumentManager:
         result = self.db.execute(statement)
         return result.scalars().all()
 
-    def check_student_documents_uploaded(self, student_username: str, check_ba_degree: bool = False) -> bool:
+    def check_student_documents_uploaded(self, employee: Employee, check_ba_degree: bool = False) -> bool:
         """
         Check if a student has uploaded all required documents.
         
@@ -61,15 +61,7 @@ class StudentDocumentManager:
         Returns:
             bool: True if all documents are uploaded, False otherwise
         """
-        
-        # First get the employee by email
-        employee_statement = select(Employee).where(Employee.username == student_username)
-        employee_result = self.db.execute(employee_statement)
-        employee = employee_result.scalar_one_or_none()
-        
-        # If employee doesn't exist, return False
-        if not employee:
-            return False
+
         
         # Get the student documents record using employee_id
         statement = select(self.schema).where(self.schema.employee_id == employee.id)
@@ -92,9 +84,9 @@ class StudentDocumentManager:
         if check_ba_degree:
             required_documents.append(student_docs.ba_degree_url)
         # TODO: Use global consts instead of magic string
-        if employee.nationality and employee.nationality.lower() != "deutsch":
+        if employee.nationality and employee.nationality.lower() != "de":
             required_documents.append(student_docs.residence_permit_url)
-        
+
         # Return True only if all documents have non-empty URLs
         return all(doc_url and doc_url.strip() for doc_url in required_documents)
 
