@@ -3,6 +3,8 @@ from typing import List
 from uuid import UUID
 from sqlmodel import Session
 
+from api.db.managers.dependencies import get_specified_petition
+from api.db.schema import Petition
 from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
@@ -11,6 +13,7 @@ from api.pydantic_models import (
     PetitionStudentUpdateRequest
 )   
 from api.db.dependencies import get_db
+from api.pydantic_models.dependencies import get_student_petition_update_model
 from api.security import get_current_supervisor, get_current_student, verify_signature
 
 router = APIRouter()
@@ -59,11 +62,11 @@ async def update_petition_acceptance(
         updated_petition = handler.delete_petition(petition_id)
     
     return updated_petition
-
+# TODO: Aproval/Rejection needs to be handled via centralized endpoint. Rejection is always a deletion patch masks that here
 @router.patch("/students/petitions/{petition_id}/student-action")
 async def student_accept_or_reject_petition(
-    petition_id: UUID,
-    action: PetitionStudentUpdate,
+    petition: Petition = Depends(get_specified_petition),
+    petition_data: PetitionStudentUpdate = Depends(get_student_petition_update_model),
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_student)
 ):
@@ -72,12 +75,10 @@ async def student_accept_or_reject_petition(
     Only allowed if petition status is 'student_action'.
     """
     updated_petition = handler.student_accept_or_reject_petition(
-        petition_id=petition_id,
-        approved=action.approved
+        petition=petition,
+        approved=petition_data.approved
     )
-    if updated_petition.status == 'rejected':
-        updated_petition = handler.delete_petition(petition_id)
-    
+
     return updated_petition
 
 @router.patch("/students/petitions/{petition_id}/revision-done", response_model=PetitionStudentRead)
