@@ -272,7 +272,7 @@ class EmailHandler:
         except Exception as e:
             print(f"Error sending budget position update emails: {str(e)}", flush=True)
 
-    def send_clerk_approval_email(self, budget_positions: list[BudgetPosition]) -> None:
+    def send_clerk_approval_email(self, budget_positions: list["BudgetPosition"]) -> None:
         """Send email when clerk approves or rejects petition"""
         if not self.petition:
             raise ValueError("Petition is required for this email operation")
