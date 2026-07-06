@@ -237,14 +237,9 @@ class PetitionHandler:
             raise self.exc.delete_failed("Petition", str(petition.id))
         return {"detail": "Petition deleted successfully"}
 
-    def delete_petition_as_clerk(self, petition_id: UUID, reason: str = "") -> dict:
-        # Check if the petition exists
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-
+    def delete_petition_as_clerk(self, petition: Petition, reason: str = "") -> dict:
         # Get budget positions to notify
-        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition)
 
         # Proceed with the deletion
         success = self.manager.delete_petition(petition_id)

@@ -31,7 +31,7 @@ class BudgetPositionManager:
         
         return all(bp.budget_position_approved for bp in budget_positions)
 
-    def get_budget_positions_by_petition(self, petition_id: UUID) -> list[BudgetPosition]:
+    def get_budget_positions_by_petition(self, petition: Petition) -> list[BudgetPosition]:
         """Get all budget positions for a petition"""
-        statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
+        statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition.id)
         return self.db.execute(statement).scalars().all()

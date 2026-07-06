@@ -101,15 +101,10 @@ class PetitionManager:
         self.db.refresh(petition)
         return petition
 
-    def delete_petition(self, petition_id: UUID) -> bool:
-        # Retrieve the petition to delete
-        petition = self.db.get(self.schema, petition_id)
-        if not petition:
-            return False
-
+    def delete_petition(self, petition: Petition) -> bool:
         # Delete associated budget positions first (due to foreign key constraint)
         budget_positions = self.db.execute(
-            select(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
+            select(BudgetPosition).where(BudgetPosition.petition_id == petition.id)
         ).scalars().all()
         
         for budget_position in budget_positions:

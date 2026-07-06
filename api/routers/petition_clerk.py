@@ -38,14 +38,15 @@ def list_petitions_by_status(
 # 2. API to delete a petition by ID
 @router.delete("/clerk/petitions/{petition_id}")
 async def delete_petition(
-    petition_id: UUID,
+    petition: Petition = Depends(get_specified_petition),
     deletion_request: ClerkDeletionRequest = Body(default=ClerkDeletionRequest(reason="")),
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_clerk)
 ):
-    success = handler.delete_petition_as_clerk(petition_id, deletion_request.reason)
+    success = handler.delete_petition_as_clerk(petition, deletion_request.reason)
     await send_serialized_data_to_clerks([petition.dict(by_alias=True, exclude_none=True) for petition in handler.get_petitions_clerk()])
     return success
+
 # 3. API to update a petition
 @router.patch("/clerk/petitions/{petition_id}", response_model=PetitionRead)
 async def update_petition_as_clerk(
