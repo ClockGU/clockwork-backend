@@ -421,6 +421,7 @@ class PetitionHandler:
                 detail=f"Please fill out the following missing fields in your profile: {missing_str}"
             )
 
+    # TODO: untangle the acception from rejection
     def student_accept_or_reject_petition(self, petition: Petition, approved: bool) -> Petition| dict:
         # Check if student has uploaded documents before approving
         if approved:
