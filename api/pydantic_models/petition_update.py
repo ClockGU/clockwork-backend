@@ -17,7 +17,7 @@ from pydantic import (
 
 from sqlmodel.main import _TSQLModel
 from api.consts import PetitionStatus
-from . import PetitionCreate
+from . import PetitionCreate, PetitionRead
 from .budget_position import BudgetPositionCreate
 from .validators.petition_validators import SupervisorUpdateValidator, StudentUpdateValidator, ClerkUpdateValidator
 from ..db.schema import Petition
@@ -75,7 +75,8 @@ class PetitionUpdateBase(SQLModel):
         In order to utilize mixin validator classes that require access to the existing petition
         it is added to the context dict.
         """
-        merged = existing.model_dump() | obj
+        existing_read = PetitionRead.model_validate(existing)
+        merged = existing_read.model_dump() | obj
         PetitionCreate.model_validate(merged)
         context = {**(context or {}), "existing": existing}
         return super(PetitionUpdateBase, cls).model_validate(obj, strict=strict,from_attributes=from_attributes, context=context, update=update)
