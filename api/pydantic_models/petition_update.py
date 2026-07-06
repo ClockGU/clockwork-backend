@@ -19,7 +19,7 @@ from sqlmodel.main import _TSQLModel
 from api.consts import PetitionStatus
 from . import PetitionCreate
 from .budget_position import BudgetPositionCreate
-from .validators.petition_validators import SupervisorUpdateValidator, StudentUpdateValidator
+from .validators.petition_validators import SupervisorUpdateValidator, StudentUpdateValidator, ClerkUpdateValidator
 from ..db.schema import Petition
 
 
@@ -92,7 +92,7 @@ class PetitionSupervisorUpdate(PetitionUpdate, SupervisorUpdateValidator):
     pass
 
 
-class PetitionClerkUpdate(PetitionUpdate):
+class PetitionClerkUpdate(PetitionUpdate, ClerkUpdateValidator):
     """
     Pydantic model for updating a petition by clerk.
     May have different permissions than supervisor updates.

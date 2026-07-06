@@ -137,3 +137,10 @@ class StudentUpdateValidator(RoleUpdateValidator):
     student to update the petition.
     """
     allowed_petition_statuses = [PetitionStatus.CLERK_REVISION,]
+
+class ClerkUpdateValidator(RoleUpdateValidator):
+    """
+    Mixin class to validate that the petition status is in the correct status for a
+    student to update the petition.
+    """
+    allowed_petition_statuses = [PetitionStatus.CLERK_ACTION, PetitionStatus.AWAITING_SIGNATURE]
