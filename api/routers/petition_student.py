@@ -33,7 +33,7 @@ def read_petitions(
 ):
     petitions = handler.get_student_petitions(user.get('username'))
     return petitions
-
+#TODO: Endpoint is unused by frontend
 @router.patch("/students/petitions/accept")
 async def update_petition_acceptance(
     acceptance_data: PetitionStudentUpdate,
