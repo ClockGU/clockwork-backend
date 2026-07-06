@@ -9,12 +9,12 @@ from .petition_create import (
 )
 
 from .petition_update import (
-    PetitionSupervisorUpdate, 
+    PetitionSupervisorUpdate,
     PetitionStudentUpdate,
     PetitionClerkUpdate,
     ClerkRevisionRequest,
     ClerkDeletionRequest,
-    PetitionStudentUpdateRequest
+    StudenRevisionRequest
     )
 
 from .documents import (

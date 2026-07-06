@@ -8,9 +8,9 @@ from api.db.schema import Petition
 from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
-    PetitionStudentUpdate, 
+    PetitionStudentUpdate,
     PetitionStudentRead,
-    PetitionStudentUpdateRequest
+    StudenRevisionRequest
 )   
 from api.db.dependencies import get_db
 from api.pydantic_models.dependencies import get_student_petition_update_model
@@ -95,8 +95,8 @@ async def mark_revision_done(
 
 @router.patch("/students/petitions/{petition_id}/request-revision", response_model=PetitionStudentRead)
 async def request_revision_from_supervisor(
-    petition_id: UUID,
-    revision_data: PetitionStudentUpdateRequest,
+    petition: Petition = Depends(get_specified_petition),
+    revision_data: StudenRevisionRequest,
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_student)
 ):
@@ -108,7 +108,7 @@ async def request_revision_from_supervisor(
     if not revision_data.body:
         raise HTTPException(status_code=400, detail="Revision request text is required")
     
-    updated_petition = handler.request_revision_from_supervisor(petition_id, revision_data.body, subject=revision_data.subject)
+    updated_petition = handler.request_revision_from_supervisor(petition, revision_data.body, subject=revision_data.subject)
     return updated_petition
 
 

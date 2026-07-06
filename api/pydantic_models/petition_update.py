@@ -115,7 +115,7 @@ class ClerkRevisionRequest(BaseModel):
 class ClerkDeletionRequest(BaseModel):
     reason: str = ""
 
-class PetitionStudentUpdateRequest(BaseModel):
+class StudenRevisionRequest(BaseModel):
     body: str
     subject: Optional[str] = None
 
