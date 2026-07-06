@@ -10,7 +10,6 @@ from api.db.managers.budget_position_manager import BudgetPositionManager
 from api.db.managers.student_document import StudentDocumentManager
 from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.schema.petition import Petition
-from api.env import settings
 from api.handlers.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
 from api.pydantic_models import (
@@ -19,7 +18,7 @@ from api.pydantic_models import (
     PetitionCreate
     ) 
 from api.pdf.contract import create_contract_pdf
-from api.pydantic_models.petition_update import PetitionSupervisorUpdate
+from api.pydantic_models.petition_update import PetitionSupervisorUpdate, PetitionUpdateModel
 
 
 # TODO: replace the status of petition with enums
@@ -231,16 +230,11 @@ class PetitionHandler:
 
         return petition
 
-    def delete_petition(self, petition_id: UUID) -> dict:
-        # Check if the petition exists
-        existing_petition = self.manager.get_petition(petition_id)
-        if not existing_petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-
+    def delete_petition(self, petition: Petition) -> dict:
         # Proceed with the deletion
-        success = self.manager.delete_petition(petition_id)
+        success = self.manager.delete_petition(petition.id)
         if not success:
-            raise self.exc.delete_failed("Petition", str(petition_id))
+            raise self.exc.delete_failed("Petition", str(petition.id))
         return {"detail": "Petition deleted successfully"}
 
     def delete_petition_as_clerk(self, petition_id: UUID, reason: str = "") -> dict:
