@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlmodel import Session
 
 from api.db.managers.dependencies import get_specified_petition
+from api.db.schema import Petition
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
     PetitionRead, 
@@ -46,10 +47,10 @@ async def delete_petition(
     await send_serialized_data_to_clerks([petition.dict(by_alias=True, exclude_none=True) for petition in handler.get_petitions_clerk()])
     return success
 # 3. API to update a petition
-@router.patch("/clerk/petitions/{petition_id}")
+@router.patch("/clerk/petitions/{petition_id}", response_model=PetitionRead)
 async def update_petition_as_clerk(
-    petition: Depends(get_specified_petition),
-    petition_data: Depends(get_clerk_petition_update_model),
+    petition: Petition = Depends(get_specified_petition),
+    petition_data: PetitionClerkUpdate = Depends(get_clerk_petition_update_model),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)  
 ):
@@ -58,7 +59,7 @@ async def update_petition_as_clerk(
         approved=petition_data.approved
     )
     if updated_petition.status == 'rejected':
-        updated_petition = handler.delete_petition(petition)
+        return handler.delete_petition(petition)
    
    
     return updated_petition
