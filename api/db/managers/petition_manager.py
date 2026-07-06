@@ -186,19 +186,16 @@ class PetitionManager:
         
         return petitions
     
-    def update_petition_status(self, petition_id: UUID, status: str) -> Optional[Petition]:
+    def update_petition_status(self, petition: Petition, status: str) -> Optional[Petition]:
         """Update petition status"""
-        petition = self.db.get(self.schema, petition_id)
-        if not petition:
-            return None
-        
+
         petition.status = status
         self.db.add(petition)
         self.db.commit()
         self.db.refresh(petition)
         
         # Load budget positions
-        budget_statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
+        budget_statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition.id)
         budget_result = self.db.execute(budget_statement)
         petition.budget_positions = budget_result.scalars().all()
         
