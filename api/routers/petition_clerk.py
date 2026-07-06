@@ -66,13 +66,13 @@ async def update_petition_as_clerk(
 
 @router.patch("/clerk/petitions/{petition_id}/request-revision", response_model=PetitionRead)
 async def request_revision_from_student(
-    petition_id: UUID,
+    petition: Petition = Depends(get_specified_petition),
     revision: ClerkRevisionRequest = Body(...),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)
 ):
     updated_petition = handler.request_revision_from_student(
-        petition_id=petition_id,
+        petition=petition,
         message=revision.message,
         subject=revision.subject
     )

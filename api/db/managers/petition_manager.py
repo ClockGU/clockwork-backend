@@ -186,7 +186,7 @@ class PetitionManager:
         
         return petitions
     
-    def update_petition_status(self, petition: Petition, status: str) -> Optional[Petition]:
+    def update_petition_status(self, petition: Petition, status: str) -> Petition:
         """Update petition status"""
 
         petition.status = status

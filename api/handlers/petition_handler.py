@@ -491,19 +491,13 @@ class PetitionHandler:
 
         return petition
 
-    def request_revision_from_student(self, petition_id: UUID, message: str, subject: Optional[str] = None) -> Petition:
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-        if petition.status != PetitionStatus.CLERK_ACTION:
-            raise self.exc.invalid_status(PetitionStatus.CLERK_ACTION, message="Revision can only be requested when petition status is 'clerk_action'")
-
+    def request_revision_from_student(self, petition: Petition, message: str, subject: Optional[str] = None) -> Petition:
         # Send email to student
         email_handler = EmailHandler(petition)
         email_handler.send_clerk_revision_request_email(message, subject)
         
         # Change status to clerk_revision
-        petition = self.manager.update_petition_status(petition_id, PetitionStatus.CLERK_REVISION)
+        petition = self.manager.update_petition_status(petition, PetitionStatus.CLERK_REVISION)
         return petition
 
     def complete_petition_as_clerk(self, petition: Petition) -> Petition:
