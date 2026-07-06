@@ -459,51 +459,40 @@ class PetitionHandler:
             
         return petition
     
-    def update_petition_as_clerk(self, petition_id: UUID, approved: bool) -> Petition:
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
+    def update_petition_as_clerk(self, petition: Petition, approved: bool) -> Petition:
 
         if petition.status == PetitionStatus.CLERK_ACTION:
-            return self.approve_petition_as_clerk(petition_id, approved)
+            return self.approve_petition_as_clerk(petition)
         elif petition.status == PetitionStatus.AWAITING_SIGNATURE and approved:
             return self.complete_petition_as_clerk(petition_id)
         else:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
         
 
-    def approve_petition_as_clerk(self, petition_id: UUID, approved: bool) -> Petition:
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-        if petition.status != PetitionStatus.CLERK_ACTION:
-            raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
-        
+    def approve_petition_as_clerk(self, petition: Petition) -> Petition:
 
         # Update petition status
-        petition = self.manager.update_petition_status(petition_id, PetitionStatus.AWAITING_SIGNATURE if approved else PetitionStatus.REJECTED)
+        petition = self.manager.update_petition_status(petition, PetitionStatus.AWAITING_SIGNATURE)
         
         email_handler = EmailHandler(petition)
         budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
-        email_handler.send_clerk_approval_email(approved, budget_positions)
-        
-        if approved:
-            # Create contract PDF and email it to the employee (and student)
-            try:
-                employee = self.employee_manager.get_employee_by_username(petition.student_username)
-                if not employee:
-                    raise self.exc.not_found("Employee", petition.student_username)
-                    
-                employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
-                petition_read = PetitionRead.model_validate(petition)
-                
-                contract_pdf_buffer = create_contract_pdf(employee_read, petition_read)
-                
-                # Send contract PDF via email
-                email_handler.send_contract_pdf_email(contract_pdf_buffer)
-                        
-            except Exception as e:
-                raise self.exc.internal_error("creating/sending contract PDF", e)
+        email_handler.send_clerk_approval_email(budget_positions)
+
+        try:
+            employee = self.employee_manager.get_employee_by_username(petition.student_username)
+            if not employee:
+                raise self.exc.not_found("Employee", petition.student_username)
+
+            employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
+            petition_read = PetitionRead.model_validate(petition)
+
+            contract_pdf_buffer = create_contract_pdf(employee_read, petition_read)
+
+            # Send contract PDF via email
+            email_handler.send_contract_pdf_email(contract_pdf_buffer)
+
+        except Exception as e:
+            raise self.exc.internal_error("creating/sending contract PDF", e)
 
         return petition
 
