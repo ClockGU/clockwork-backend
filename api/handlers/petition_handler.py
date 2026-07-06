@@ -464,7 +464,7 @@ class PetitionHandler:
         if petition.status == PetitionStatus.CLERK_ACTION:
             return self.approve_petition_as_clerk(petition)
         elif petition.status == PetitionStatus.AWAITING_SIGNATURE and approved:
-            return self.complete_petition_as_clerk(petition_id)
+            return self.complete_petition_as_clerk(petition)
         else:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
         
@@ -511,15 +511,10 @@ class PetitionHandler:
         petition = self.manager.update_petition_status(petition_id, PetitionStatus.CLERK_REVISION)
         return petition
 
-    def complete_petition_as_clerk(self, petition_id: UUID) -> Petition:
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-        if petition.status != PetitionStatus.AWAITING_SIGNATURE:
-            raise self.exc.invalid_status(PetitionStatus.AWAITING_SIGNATURE, message="Petition can only be completed when status is 'awaiting_signature'")
+    def complete_petition_as_clerk(self, petition: Petition) -> Petition:
 
         # Update petition status to completed
-        petition = self.manager.update_petition_status(petition_id, PetitionStatus.COMPLETED)
+        petition = self.manager.update_petition_status(petition, PetitionStatus.COMPLETED)
         
         # Send completion emails
         email_handler = EmailHandler(petition)
