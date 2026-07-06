@@ -421,13 +421,7 @@ class PetitionHandler:
                 detail=f"Please fill out the following missing fields in your profile: {missing_str}"
             )
 
-    def student_accept_or_reject_petition(self, petition_id: UUID, approved: bool) -> Petition:
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-        if petition.status != PetitionStatus.STUDENT_ACTION:
-            raise self.exc.bad_request("Student cannot accept or reject at this stage")
-
+    def student_accept_or_reject_petition(self, petition: Petition, approved: bool) -> Petition| dict:
         # Check if student has uploaded documents before approving
         if approved:
             employee = self.employee_manager.get_employee_by_username(petition.student_username)
@@ -436,26 +430,26 @@ class PetitionHandler:
             if employee.date_of_birth is None or employee.address is None:
                 raise self.exc.bad_request("You cannot approve the petition unless your employee profile is complete (date of birth and address).")
             has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(
-                petition.student_username, 
+                employee,
                 check_ba_degree=petition.ba_degree
             )
             if not has_uploaded_documents:
                 raise self.exc.bad_request("You cannot approve the petition unless you upload the required documents.")
             # Student accepted, move to clerk_action
-            petition = self.manager.update_petition_status(petition_id, PetitionStatus.CLERK_ACTION)
+            petition = self.manager.update_petition_status(petition, PetitionStatus.CLERK_ACTION)
             # Send email to supervisor
             if petition.supervisor_mail:
                 email_handler = EmailHandler(petition)
                 email_handler.send_student_acceptance_email()
         else:
             # Student rejected, notify and then move to clerk_action
-            petition = self.manager.update_petition_status(petition_id, PetitionStatus.REJECTED)
             email_handler = EmailHandler(petition)
             if petition.supervisor_mail:
                 email_handler.send_student_rejection_email()
             
             # Send to budget approvers
             email_handler.send_student_rejection_to_budget_approvers_email(petition.budget_positions)
+            return self.delete_petition(petition)
             
         return petition
     
