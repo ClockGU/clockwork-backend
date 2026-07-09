@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 
 from api.db.schema.student_documents import StudentDocuments
 from api.db.schema.employee import Employee
-from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
+from api.pydantic_models.documents import StudentDocumentsUpdate
 
 
 from sqlalchemy.exc import IntegrityError

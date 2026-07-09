@@ -8,7 +8,7 @@ from api.db.managers import PetitionManager
 from api.db.managers.emploeyee_manager import EmployeeManager  # Note the typo in filename
 from api.db.schema import Employee
 from api.db.schema.student_documents import StudentDocuments
-from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
+from api.pydantic_models.documents import StudentDocumentsUpdate
 from api.handlers.exception_handler import ExceptionHandler
 from api.handlers.email_handler import EmailHandler
 

@@ -2,6 +2,7 @@ from typing import Optional
 from uuid import UUID
 from sqlmodel import Session, select
 
+from api.db.schema import Petition
 from api.db.schema.budget_position import BudgetPosition
 
 class BudgetPositionManager:
