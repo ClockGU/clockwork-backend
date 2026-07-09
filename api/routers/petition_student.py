@@ -95,8 +95,8 @@ async def mark_revision_done(
 
 @router.patch("/students/petitions/{petition_id}/request-revision", response_model=PetitionStudentRead)
 async def request_revision_from_supervisor(
-    petition: Petition = Depends(get_specified_petition),
     revision_data: StudenRevisionRequest,
+    petition: Petition = Depends(get_specified_petition),
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_student)
 ):
