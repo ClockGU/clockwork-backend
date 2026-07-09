@@ -14,16 +14,11 @@ class StudentDocumentManager:
         self.db = db
         self.schema = StudentDocuments  
 
-    def create_document(self, document_data: StudentDocumentsCreate) -> StudentDocuments:
+    def create_document(self, document_data: dict) -> StudentDocuments:
         """
         Create a new document record.
         """
-        if isinstance(document_data, dict):
-            # Handle plain dictionary
-            document = self.schema(**document_data)
-        else:
-            # Handle Pydantic model
-            document = self.schema(**document_data.dict())
+        document = self.schema(**document_data)
 
         try:
             self.db.add(document)
@@ -34,7 +29,7 @@ class StudentDocumentManager:
             self.db.rollback()
             # If document already exists, we can safely ignore this error
             # as the employee already has a document associated
-            pass
+            raise
 
     def get_document(self, document_id: UUID) -> Optional[StudentDocuments]:
         """

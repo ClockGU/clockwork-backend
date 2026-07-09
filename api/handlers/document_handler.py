@@ -6,6 +6,7 @@ from fastapi import UploadFile
 from api.db.managers.student_document import StudentDocumentManager
 from api.db.managers import PetitionManager
 from api.db.managers.emploeyee_manager import EmployeeManager  # Note the typo in filename
+from api.db.schema import Employee
 from api.db.schema.student_documents import StudentDocuments
 from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
 from api.handlers.exception_handler import ExceptionHandler
@@ -36,13 +37,12 @@ class StudentDocumentHandler:
         # Assuming one document record per employee
         return documents[0]
 
-    async def create_document(self, employee_id: UUID) -> StudentDocuments:
+    async def create_document(self, employee: Employee) -> StudentDocuments:
         """
         Create a new document record with just the employee_id.
         """
         try:
-            document_data = StudentDocumentsCreate(employee_id=employee_id)
-            document = self.manager.create_document(document_data)  # Pass the correct object
+            document = self.manager.create_document({"employee_id": employee.id})
             return document
         except Exception as e:
             raise self.exc.internal_error("creating the document", e)
