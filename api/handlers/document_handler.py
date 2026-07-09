@@ -37,12 +37,12 @@ class StudentDocumentHandler:
         # Assuming one document record per employee
         return documents[0]
 
-    async def create_document(self, employee: Employee) -> StudentDocuments:
+    def create_document(self, employee: Employee) -> StudentDocuments:
         """
         Create a new document record with just the employee_id.
         """
         try:
-            document = self.manager.create_document({"employee_id": employee.id})
+            document = self.manager.get_or_create_document({"employee_id": employee.id})
             return document
         except Exception as e:
             raise self.exc.internal_error("creating the document", e)
