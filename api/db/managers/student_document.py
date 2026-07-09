@@ -14,10 +14,11 @@ class StudentDocumentManager:
         self.db = db
         self.schema = StudentDocuments  
 
-    def create_document(self, document_data: dict) -> StudentDocuments:
+    def get_or_create_document(self, document_data: dict) -> StudentDocuments:
         """
         Create a new document record.
         """
+
         document = self.schema(**document_data)
 
         try:
@@ -29,7 +30,9 @@ class StudentDocumentManager:
             self.db.rollback()
             # If document already exists, we can safely ignore this error
             # as the employee already has a document associated
-            raise
+            statement = select(self.schema).where(self.schema.employee_id == document_data['employee_id'])
+            result = self.db.execute(statement)
+            return result.scalar_one_or_none()
 
     def get_document(self, document_id: UUID) -> Optional[StudentDocuments]:
         """
