@@ -18,7 +18,6 @@ from .petition_update import (
     )
 
 from .documents import (
-    StudentDocumentsCreate,
     StudentDocumentsUpdate,
     StudentDocumentsRead
     )
@@ -26,7 +25,6 @@ from .documents import (
 
 from .employee import (
     EmployeeRead,
-    EmployeeCreate,
     EmployeeUpdate
 )
 
