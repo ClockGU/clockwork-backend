@@ -33,6 +33,7 @@ def get_petition_handler(db: Session = Depends(get_db)) -> PetitionHandler:
 # Api to list all the petitions of students
 @router.get("/students/petitions", response_model=List[PetitionStudentRead])
 def read_petitions(
+    petition: Depends(get_specified_petition),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_student),
 ):
