@@ -699,23 +699,23 @@ class PetitionHandler:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
 
     def update_petition(
-            self, petition_id: UUID, petition_data: PetitionUpdateModel
+            self, petition_data: PetitionUpdateModel
     ) -> Petition:
-
+        petition = self.get_object()
         update_data = petition_data.model_dump(exclude_unset=True)
 
         budget_positions_updated = update_data.get("budget_positions", None)
 
         # Proceed with the update
-        petition = self.manager.update_petition(petition_id, update_data)
+        petition = self.manager.update_petition(petition, update_data)
         if not petition:
-            raise self.exc.update_failed("Petition", str(petition_id))
+            raise self.exc.update_failed("Petition", str(petition))
 
         # This makes approved budget positions unapproved again
         if not budget_positions_updated:
             budget_positions = (
                 self.budget_position_manager.get_budget_positions_by_petition(
-                    petition_id
+                    petition
                 )
             )
             for budget_position in budget_positions:
@@ -732,7 +732,7 @@ class PetitionHandler:
                 or petition.status == PetitionStatus.STUDENT_REVISION
         ):
             petition = self.manager.update_petition_status(
-                petition_id, PetitionStatus.APPROVER_ACTION
+                petition, PetitionStatus.APPROVER_ACTION
             )
 
         return petition
