@@ -24,13 +24,19 @@ from api.pydantic_models.petition_update import (
 
 
 class PetitionHandler:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, object_instance: Optional[Petition] = None):
         self.manager = PetitionManager(db)
         self.budget_position_manager = BudgetPositionManager(db)
         self.student_document_manager = StudentDocumentManager(db)
         self.employee_manager = EmployeeManager(db)
         self.db = db
         self.exc = ExceptionHandler()
+        self._object_instance = object_instance
+
+    def get_object(self):
+        if not self._object_instance:
+            raise RuntimeError("Calling get_object() is not allowed when no existing objects was provided at initialization.")
+        return self._object_instance
 
     def create_petition(self, petition_data: PetitionCreate) -> Petition:
         try:
