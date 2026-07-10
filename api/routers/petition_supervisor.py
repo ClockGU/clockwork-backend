@@ -81,11 +81,13 @@ def read_petition(
 
 @router.patch("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
 def update_petition(
-    petition_data: PetitionSupervisorUpdate = Depends(get_supervisor_petition_update_model),
+    petition_data: PetitionSupervisorUpdate = Depends(
+        get_supervisor_petition_update_model
+    ),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
-    updated_petition = handler.update_petition(petition_data)
+    updated_petition = handler.update_petition_as_supervisor(petition_data)
     return updated_petition
 
 

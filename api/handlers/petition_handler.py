@@ -713,7 +713,7 @@ class PetitionHandler:
         else:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
 
-    def update_petition(self, petition_data: PetitionUpdateModel) -> Petition:
+    def update_petition_as_supervisor(self, petition_data: PetitionUpdateModel) -> Petition:
         petition = self.get_object()
         update_data = petition_data.model_dump(exclude_unset=True)
 
@@ -728,12 +728,8 @@ class PetitionHandler:
         if not budget_positions_updated:
             self.budget_positions_handler.reset_approval_status()
 
-        if (
-            petition.status == PetitionStatus.APPROVER_REVISION
-            or petition.status == PetitionStatus.STUDENT_REVISION
-        ):
-            petition = self.manager.update_petition_status(
-                petition, PetitionStatus.APPROVER_ACTION
-            )
+        petition = self.manager.update_petition_status(
+            petition, PetitionStatus.APPROVER_ACTION
+        )
 
         return petition
