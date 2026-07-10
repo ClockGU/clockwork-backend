@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Self
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -37,6 +37,13 @@ class PetitionHandler:
         if not self._object_instance:
             raise RuntimeError("Calling get_object() is not allowed when no existing objects was provided at initialization.")
         return self._object_instance
+
+    @classmethod
+    def from_existing_object(cls, db:Session, object_instance: Petition) -> Self:
+        """
+        Explicitly create a PetitionHandler instance from an existing Petition object.
+        """
+        return cls(db, object_instance)
 
     def create_petition(self, petition_data: PetitionCreate) -> Petition:
         try:
