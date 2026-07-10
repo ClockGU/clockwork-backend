@@ -33,21 +33,29 @@ class PetitionHandler:
         self.db = db
         self.exc = ExceptionHandler()
         self._object_instance = object_instance
-        self._budget_positions_handler = BudgetPositionsHandler.from_petition(db, self._object_instance) if self._object_instance else None
+        self._budget_positions_handler = (
+            BudgetPositionsHandler.from_petition(db, self._object_instance)
+            if self._object_instance
+            else None
+        )
 
     @property
     def budget_positions_handler(self) -> BudgetPositionsHandler:
         if not self._budget_positions_handler:
-            raise RuntimeError("BudgetPositionsHandler is not initialized because no existing petition was provided at initialization.")
+            raise RuntimeError(
+                "BudgetPositionsHandler is not initialized because no existing petition was provided at initialization."
+            )
         return self._budget_positions_handler
 
     def get_object(self):
         if not self._object_instance:
-            raise RuntimeError("Calling get_object() is not allowed when no existing objects was provided at initialization.")
+            raise RuntimeError(
+                "Calling get_object() is not allowed when no existing objects was provided at initialization."
+            )
         return self._object_instance
 
     @classmethod
-    def from_existing_object(cls, db:Session, object_instance: Petition) -> Self:
+    def from_existing_object(cls, db: Session, object_instance: Petition) -> Self:
         """
         Explicitly create a PetitionHandler instance from an existing Petition object.
         """
@@ -705,26 +713,24 @@ class PetitionHandler:
         else:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
 
-    def update_petition(
-            self, petition_data: PetitionUpdateModel
-    ) -> Petition:
+    def update_petition(self, petition_data: PetitionUpdateModel) -> Petition:
         petition = self.get_object()
         update_data = petition_data.model_dump(exclude_unset=True)
 
         budget_positions_updated = update_data.get("budget_positions", None)
 
-        # Proceed with the update
         petition = self.manager.update_petition(petition, update_data)
         if not petition:
             raise self.exc.update_failed("Petition", str(petition))
 
-        # This makes approved budget positions unapproved again
+        # Updating a petition as supervisor should reset the approval status of all budget positions.from
+        # If budget_positions were in the update data, they were cleared and re-created so no action is needed.
         if not budget_positions_updated:
             self.budget_positions_handler.reset_approval_status()
 
         if (
-                petition.status == PetitionStatus.APPROVER_REVISION
-                or petition.status == PetitionStatus.STUDENT_REVISION
+            petition.status == PetitionStatus.APPROVER_REVISION
+            or petition.status == PetitionStatus.STUDENT_REVISION
         ):
             petition = self.manager.update_petition_status(
                 petition, PetitionStatus.APPROVER_ACTION
