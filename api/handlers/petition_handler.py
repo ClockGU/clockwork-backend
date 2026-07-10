@@ -33,6 +33,13 @@ class PetitionHandler:
         self.db = db
         self.exc = ExceptionHandler()
         self._object_instance = object_instance
+        self._budget_positions_handler = BudgetPositionsHandler.from_petition(db, self._object_instance) if self._object_instance else None
+
+    @property
+    def budget_positions_handler(self) -> BudgetPositionsHandler:
+        if not self._budget_positions_handler:
+            raise RuntimeError("BudgetPositionsHandler is not initialized because no existing petition was provided at initialization.")
+        return self._budget_positions_handler
 
     def get_object(self):
         if not self._object_instance:
@@ -713,8 +720,7 @@ class PetitionHandler:
 
         # This makes approved budget positions unapproved again
         if not budget_positions_updated:
-            budget_positions_handler = BudgetPositionsHandler.from_petition(self.db, self._object_instance)
-            budget_positions_handler.reset_approval_status()
+            self.budget_positions_handler.reset_approval_status()
 
         if (
                 petition.status == PetitionStatus.APPROVER_REVISION
