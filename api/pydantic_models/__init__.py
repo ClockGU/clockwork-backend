@@ -1,30 +1,15 @@
+from .documents import StudentDocumentsRead, StudentDocumentsUpdate
+from .employee import EmployeeRead, EmployeeUpdate
+from .petition_create import PetitionCreate
 from .petition_read import (
-        PetitionRead, 
-        PetitionStudentRead,
-        
-        )
-
-from .petition_create import (
-    PetitionCreate
+    PetitionRead,
+    PetitionStudentRead,
 )
-
 from .petition_update import (
-    PetitionSupervisorUpdate,
-    PetitionStudentUpdate,
-    PetitionClerkUpdate,
-    ClerkRevisionRequest,
     ClerkDeletionRequest,
-    StudenRevisionRequest
-    )
-
-from .documents import (
-    StudentDocumentsUpdate,
-    StudentDocumentsRead
-    )
-
-
-from .employee import (
-    EmployeeRead,
-    EmployeeUpdate
+    ClerkRevisionRequest,
+    PetitionClerkUpdate,
+    PetitionStudentUpdate,
+    PetitionSupervisorUpdate,
+    StudenRevisionRequest,
 )
-

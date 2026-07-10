@@ -1,28 +1,29 @@
 import asyncio
-from typing import Dict, List
-from fastapi import (
-    APIRouter,
-    Depends,
-    WebSocket,
-    WebSocketDisconnect
-)
 import logging
-from sqlmodel import Session
-from json import dumps, JSONEncoder
-from uuid import UUID
 from datetime import date
+from json import JSONEncoder, dumps
+from typing import Dict, List
+from uuid import UUID
+
 import requests
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from sqlmodel import Session
 
 from api.db.dependencies import get_db
+from api.env import settings
 from api.handlers import (
     PetitionHandler,
 )
-from api.env import settings
-from api.websockets.managers import ClerkConnectionManager, WebsocketConnectionManager, get_clerk_connection_manager
+from api.websockets.managers import (
+    ClerkConnectionManager,
+    WebsocketConnectionManager,
+    get_clerk_connection_manager,
+)
 
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
+
 
 class UUIDEncoder(JSONEncoder):
     def default(self, obj):
@@ -33,9 +34,7 @@ class UUIDEncoder(JSONEncoder):
         return super().default(obj)
 
 
-def get_petition_handler(
-        db: Session = Depends(get_db)
-) -> PetitionHandler:
+def get_petition_handler(db: Session = Depends(get_db)) -> PetitionHandler:
     return PetitionHandler(db)
 
 
@@ -54,21 +53,17 @@ async def send_serialized_data_to_clerks(data: List[Dict]):
     """
     manager = get_clerk_connection_manager()
     await manager.broadcast(
-        dumps(
-            {
-                "type": "updated_petitions",
-                "data": data
-            },
-            cls=UUIDEncoder
-        )
+        dumps({"type": "updated_petitions", "data": data}, cls=UUIDEncoder)
     )
 
 
 @router.websocket("/ws/{client_id}")
-async def websocket_endpoint(client_id: str, websocket: WebSocket,
-                             manager: WebsocketConnectionManager = Depends(get_clerk_connection_manager),
-                             handler: PetitionHandler = Depends(get_petition_handler)) -> None:
-
+async def websocket_endpoint(
+    client_id: str,
+    websocket: WebSocket,
+    manager: WebsocketConnectionManager = Depends(get_clerk_connection_manager),
+    handler: PetitionHandler = Depends(get_petition_handler),
+) -> None:
     """
     Websocket for clerks to receive real-time updates on petitions. The clerk must authenticate using a token sent in
     the first message after connecting. If authentication is successful, the clerk will receive the current list of
@@ -94,10 +89,16 @@ async def websocket_endpoint(client_id: str, websocket: WebSocket,
         petitions = handler.get_petitions_clerk()
         await manager.send_message(
             client_id,
-            dumps({
-                "type": "new_petition",
-                "data": [petition.dict(by_alias=True, exclude_none=True) for petition in petitions]
-            }, cls=UUIDEncoder)
+            dumps(
+                {
+                    "type": "new_petition",
+                    "data": [
+                        petition.dict(by_alias=True, exclude_none=True)
+                        for petition in petitions
+                    ],
+                },
+                cls=UUIDEncoder,
+            ),
         )
     else:
         await manager.disconnect(client_id, 1008)

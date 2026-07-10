@@ -1,9 +1,13 @@
 import re
 from typing import ClassVar, Self
 
-from pydantic import field_validator, model_validator, ValidationError
+from pydantic import ValidationError, field_validator, model_validator
 
-from api.consts import LEGAL_REGULAR_CONTRACT_LENGTH, LEGAL_REGULAR_WORKTIME, PetitionStatus
+from api.consts import (
+    LEGAL_REGULAR_CONTRACT_LENGTH,
+    LEGAL_REGULAR_WORKTIME,
+    PetitionStatus,
+)
 
 
 class PetitionValidationMixin:
@@ -45,7 +49,11 @@ class PetitionValidationMixin:
             values.time_exce_time,
         ]
         provided = [field for field in time_exc_fields if field is not None]
-        if (values.time_exce_student is None or values.time_exce_student is False) and len(provided) > 0 and len(provided) != len(time_exc_fields):
+        if (
+            (values.time_exce_student is None or values.time_exce_student is False)
+            and len(provided) > 0
+            and len(provided) != len(time_exc_fields)
+        ):
             raise ValueError(
                 "All time_exc fields must be provided together or not at all"
             )
@@ -60,7 +68,14 @@ class PetitionValidationMixin:
             values.duration_exce_end,
         ]
         provided = [field for field in duration_exc_fields if field is not None]
-        if (values.duration_exce_course is None or values.duration_exce_course is False) and len(provided) > 0 and len(provided) != len(duration_exc_fields):
+        if (
+            (
+                values.duration_exce_course is None
+                or values.duration_exce_course is False
+            )
+            and len(provided) > 0
+            and len(provided) != len(duration_exc_fields)
+        ):
             raise ValueError(
                 "All duration_exc fields must be provided together or not at all"
             )
@@ -107,40 +122,61 @@ class PetitionValidationMixin:
 
         return values
 
+
 class RoleUpdateValidator:
     """
     Base class for role-based update validators.
     Subclasses should define the allowed petition statuses
     in which the specific role is allowed to update petitions.
     """
+
     allowed_petition_statuses: ClassVar[list[PetitionStatus]]
+
     @model_validator(mode="after")
     def validate_status_in_supervisor_action(self, info) -> Self:
         existing = info.context.get("existing", None)
-        if not existing: raise RuntimeError("UpdateModelValidator requires an existing model instance in context")
+        if not existing:
+            raise RuntimeError(
+                "UpdateModelValidator requires an existing model instance in context"
+            )
         if existing.status not in self.allowed_petition_statuses:
             raise ValueError(
                 f"Petition status must be one of ({self.allowed_petition_statuses}) for this role to update a petition."
             )
         return self
 
+
 class SupervisorUpdateValidator(RoleUpdateValidator):
     """
     Mixin class to validate that the petition status is in the correct status for a
     supervisor to update the petition.
     """
-    allowed_petition_statuses = [PetitionStatus.STUDENT_REVISION, PetitionStatus.APPROVER_REVISION]
+
+    allowed_petition_statuses = [
+        PetitionStatus.STUDENT_REVISION,
+        PetitionStatus.APPROVER_REVISION,
+    ]
+
 
 class StudentUpdateValidator(RoleUpdateValidator):
     """
     Mixin class to validate that the petition status is in the correct status for a
     student to update the petition.
     """
-    allowed_petition_statuses = [PetitionStatus.CLERK_REVISION,PetitionStatus.STUDENT_ACTION]
+
+    allowed_petition_statuses = [
+        PetitionStatus.CLERK_REVISION,
+        PetitionStatus.STUDENT_ACTION,
+    ]
+
 
 class ClerkUpdateValidator(RoleUpdateValidator):
     """
     Mixin class to validate that the petition status is in the correct status for a
     student to update the petition.
     """
-    allowed_petition_statuses = [PetitionStatus.CLERK_ACTION, PetitionStatus.AWAITING_SIGNATURE]
+
+    allowed_petition_statuses = [
+        PetitionStatus.CLERK_ACTION,
+        PetitionStatus.AWAITING_SIGNATURE,
+    ]

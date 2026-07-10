@@ -1,9 +1,11 @@
-from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional, List
 import uuid
 from datetime import date
+from typing import List, Optional
+
+from sqlmodel import Field, Relationship, SQLModel
 
 from api.consts import PetitionStatus
+
 
 class Petition(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
@@ -16,20 +18,20 @@ class Petition(SQLModel, table=True):
     ba_degree: bool = Field(default=False)
     student_username: str
     supervisor_mail: Optional[str] = None
-    
+
     status: str = Field(default=PetitionStatus.APPROVER_ACTION, nullable=False)
 
     # Relationship to budget positions (one-to-many)
     budget_positions: List["BudgetPosition"] = Relationship(back_populates="petition")
 
-    #optional fields
+    # optional fields
     time_exce_course: Optional[bool] = None
     time_exce_student: Optional[bool] = None
     time_exce_name: Optional[str] = None
     time_exce_start: Optional[date] = None
     time_exce_end: Optional[date] = None
     time_exce_time: Optional[int] = None
-    #optional fields
+    # optional fields
     duration_exce_course: Optional[bool] = None
     duration_exce_name: Optional[str] = None
     duration_exce_start: Optional[date] = None

@@ -1,15 +1,17 @@
-from fastapi import Request, HTTPException, Depends
-import jwt
-from enum import Enum
-from sqlmodel import Session
-import hmac
-import hashlib
 import base64
+import hashlib
+import hmac
 import secrets
-from api.env import settings
-from api.handlers.employee_handler import EmployeeHandler
-from api.handlers.document_handler import StudentDocumentHandler
+from enum import Enum
+
+import jwt
+from fastapi import Depends, HTTPException, Request
+from sqlmodel import Session
+
 from api.db.dependencies import get_db
+from api.env import settings
+from api.handlers.document_handler import StudentDocumentHandler
+from api.handlers.employee_handler import EmployeeHandler
 
 # Replace with your actual public key
 PUBLIC_KEY_PATH = settings.JWT_PUBLIC_KEY_PATH
@@ -52,7 +54,9 @@ def decode_user_jwt(token: str = Depends(retrieve_jwt_bearer_token)):
 
 def authenticate_clerk(user: dict):
     if user.get("user_role") != UserRole.CLERK.value:
-        raise HTTPException(status_code=403, detail="No permission to access this resource")
+        raise HTTPException(
+            status_code=403, detail="No permission to access this resource"
+        )
     return user
 
 
@@ -76,7 +80,9 @@ def get_current_supervisor(request: Request):
         payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
         ####check the role of supervisor
         if payload.get("user_role") != UserRole.SUPERVISOR.value:
-            raise HTTPException(status_code=403, detail="No permission to access this resource")
+            raise HTTPException(
+                status_code=403, detail="No permission to access this resource"
+            )
         return payload
 
     except jwt.ExpiredSignatureError:
@@ -104,12 +110,16 @@ def get_current_student(request: Request, db: Session = Depends(get_db)):
 
         # Check the role of student
         if payload.get("user_role") != UserRole.STUDENT.value:
-            raise HTTPException(status_code=403, detail="No permission to access this resource")
+            raise HTTPException(
+                status_code=403, detail="No permission to access this resource"
+            )
 
         # Extract user_account from the payload
         user_account = payload.get("sub")
         if not user_account:
-            raise HTTPException(status_code=400, detail="Invalid token: Missing user_account")
+            raise HTTPException(
+                status_code=400, detail="Invalid token: Missing user_account"
+            )
 
         # Dependency injection for handlers
         employee_handler = EmployeeHandler(db)

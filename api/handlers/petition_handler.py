@@ -1,27 +1,27 @@
-from typing import List, Optional
-from fastapi import HTTPException
-from uuid import UUID
-from sqlmodel import Session
 from datetime import date
+from typing import List, Optional
+from uuid import UUID
+
+from fastapi import HTTPException
+from sqlmodel import Session
 
 from api.consts import PetitionStatus
 from api.db.managers import PetitionManager
 from api.db.managers.budget_position_manager import BudgetPositionManager
-from api.db.managers.student_document import StudentDocumentManager
 from api.db.managers.emploeyee_manager import EmployeeManager
+from api.db.managers.student_document import StudentDocumentManager
 from api.db.schema.petition import Petition
 from api.handlers.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
-from api.pydantic_models import (
-    EmployeeRead, 
-    PetitionRead,
-    PetitionCreate
-    ) 
 from api.pdf.contract import create_contract_pdf
-from api.pydantic_models.petition_update import PetitionSupervisorUpdate, PetitionUpdateModel
-
+from api.pydantic_models import EmployeeRead, PetitionCreate, PetitionRead
+from api.pydantic_models.petition_update import (
+    PetitionSupervisorUpdate,
+    PetitionUpdateModel,
+)
 
 # TODO: replace the status of petition with enums
+
 
 class PetitionHandler:
     def __init__(self, db: Session):
@@ -37,25 +37,25 @@ class PetitionHandler:
             petition = self.manager.create_petition(petition_data)
             if not petition:
                 raise self.exc.created_failed("Petition")
-                
+
             # Send notification email to student
             email_handler = EmailHandler(petition)
             email_handler.send_petition_creation_student_email()
-            
+
             return petition
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)
 
     def update_budget_position_approval(
-            self, petition_id: UUID,
-            budget_position_id: UUID,
-              budget_position_approved: bool,
-              message: Optional[str] = None,
-              revision_requested: bool = False,
-              rejected: bool = False,
-              subject: Optional[str] = None
-              ) -> Petition:
-
+        self,
+        petition_id: UUID,
+        budget_position_id: UUID,
+        budget_position_approved: bool,
+        message: Optional[str] = None,
+        revision_requested: bool = False,
+        rejected: bool = False,
+        subject: Optional[str] = None,
+    ) -> Petition:
         """Update budget position approval and handle petition status accordingly"""
         try:
             petition = self.manager.get_petition(petition_id)
@@ -63,52 +63,77 @@ class PetitionHandler:
                 raise self.exc.not_found("Petition", str(petition_id))
 
             # Check if budget position exists and belongs to this petition
-            budget_position = self.budget_position_manager.get_budget_position(budget_position_id)
+            budget_position = self.budget_position_manager.get_budget_position(
+                budget_position_id
+            )
             if not budget_position:
                 raise self.exc.not_found("Budget position", str(budget_position_id))
-            
+
             if budget_position.petition_id != petition_id:
-                raise self.exc.bad_request("Budget position does not belong to this petition")
+                raise self.exc.bad_request(
+                    "Budget position does not belong to this petition"
+                )
 
             if budget_position.budget_position_approved:
-                raise self.exc.bad_request("You have already approved this budget position")
-    
+                raise self.exc.bad_request(
+                    "You have already approved this budget position"
+                )
+
             # Update the budget position status
-            updated_budget_position = self.budget_position_manager.update_budget_position_status(budget_position_id, budget_position_approved)
+            updated_budget_position = (
+                self.budget_position_manager.update_budget_position_status(
+                    budget_position_id, budget_position_approved
+                )
+            )
             if not updated_budget_position:
-                raise self.exc.update_failed("Budget position", message="Failed to update budget position")
+                raise self.exc.update_failed(
+                    "Budget position", message="Failed to update budget position"
+                )
 
             # Handle different status cases
             if budget_position_approved:
                 # Check if all budget positions are now approved
-                all_approved = self.budget_position_manager.check_all_budget_positions_approved(petition_id)
-                
+                all_approved = (
+                    self.budget_position_manager.check_all_budget_positions_approved(
+                        petition_id
+                    )
+                )
+
                 if all_approved:
                     # Update petition status to student_action using manager
-                    petition = self.manager.update_petition_status(petition_id, PetitionStatus.STUDENT_ACTION)
-                    
+                    petition = self.manager.update_petition_status(
+                        petition_id, PetitionStatus.STUDENT_ACTION
+                    )
+
                     # Send approval emails
                     self._send_approval_emails(petition)
 
             elif not budget_position_approved and not revision_requested:
-                
+
                 # Send rejection email
                 self._send_rejection_email(petition, updated_budget_position)
 
                 deleted = self.manager.delete_petition(petition_id)
                 return {"detail": "Petition rejected and deleted successfully"}
 
-
             elif revision_requested:
                 # Budget approver wants revision - keep petition status as pending
                 # Send revision request email
-                petition = self.manager.update_petition_status(petition_id, PetitionStatus.APPROVER_REVISION)
+                petition = self.manager.update_petition_status(
+                    petition_id, PetitionStatus.APPROVER_REVISION
+                )
 
-                #send rejection emails
-                self._send_revision_request_email(petition, updated_budget_position, message, subject)
+                # send rejection emails
+                self._send_revision_request_email(
+                    petition, updated_budget_position, message, subject
+                )
 
             # Load budget positions
-            petition.budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+            petition.budget_positions = (
+                self.budget_position_manager.get_budget_positions_by_petition(
+                    petition_id
+                )
+            )
 
             return petition
 
@@ -121,54 +146,84 @@ class PetitionHandler:
         """Send emails when all budget positions are approved"""
         try:
             email_handler = EmailHandler(petition)
-            
+
             # Get all budget positions for this petition
-            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+            budget_positions = (
+                self.budget_position_manager.get_budget_positions_by_petition(
+                    petition.id
+                )
+            )
 
             # Check if student has uploaded documents before sending email
-            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(
-                petition.student_username, 
-                check_ba_degree=petition.ba_degree
+            has_uploaded_documents = (
+                self.student_document_manager.check_student_documents_uploaded(
+                    petition.student_username, check_ba_degree=petition.ba_degree
+                )
             )
-            is_semester_eligible = self._check_student_semester_eligibility(petition.student_username, petition.start_date)
+            is_semester_eligible = self._check_student_semester_eligibility(
+                petition.student_username, petition.start_date
+            )
 
             # Use the existing send_approval_emails method from EmailHandler
-            email_handler.send_approval_emails(budget_positions, has_uploaded_documents, is_semester_eligible)
+            email_handler.send_approval_emails(
+                budget_positions, has_uploaded_documents, is_semester_eligible
+            )
 
             # If student is eligible and has documents, send acceptance link
             if has_uploaded_documents and is_semester_eligible:
                 from api.security import generate_signature
+
                 signature = generate_signature()
                 email_handler.send_student_acceptance_link_email(signature)
             else:
                 # Send email asking student to upload documents
                 email_handler.send_student_documents_upload_request_email()
-                
+
         except Exception as e:
             print(f"Error sending approval emails: {str(e)}", flush=True)
 
-    def _send_revision_request_email(self, petition: Petition, requesting_budget_position, message: Optional[str] = None, subject: Optional[str] = None) -> None:
+    def _send_revision_request_email(
+        self,
+        petition: Petition,
+        requesting_budget_position,
+        message: Optional[str] = None,
+        subject: Optional[str] = None,
+    ) -> None:
         """Send email when a budget approver requests revision"""
         try:
             email_handler = EmailHandler(petition)
-            
-            # Get all budget positions for this petition
-            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
 
-            email_handler.send_revision_request_email(requesting_budget_position, budget_positions, message, subject)
+            # Get all budget positions for this petition
+            budget_positions = (
+                self.budget_position_manager.get_budget_positions_by_petition(
+                    petition.id
+                )
+            )
+
+            email_handler.send_revision_request_email(
+                requesting_budget_position, budget_positions, message, subject
+            )
 
         except Exception as e:
             print(f"Error sending revision request email: {str(e)}", flush=True)
 
-    def _send_rejection_email(self, petition: Petition, rejected_budget_position) -> None:
+    def _send_rejection_email(
+        self, petition: Petition, rejected_budget_position
+    ) -> None:
         """Send email when a budget position is rejected"""
         try:
             email_handler = EmailHandler(petition)
-            
-            # Get all budget positions for this petition
-            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
 
-            email_handler.send_rejection_email(rejected_budget_position, budget_positions)
+            # Get all budget positions for this petition
+            budget_positions = (
+                self.budget_position_manager.get_budget_positions_by_petition(
+                    petition.id
+                )
+            )
+
+            email_handler.send_rejection_email(
+                rejected_budget_position, budget_positions
+            )
 
         except Exception as e:
             print(f"Error sending rejection email: {str(e)}", flush=True)
@@ -185,23 +240,33 @@ class PetitionHandler:
             raise self.exc.not_found("Petition", str(petition_id))
         return petition
 
-    def get_petition_for_approver_action(self, petition_id: UUID, budget_position_id: UUID) -> Petition:
+    def get_petition_for_approver_action(
+        self, petition_id: UUID, budget_position_id: UUID
+    ) -> Petition:
         petition = self.manager.get_petition(petition_id)
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
-        
+
         if petition.status != PetitionStatus.APPROVER_ACTION:
-             raise self.exc.invalid_status(petition.status, message=f"you have already performed an action")
-        
+            raise self.exc.invalid_status(
+                petition.status, message=f"you have already performed an action"
+            )
+
         # Check if the budget position is already approved
-        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+        budget_positions = (
+            self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+        )
         for bp in budget_positions:
             if bp.id == budget_position_id and bp.budget_position_approved:
-                 raise self.exc.bad_request("This budget position has already been approved")
+                raise self.exc.bad_request(
+                    "This budget position has already been approved"
+                )
 
         return petition
 
-    def update_petition(self, petition_id: UUID, petition_data: PetitionUpdateModel) -> Petition:
+    def update_petition(
+        self, petition_id: UUID, petition_data: PetitionUpdateModel
+    ) -> Petition:
 
         update_data = petition_data.model_dump(exclude_unset=True)
 
@@ -214,19 +279,27 @@ class PetitionHandler:
 
         # This makes approved budget positions unapproved again
         if not budget_positions_updated:
-            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
+            budget_positions = (
+                self.budget_position_manager.get_budget_positions_by_petition(
+                    petition_id
+                )
+            )
             for budget_position in budget_positions:
                 if budget_position.budget_position_approved:
                     self.budget_position_manager.update_budget_position_status(
-                        budget_position.id,
-                        False
+                        budget_position.id, False
                     )
 
         # Send emails to budget approvers if budget positions were updated
         self._send_budget_position_update_emails(petition)
 
-        if petition.status == PetitionStatus.APPROVER_REVISION or petition.status == PetitionStatus.STUDENT_REVISION:
-            petition = self.manager.update_petition_status(petition_id, PetitionStatus.APPROVER_ACTION)
+        if (
+            petition.status == PetitionStatus.APPROVER_REVISION
+            or petition.status == PetitionStatus.STUDENT_REVISION
+        ):
+            petition = self.manager.update_petition_status(
+                petition_id, PetitionStatus.APPROVER_ACTION
+            )
 
         return petition
 
@@ -239,50 +312,67 @@ class PetitionHandler:
 
     def delete_petition_as_clerk(self, petition: Petition, reason: str = "") -> dict:
         # Get budget positions to notify
-        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition)
+        budget_positions = (
+            self.budget_position_manager.get_budget_positions_by_petition(petition)
+        )
 
         # Proceed with the deletion
         success = self.manager.delete_petition(petition_id)
         if not success:
             raise self.exc.delete_failed("Petition", str(petition_id))
-            
+
         # Send deletion emails
         email_handler = EmailHandler(petition)
         email_handler.send_clerk_deletion_email(reason, budget_positions)
-        
+
         return {"detail": "Petition deleted successfully"}
 
     def get_petitions_by_user(self, user_account: UUID) -> List[Petition]:
         petitions = self.manager.get_petitions_by_user(user_account)
         if not petitions:
-            raise self.exc.not_found("Petitions", message=f"No petitions found for user with ID {user_account}")
+            raise self.exc.not_found(
+                "Petitions",
+                message=f"No petitions found for user with ID {user_account}",
+            )
         return petitions
 
     def get_student_petitions(self, student_username: str) -> List[Petition]:
         petitions = self.manager.get_student_petitions(student_username)
         if not petitions:
-            raise self.exc.not_found("Petitions", message=f"No petitions found for student username {student_username}")
+            raise self.exc.not_found(
+                "Petitions",
+                message=f"No petitions found for student username {student_username}",
+            )
         return petitions
 
     def get_petitions_by_status(self, status: str) -> List[Petition]:
         petitions = self.manager.get_petitions_by_status(status)
         if not petitions:
-            raise self.exc.not_found("Petitions", message=f"No petitions found with status '{status}'")
+            raise self.exc.not_found(
+                "Petitions", message=f"No petitions found with status '{status}'"
+            )
         return petitions
-    
+
     def check_petition_exists(self, petition_id: UUID) -> None:
         # Check if the petition exists
         petition = self.manager.get_petition(petition_id)
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
-    
-    def get_petitions_by_budget_approver(self, budget_approver_email: str) -> List[Petition]:
+
+    def get_petitions_by_budget_approver(
+        self, budget_approver_email: str
+    ) -> List[Petition]:
         petitions = self.manager.get_petitions_by_budget_approver(budget_approver_email)
         if not petitions:
-            raise self.exc.not_found("Petitions", message=f"No petitions found for budget approver with email {budget_approver_email}")
+            raise self.exc.not_found(
+                "Petitions",
+                message=f"No petitions found for budget approver with email {budget_approver_email}",
+            )
         return petitions
 
-    def update_student_petition_status(self, petition_id: UUID, status: str) -> Petition:
+    def update_student_petition_status(
+        self, petition_id: UUID, status: str
+    ) -> Petition:
         """Update petition status when student accepts or rejects the petition"""
         try:
             # Check if petition exists
@@ -292,28 +382,44 @@ class PetitionHandler:
 
             # Check if petition is in the correct status to be updated by student
             if petition.status != PetitionStatus.STUDENT_ACTION:
-                raise self.exc.invalid_status(petition.status, PetitionStatus.STUDENT_ACTION, "Petition status must be 'student_action' to be updated by student")
+                raise self.exc.invalid_status(
+                    petition.status,
+                    PetitionStatus.STUDENT_ACTION,
+                    "Petition status must be 'student_action' to be updated by student",
+                )
             if status == PetitionStatus.CLERK_ACTION:
                 # Check if student has uploaded documents before approving
-                employee = self.employee_manager.get_employee_by_username(petition.student_username)
+                employee = self.employee_manager.get_employee_by_username(
+                    petition.student_username
+                )
                 if not employee:
-                    raise self.exc.bad_request("You cannot approve the petition unless you are registered as an employee.")
+                    raise self.exc.bad_request(
+                        "You cannot approve the petition unless you are registered as an employee."
+                    )
                 if employee.date_of_birth is None or employee.address is None:
-                    raise self.exc.bad_request("You cannot approve the petition unless your employee profile is complete (date of birth and address).")
+                    raise self.exc.bad_request(
+                        "You cannot approve the petition unless your employee profile is complete (date of birth and address)."
+                    )
             # Update petition status using manager
             petition = self.manager.update_petition_status(petition_id, status)
             if not petition:
-                raise self.exc.update_failed("Petition", message="Failed to update petition status")
-            
+                raise self.exc.update_failed(
+                    "Petition", message="Failed to update petition status"
+                )
+
             # Load budget positions
-            petition.budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition_id)
-            
+            petition.budget_positions = (
+                self.budget_position_manager.get_budget_positions_by_petition(
+                    petition_id
+                )
+            )
+
             # Send notification emails based on status
             if status == PetitionStatus.CLERK_ACTION:
                 self._send_student_acceptance_email(petition)
             elif status == PetitionStatus.REJECTED:
                 self._send_student_rejection_email(petition)
-            
+
             return petition
 
         except HTTPException as e:
@@ -341,23 +447,31 @@ class PetitionHandler:
         """Send emails to budget approvers when budget positions are updated"""
         try:
             email_handler = EmailHandler(petition)
-            
+
             # Get updated budget positions
-            budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+            budget_positions = (
+                self.budget_position_manager.get_budget_positions_by_petition(
+                    petition.id
+                )
+            )
 
             email_handler.send_budget_position_update_emails(budget_positions)
 
         except Exception as e:
             raise self.exc.internal_error("sending budget position update emails", e)
 
-    def _check_student_semester_eligibility(self, student_username: str, start_date: date) -> bool:
+    def _check_student_semester_eligibility(
+        self, student_username: str, start_date: date
+    ) -> bool:
         """
         Check if student is eligible to have a petition in the given semester.
         Returns True if eligible (no approved petition in same semester), False otherwise.
         """
         try:
-            existing_petitions = self.manager.get_student_approved_petitions_in_semester(
-                student_username, start_date
+            existing_petitions = (
+                self.manager.get_student_approved_petitions_in_semester(
+                    student_username, start_date
+                )
             )
 
             # If there are existing approved petitions in the same semester, student is not eligible
@@ -391,8 +505,8 @@ class PetitionHandler:
             ("bic", "BIC"),
             ("telephone_number", "Telefonnummer"),
             ("gender", "Geschlecht"),
-            ("married", "Familienstand"), # boolean, but must be set (not None)
-            ("previously_employeed", "Bereits beschäftigt?") # boolean, must be set
+            ("married", "Familienstand"),  # boolean, but must be set (not None)
+            ("previously_employeed", "Bereits beschäftigt?"),  # boolean, must be set
         ]
 
         for field_attr, field_name in required_fields:
@@ -413,26 +527,39 @@ class PetitionHandler:
             missing_str = ", ".join(missing_fields)
             raise HTTPException(
                 status_code=400,
-                detail=f"Please fill out the following missing fields in your profile: {missing_str}"
+                detail=f"Please fill out the following missing fields in your profile: {missing_str}",
             )
 
     # TODO: untangle the acception from rejection
-    def student_accept_or_reject_petition(self, petition: Petition, approved: bool) -> Petition| dict:
+    def student_accept_or_reject_petition(
+        self, petition: Petition, approved: bool
+    ) -> Petition | dict:
         # Check if student has uploaded documents before approving
         if approved:
-            employee = self.employee_manager.get_employee_by_username(petition.student_username)
+            employee = self.employee_manager.get_employee_by_username(
+                petition.student_username
+            )
             if not employee:
-                raise self.exc.bad_request("You cannot approve the petition unless you are registered as an employee.")
+                raise self.exc.bad_request(
+                    "You cannot approve the petition unless you are registered as an employee."
+                )
             if employee.date_of_birth is None or employee.address is None:
-                raise self.exc.bad_request("You cannot approve the petition unless your employee profile is complete (date of birth and address).")
-            has_uploaded_documents = self.student_document_manager.check_student_documents_uploaded(
-                employee,
-                check_ba_degree=petition.ba_degree
+                raise self.exc.bad_request(
+                    "You cannot approve the petition unless your employee profile is complete (date of birth and address)."
+                )
+            has_uploaded_documents = (
+                self.student_document_manager.check_student_documents_uploaded(
+                    employee, check_ba_degree=petition.ba_degree
+                )
             )
             if not has_uploaded_documents:
-                raise self.exc.bad_request("You cannot approve the petition unless you upload the required documents.")
+                raise self.exc.bad_request(
+                    "You cannot approve the petition unless you upload the required documents."
+                )
             # Student accepted, move to clerk_action
-            petition = self.manager.update_petition_status(petition, PetitionStatus.CLERK_ACTION)
+            petition = self.manager.update_petition_status(
+                petition, PetitionStatus.CLERK_ACTION
+            )
             # Send email to supervisor
             if petition.supervisor_mail:
                 email_handler = EmailHandler(petition)
@@ -442,13 +569,15 @@ class PetitionHandler:
             email_handler = EmailHandler(petition)
             if petition.supervisor_mail:
                 email_handler.send_student_rejection_email()
-            
+
             # Send to budget approvers
-            email_handler.send_student_rejection_to_budget_approvers_email(petition.budget_positions)
+            email_handler.send_student_rejection_to_budget_approvers_email(
+                petition.budget_positions
+            )
             return self.delete_petition(petition)
-            
+
         return petition
-    
+
     def update_petition_as_clerk(self, petition: Petition, approved: bool) -> Petition:
 
         if petition.status == PetitionStatus.CLERK_ACTION:
@@ -457,19 +586,24 @@ class PetitionHandler:
             return self.complete_petition_as_clerk(petition)
         else:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
-        
 
     def approve_petition_as_clerk(self, petition: Petition) -> Petition:
 
         # Update petition status
-        petition = self.manager.update_petition_status(petition, PetitionStatus.AWAITING_SIGNATURE)
-        
+        petition = self.manager.update_petition_status(
+            petition, PetitionStatus.AWAITING_SIGNATURE
+        )
+
         email_handler = EmailHandler(petition)
-        budget_positions = self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+        budget_positions = (
+            self.budget_position_manager.get_budget_positions_by_petition(petition.id)
+        )
         email_handler.send_clerk_approval_email(budget_positions)
 
         try:
-            employee = self.employee_manager.get_employee_by_username(petition.student_username)
+            employee = self.employee_manager.get_employee_by_username(
+                petition.student_username
+            )
             if not employee:
                 raise self.exc.not_found("Employee", petition.student_username)
 
@@ -486,30 +620,41 @@ class PetitionHandler:
 
         return petition
 
-    def request_revision_from_student(self, petition: Petition, message: str, subject: Optional[str] = None) -> Petition:
+    def request_revision_from_student(
+        self, petition: Petition, message: str, subject: Optional[str] = None
+    ) -> Petition:
         # Send email to student
         email_handler = EmailHandler(petition)
         email_handler.send_clerk_revision_request_email(message, subject)
-        
+
         # Change status to clerk_revision
-        petition = self.manager.update_petition_status(petition, PetitionStatus.CLERK_REVISION)
+        petition = self.manager.update_petition_status(
+            petition, PetitionStatus.CLERK_REVISION
+        )
         return petition
 
     def complete_petition_as_clerk(self, petition: Petition) -> Petition:
 
         # Update petition status to completed
-        petition = self.manager.update_petition_status(petition, PetitionStatus.COMPLETED)
-        
+        petition = self.manager.update_petition_status(
+            petition, PetitionStatus.COMPLETED
+        )
+
         # Send completion emails
         email_handler = EmailHandler(petition)
         email_handler.send_petition_completion_emails()
-        
+
         return petition
 
     def get_petitions_clerk(self) -> List[Petition]:
         """Return petitions relevant to clerks (several statuses)."""
         try:
-            statuses = [PetitionStatus.AWAITING_SIGNATURE, PetitionStatus.COMPLETED, PetitionStatus.CLERK_REVISION, PetitionStatus.CLERK_ACTION]
+            statuses = [
+                PetitionStatus.AWAITING_SIGNATURE,
+                PetitionStatus.COMPLETED,
+                PetitionStatus.CLERK_REVISION,
+                PetitionStatus.CLERK_ACTION,
+            ]
             petitions = []
             for s in statuses:
                 # call manager directly to avoid raising on empty per-status result
@@ -536,18 +681,25 @@ class PetitionHandler:
 
     def mark_revision_done_student(self, petition_id: UUID) -> Petition:
         petition = self.manager.get_petition(petition_id)
-        
+
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
         if petition.status != PetitionStatus.CLERK_REVISION:
-            raise self.exc.invalid_status(PetitionStatus.CLERK_REVISION, message="Revision can only be marked done when petition status is clerk_revision")
+            raise self.exc.invalid_status(
+                PetitionStatus.CLERK_REVISION,
+                message="Revision can only be marked done when petition status is clerk_revision",
+            )
 
         # Change status back to clerk_action
-        petition = self.manager.update_petition_status(petition_id, PetitionStatus.CLERK_ACTION)
+        petition = self.manager.update_petition_status(
+            petition_id, PetitionStatus.CLERK_ACTION
+        )
 
         return petition
 
-    def request_revision_from_supervisor(self, petition: Petition, text: str, subject: Optional[str] = None) -> Petition:
+    def request_revision_from_supervisor(
+        self, petition: Petition, text: str, subject: Optional[str] = None
+    ) -> Petition:
         """
         Student requests revision from supervisor.
         Sends email to supervisor and changes status to 'student_revision'.
@@ -556,12 +708,17 @@ class PetitionHandler:
         # Students can request revision when petition is in student_action, clerk_revision, or awaiting_signature
         valid_statuses = [PetitionStatus.STUDENT_ACTION, PetitionStatus.CLERK_REVISION]
         if petition.status not in valid_statuses:
-            raise self.exc.invalid_status(petition.status, message=f"Student cannot request revision at this stage. Current status: {petition.status}")
+            raise self.exc.invalid_status(
+                petition.status,
+                message=f"Student cannot request revision at this stage. Current status: {petition.status}",
+            )
 
         email_handler = EmailHandler(petition)
         email_handler.send_student_revision_request_email(text, subject)
 
         # Update petition status to student_revision
-        petition = self.manager.update_petition_status(petition, PetitionStatus.STUDENT_REVISION)
+        petition = self.manager.update_petition_status(
+            petition, PetitionStatus.STUDENT_REVISION
+        )
 
         return petition

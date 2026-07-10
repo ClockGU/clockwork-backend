@@ -1,13 +1,18 @@
+from datetime import date
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from uuid import UUID
 from sqlmodel import Session
-from datetime import date
 
-from api.handlers.employee_handler import EmployeeHandler
-from api.pydantic_models.employee import EmployeeUpdate, EmployeeRead
 from api.db.dependencies import get_db
-from api.security import get_current_student, get_current_supervisor, get_current_clerk  # Import the dependency for student authentication
+from api.handlers.employee_handler import EmployeeHandler
+from api.pydantic_models.employee import EmployeeRead, EmployeeUpdate
+from api.security import (  # Import the dependency for student authentication
+    get_current_clerk,
+    get_current_student,
+    get_current_supervisor,
+)
 
 router = APIRouter()
 
@@ -20,21 +25,23 @@ def get_employee_handler(db: Session = Depends(get_db)) -> EmployeeHandler:
 def update_employee_by_user(
     employee_data: EmployeeUpdate,
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student),  
+    user=Depends(get_current_student),
 ):
     """
     Update an employee record by the user ID (user_account).
     """
     # Use the handler to get the employee by user_account
     employee = handler.get_employee_by_user_account(user.get("sub"))
-    updated_employee = handler.update_employee(employee, employee_data.dict(exclude_unset=True))
+    updated_employee = handler.update_employee(
+        employee, employee_data.dict(exclude_unset=True)
+    )
     return updated_employee
 
 
 @router.get("/employees", response_model=EmployeeRead)
 def get_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student), 
+    user=Depends(get_current_student),
 ):
     """
     Retrieve an employee record by the user ID (user_account).
@@ -67,16 +74,16 @@ def get_student_data_pdf(
     """
     # Generate PDF
     pdf_buffer = handler.get_student_data_pdf(petition_id)
-    
+
     # Get employee for filename
     employee = handler.get_employee_by_petition(petition_id)
     filename = f"Student_Data_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
-    
+
     # Return as streaming response
     return StreamingResponse(
         pdf_buffer,
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
 

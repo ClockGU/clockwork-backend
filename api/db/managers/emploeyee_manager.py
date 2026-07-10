@@ -1,11 +1,11 @@
 from typing import List, Optional
 from uuid import UUID
+
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from api.db.schema.employee import Employee
 
-
-from sqlalchemy.exc import IntegrityError
 
 class EmployeeManager:
     def __init__(self, db: Session):
@@ -55,7 +55,9 @@ class EmployeeManager:
         result = self.db.execute(statement)
         return result.scalars().first()
 
-    def update_employee(self, employee: Employee, employee_data: dict) -> Optional[Employee]:
+    def update_employee(
+        self, employee: Employee, employee_data: dict
+    ) -> Optional[Employee]:
         """
         Update an existing employee record.
         """

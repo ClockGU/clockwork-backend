@@ -1,18 +1,18 @@
 from typing import List, Optional
 from uuid import UUID
+
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
-from api.db.schema.student_documents import StudentDocuments
 from api.db.schema.employee import Employee
+from api.db.schema.student_documents import StudentDocuments
 from api.pydantic_models.documents import StudentDocumentsUpdate
 
 
-from sqlalchemy.exc import IntegrityError
-        
 class StudentDocumentManager:
     def __init__(self, db: Session):
         self.db = db
-        self.schema = StudentDocuments  
+        self.schema = StudentDocuments
 
     def get_or_create_document(self, document_data: dict) -> StudentDocuments:
         """
@@ -30,7 +30,9 @@ class StudentDocumentManager:
             self.db.rollback()
             # If document already exists, we can safely ignore this error
             # as the employee already has a document associated
-            statement = select(self.schema).where(self.schema.employee_id == document_data['employee_id'])
+            statement = select(self.schema).where(
+                self.schema.employee_id == document_data["employee_id"]
+            )
             result = self.db.execute(statement)
             return result.scalar_one_or_none()
 
@@ -48,35 +50,36 @@ class StudentDocumentManager:
         result = self.db.execute(statement)
         return result.scalars().all()
 
-    def check_student_documents_uploaded(self, employee: Employee, check_ba_degree: bool = False) -> bool:
+    def check_student_documents_uploaded(
+        self, employee: Employee, check_ba_degree: bool = False
+    ) -> bool:
         """
         Check if a student has uploaded all required documents.
-        
+
         Args:
             student_username: Username of the student
             check_ba_degree: Whether to check for BA degree upload
-        
+
         Returns:
             bool: True if all documents are uploaded, False otherwise
         """
 
-        
         # Get the student documents record using employee_id
         statement = select(self.schema).where(self.schema.employee_id == employee.id)
         result = self.db.execute(statement)
         student_docs = result.scalar_one_or_none()
-        
+
         # If no document record exists, documents are not uploaded
         if not student_docs:
             return False
-        
+
         # Check if all required document URLs are present and not empty
         required_documents = [
             student_docs.elstam_url,
             student_docs.studienbescheinigung_url,
             student_docs.versicherungsbescheinigung_url,
             student_docs.sozialversicherungsbogen_url,
-            student_docs.id_photo_url
+            student_docs.id_photo_url,
         ]
 
         if check_ba_degree:
@@ -88,7 +91,9 @@ class StudentDocumentManager:
         # Return True only if all documents have non-empty URLs
         return all(doc_url and doc_url.strip() for doc_url in required_documents)
 
-    def update_document(self, document_id: UUID, document_data: StudentDocumentsUpdate) -> Optional[StudentDocuments]:
+    def update_document(
+        self, document_id: UUID, document_data: StudentDocumentsUpdate
+    ) -> Optional[StudentDocuments]:
         """
         Update an existing document record.
         """
@@ -117,4 +122,3 @@ class StudentDocumentManager:
         self.db.delete(document)
         self.db.commit()
         return True
-

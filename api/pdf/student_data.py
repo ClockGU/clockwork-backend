@@ -1,10 +1,10 @@
-from io import BytesIO
 from datetime import date
+from io import BytesIO
 
-from pikepdf.form import Form, Pdf, ExtendedAppearanceStreamGenerator
-from pikepdf import Dictionary, String, Name
+from pikepdf import Dictionary, Name, String
+from pikepdf.form import ExtendedAppearanceStreamGenerator, Form, Pdf
+
 import api.consts as consts
-
 from api.pydantic_models import EmployeeRead, PetitionRead
 
 
@@ -13,9 +13,11 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
         raise ValueError("Employee data is missing")
 
     buffer = BytesIO()
-    
+
     try:
-        with Pdf.open("".join([consts.PDF_TEMPLATE_DIR, consts.PERSONAL_DATA_PDF_TEMPLATE])) as pdf:
+        with Pdf.open(
+            "".join([consts.PDF_TEMPLATE_DIR, consts.PERSONAL_DATA_PDF_TEMPLATE])
+        ) as pdf:
             af = pdf.Root.get("/AcroForm", None)
             if af is None:
                 af = pdf.make_indirect(Dictionary())
@@ -24,23 +26,28 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
             # Provide a default appearance (font tag + size + black color)
             af["/DA"] = String("/Helv 11 Tf 0 g")
             form = Form(pdf, ExtendedAppearanceStreamGenerator)
-            
+
             # Helper function to safely set field values
             def safe_set_field(field_name: str, value: str):
                 try:
                     if field_name in form:
                         form[field_name].value = value
                 except Exception as e:
-                    print(f"Warning: Could not set field '{field_name}': {e}", flush=True)
-            
-            # Helper function to safely set checkbox values  
+                    print(
+                        f"Warning: Could not set field '{field_name}': {e}", flush=True
+                    )
+
+            # Helper function to safely set checkbox values
             def safe_set_checkbox(field_name: str, checked: bool = True):
                 try:
                     if checked:
                         # form fields to implemented later
                         pass
                 except Exception as e:
-                    print(f"Warning: Could not set checkbox '{field_name}': {e}", flush=True)
+                    print(
+                        f"Warning: Could not set checkbox '{field_name}': {e}",
+                        flush=True,
+                    )
 
             # Dictionary mapping PDF fields to EmployeeRead attributes
             # Format: "PDF_Field_Name": "employee_attribute_name"
@@ -55,7 +62,7 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
                 "Adresse": "address",
                 "Email": "user_email",
                 "Name der Bank": "bank_name",
-                "Text7": "bic", # BIC field is labeled as "Text7"
+                "Text7": "bic",  # BIC field is labeled as "Text7"
             }
 
             # Process simple string fields - accessing attributes safely
@@ -66,11 +73,11 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
                     safe_set_field(pdf_field, value)
 
             # Process fields with specific formatting or logic
-            
+
             # Date of Birth
             dob = getattr(employee, "date_of_birth", None)
             if dob:
-                 safe_set_field("Geburtsdatum", dob.strftime("%d.%m.%Y"))
+                safe_set_field("Geburtsdatum", dob.strftime("%d.%m.%Y"))
 
             # Marital Status
             married = getattr(employee, "married", None)
@@ -87,7 +94,7 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
             first = getattr(employee, "first_name", "")
             last = getattr(employee, "last_name", "")
             if first and last:
-                 safe_set_field("Kontoinhaberin", f"{first} {last}")
+                safe_set_field("Kontoinhaberin", f"{first} {last}")
 
             # Gender Checkboxes
             gender = getattr(employee, "gender", None)
@@ -121,17 +128,17 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
                 # German IBAN: DE + 2 digits + bank code (8 digits) + account number (10 digits) = 22 chars
                 # IBAN format for the 6 fields: each field should be 4 characters
                 if len(iban) >= 4:
-                    safe_set_field("IBAN_1", iban[0:4])    # First 4 chars
+                    safe_set_field("IBAN_1", iban[0:4])  # First 4 chars
                 if len(iban) >= 8:
-                    safe_set_field("IBAN_2", iban[4:8])    # Next 4 chars
+                    safe_set_field("IBAN_2", iban[4:8])  # Next 4 chars
                 if len(iban) >= 12:
-                    safe_set_field("IBAN_3", iban[8:12])   # Next 4 chars
+                    safe_set_field("IBAN_3", iban[8:12])  # Next 4 chars
                 if len(iban) >= 16:
                     safe_set_field("IBAN_4", iban[12:16])  # Next 4 chars
                 if len(iban) >= 20:
                     safe_set_field("IBAN_5", iban[16:20])  # Next 4 chars
                 if len(iban) >= 22:
-                    safe_set_field("IBAN_6", iban[20:])    # Remaining chars
+                    safe_set_field("IBAN_6", iban[20:])  # Remaining chars
 
             # Student Information from Petition
             # Safely check petition if provided
@@ -139,19 +146,19 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
                 student_username = getattr(petition, "student_username", None)
                 if student_username:
                     safe_set_field("Name Vorname", student_username)
-            
+
             # Fill current date
             safe_set_field("Frankfurt den", date.today().strftime("%d.%m.%Y"))
 
             # Set NeedAppearances to True so PDF viewers regenerate the appearance streams
-            if '/AcroForm' in pdf.Root:
-                pdf.Root['/AcroForm']['/NeedAppearances'] = True
+            if "/AcroForm" in pdf.Root:
+                pdf.Root["/AcroForm"]["/NeedAppearances"] = True
 
             pdf.save(buffer, normalize_content=True)
 
     except Exception as e:
         # Catch errors to prevent raw 500 crashes and provide meaningful context
         raise ValueError(f"Error generating Student Data PDF: {str(e)}")
-        
+
     buffer.seek(0)
     return buffer

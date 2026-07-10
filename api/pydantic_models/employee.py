@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, EmailStr
+from datetime import date
 from typing import Optional
 from uuid import UUID
-from datetime import date
+
+from pydantic import BaseModel, EmailStr, Field
+
 
 class EmployeeUpdate(BaseModel):
     first_name: Optional[str] = None
@@ -39,7 +41,7 @@ class EmployeeRead(BaseModel):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previously_employeed: Optional[bool] = None  
+    previously_employeed: Optional[bool] = None
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
     bic: Optional[str] = None

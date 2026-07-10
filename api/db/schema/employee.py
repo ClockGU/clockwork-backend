@@ -1,9 +1,12 @@
-from typing import List, Optional
-from sqlmodel import SQLModel, Field, Relationship
 import uuid
 from datetime import date
-from api.db.schema.student_documents import StudentDocuments  # Import the related model
+from typing import List, Optional
+
 from sqlalchemy.orm import relationship  # Import relationship for cascade behavior
+from sqlmodel import Field, Relationship, SQLModel
+
+from api.db.schema.student_documents import StudentDocuments  # Import the related model
+
 
 class Employee(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
@@ -30,7 +33,9 @@ class Employee(SQLModel, table=True):
     # Add the documents relationship
     documents: List[StudentDocuments] = Relationship(
         back_populates="employee",
-        sa_relationship=relationship("StudentDocuments", back_populates="employee", cascade="all, delete-orphan")
+        sa_relationship=relationship(
+            "StudentDocuments", back_populates="employee", cascade="all, delete-orphan"
+        ),
     )
 
     @property
