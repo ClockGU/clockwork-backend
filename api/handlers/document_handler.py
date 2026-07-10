@@ -1,16 +1,19 @@
 from typing import List, Optional
 from uuid import UUID
-from sqlmodel import Session
-from fastapi import UploadFile
 
-from api.db.managers.student_document import StudentDocumentManager
+from fastapi import UploadFile
+from sqlmodel import Session
+
 from api.db.managers import PetitionManager
-from api.db.managers.emploeyee_manager import EmployeeManager  # Note the typo in filename
+from api.db.managers.emploeyee_manager import (  # Note the typo in filename
+    EmployeeManager,
+)
+from api.db.managers.student_document import StudentDocumentManager
 from api.db.schema import Employee
 from api.db.schema.student_documents import StudentDocuments
-from api.pydantic_models.documents import StudentDocumentsUpdate
-from api.handlers.exception_handler import ExceptionHandler
 from api.handlers.email_handler import EmailHandler
+from api.handlers.exception_handler import ExceptionHandler
+from api.pydantic_models.documents import StudentDocumentsUpdate
 
 
 class StudentDocumentHandler:
@@ -20,20 +23,28 @@ class StudentDocumentHandler:
         self.employee_manager = EmployeeManager(db)
         self.exc = ExceptionHandler()
 
-    def get_documents_by_student_username(self, student_username: str) -> StudentDocuments:
+    def get_documents_by_student_username(
+        self, student_username: str
+    ) -> StudentDocuments:
         """
         Retrieve student documents by the student's username.
         """
         # 1. Fetch Student Employee
-        student_employee = self.employee_manager.get_employee_by_username(student_username)
+        student_employee = self.employee_manager.get_employee_by_username(
+            student_username
+        )
         if not student_employee:
-            raise self.exc.not_found("Student Employee", f"Student employee {student_username} not found")
+            raise self.exc.not_found(
+                "Student Employee", f"Student employee {student_username} not found"
+            )
 
         # 2. Fetch Documents
         documents = self.manager.get_documents_by_employee(student_employee.id)
         if not documents:
-            raise self.exc.not_found("Documents", f"No documents found for student {student_username}")
-        
+            raise self.exc.not_found(
+                "Documents", f"No documents found for student {student_username}"
+            )
+
         # Assuming one document record per employee
         return documents[0]
 
@@ -53,14 +64,16 @@ class StudentDocumentHandler:
             raise self.exc.not_found("Document", str(document_id))
         return document
 
-
     def get_documents_by_employee(self, employee_id: UUID) -> List[StudentDocuments]:
         """
         Retrieve all documents associated with a specific employee.
         """
         documents = self.manager.get_documents_by_employee(employee_id)
         if not documents:
-            raise self.exc.not_found("Documents", message=f"No documents found for employee with ID {employee_id}")
+            raise self.exc.not_found(
+                "Documents",
+                message=f"No documents found for employee with ID {employee_id}",
+            )
         return documents
 
     def update_document(
@@ -85,7 +98,10 @@ class StudentDocumentHandler:
         # Retrieve the document associated with the employee
         documents = self.manager.get_documents_by_employee(employee_id)
         if not documents:
-            raise self.exc.not_found("Document", message=f"No document found for employee with ID {employee_id}")
+            raise self.exc.not_found(
+                "Document",
+                message=f"No document found for employee with ID {employee_id}",
+            )
 
         # Assuming there is only one document per employee, update the first document
         document = documents[0]
@@ -93,7 +109,10 @@ class StudentDocumentHandler:
         # Proceed with the update
         updated_document = self.manager.update_document(document.id, document_data)
         if not updated_document:
-            raise self.exc.update_failed("Document", message=f"Document for employee with ID {employee_id} could not be updated")
+            raise self.exc.update_failed(
+                "Document",
+                message=f"Document for employee with ID {employee_id} could not be updated",
+            )
         return updated_document
 
     def delete_document(self, document_id: UUID) -> dict:
@@ -116,5 +135,3 @@ class StudentDocumentHandler:
         with open(file_location, "wb") as f:
             f.write(await file.read())
         return file_location
-
-    

@@ -1,18 +1,18 @@
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from pydantic import ValidationError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from fastapi.openapi.utils import get_openapi
-from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 
-from api.db.dependencies import get_db, engine
-from api.security import get_current_supervisor, get_current_student
-from api.routers import router
 from api.admin import setup_admin
+from api.db.dependencies import engine, get_db
 from api.env import settings
 from api.events import register_all_events
+from api.routers import router
+from api.security import get_current_student, get_current_supervisor
 
 app = FastAPI()
 
@@ -21,8 +21,12 @@ register_all_events()
 
 # Add session middleware for admin authentication
 app.add_middleware(
-    SessionMiddleware, 
-    secret_key=str(settings.SIGNATURE_SECRET_KEY.decode() if isinstance(settings.SIGNATURE_SECRET_KEY, bytes) else settings.SIGNATURE_SECRET_KEY)
+    SessionMiddleware,
+    secret_key=str(
+        settings.SIGNATURE_SECRET_KEY.decode()
+        if isinstance(settings.SIGNATURE_SECRET_KEY, bytes)
+        else settings.SIGNATURE_SECRET_KEY
+    ),
 )
 
 # Setup admin panel
@@ -61,7 +65,7 @@ def custom_openapi():
             "type": "http",
             "scheme": "bearer",
             "bearerFormat": "JWT",
-            "description": "Enter JWT token in the 'Authorization' header as 'Bearer <your-token>'"
+            "description": "Enter JWT token in the 'Authorization' header as 'Bearer <your-token>'",
         }
     }
 
@@ -74,7 +78,9 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
 app.openapi = custom_openapi
+
 
 @app.exception_handler(ValidationError)
 async def pydantic_validation_handler(request, exc: ValidationError):
@@ -91,17 +97,16 @@ async def pydantic_validation_handler(request, exc: ValidationError):
         content={"detail": "\n".join(messages)},
     )
 
+
 @app.get("/checksupervisor")
-def check_supervisor(
-    current_user: dict = Depends(get_current_supervisor)
-    ):
+def check_supervisor(current_user: dict = Depends(get_current_supervisor)):
     return current_user
 
+
 @app.get("/checkstudent")
-def check_student(
-    current_user: dict = Depends(get_current_student)
-    ):
+def check_student(current_user: dict = Depends(get_current_student)):
     return current_user
+
 
 # routes to check the basic working
 @app.get("/check-db")
@@ -113,8 +118,3 @@ def check_db(db: Session = Depends(get_db)):
     result = db.execute(text(query))
     current_time = result.scalar()
     return {"database_time": current_time}
-
-
-
-
-

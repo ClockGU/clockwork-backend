@@ -1,33 +1,35 @@
 # tests/conftest.py
+import asyncio
 import os
 import uuid
-import pytest
 from datetime import date
-from sqlalchemy import create_engine, Engine
-from sqlalchemy.orm import sessionmaker
-from alembic.config import Config
-from alembic import command
 from pathlib import Path
-from sqlmodel import SQLModel, Session
+from types import SimpleNamespace
+
+import psycopg2
+import pytest
+from alembic import command
+from alembic.config import Config
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import Session, SQLModel
 
 from api.consts import PetitionStatus
 from api.db.dependencies import get_db
-from api.db.schema.petition import Petition
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.employee import Employee
+from api.db.schema.petition import Petition
 from api.db.schema.student_documents import StudentDocuments
-import asyncio
-from types import SimpleNamespace
-
 from api.env import settings
 from api.main import app
 from api.security import get_current_student
-import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Get project root
-from api.websockets.managers import get_clerk_connection_manager, WebsocketConnectionManager
-
+from api.websockets.managers import (
+    WebsocketConnectionManager,
+    get_clerk_connection_manager,
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -47,14 +49,12 @@ def run_migrations():
 
 
 def create_test_database():
-    conn = psycopg2.connect(
-        DB_URI
-    )
+    conn = psycopg2.connect(DB_URI)
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
     cur.execute("SELECT 1 FROM pg_database WHERE datname = 'test_db'")
     if not cur.fetchone():
-      cur.execute("CREATE DATABASE test_db")
+        cur.execute("CREATE DATABASE test_db")
     cur.close()
     conn.close()
 
@@ -86,15 +86,19 @@ def apply_migrations():
 def db_session():
     connection = engine.connect()
     transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection, join_transaction_mode="create_savepoint")
+    session = TestingSessionLocal(
+        bind=connection, join_transaction_mode="create_savepoint"
+    )
     yield session
     session.close()
     transaction.rollback()
     connection.close()
 
+
 @pytest.fixture
 def client(db_session):
     from fastapi.testclient import TestClient
+
     from api.main import app
 
     def override_get_db():
@@ -109,8 +113,10 @@ def get_clerk_connection_manager_fixture_callable():
     def mock_auth(token):
         if token != "some_valid_token":
             raise ValueError("invalid token")
+
     _websocket_manager = WebsocketConnectionManager(mock_auth)
     return lambda: _websocket_manager
+
 
 @pytest.fixture
 def petition_student_action(db_session):
@@ -148,13 +154,21 @@ def anyio_backend():
 @pytest.fixture
 def mock_clerk_list(monkeypatch):
     import api.websockets.routers.web_socket as ws_module
+
     monkeypatch.setattr(ws_module, "get_all_clerks", lambda: ["clerk1"])
 
 
 @pytest.fixture
-def mock_get_clerk_connection_manager(monkeypatch, get_clerk_connection_manager_fixture_callable):
+def mock_get_clerk_connection_manager(
+    monkeypatch, get_clerk_connection_manager_fixture_callable
+):
     import api.websockets.routers.web_socket as ws_module
-    monkeypatch.setattr(ws_module, "get_clerk_connection_manager", get_clerk_connection_manager_fixture_callable)
+
+    monkeypatch.setattr(
+        ws_module,
+        "get_clerk_connection_manager",
+        get_clerk_connection_manager_fixture_callable,
+    )
 
 
 @pytest.fixture
@@ -185,9 +199,16 @@ def student_documents(db_session, student_employee):
 
 
 @pytest.fixture
-async def clerk_ws_setup(db_session, mock_clerk_list, mock_get_clerk_connection_manager, get_clerk_connection_manager_fixture_callable):
+async def clerk_ws_setup(
+    db_session,
+    mock_clerk_list,
+    mock_get_clerk_connection_manager,
+    get_clerk_connection_manager_fixture_callable,
+):
 
-    app.dependency_overrides[get_clerk_connection_manager] = get_clerk_connection_manager_fixture_callable
+    app.dependency_overrides[get_clerk_connection_manager] = (
+        get_clerk_connection_manager_fixture_callable
+    )
     app.dependency_overrides[get_current_student] = lambda: {}
     app.dependency_overrides[get_db] = lambda: db_session
 

@@ -1,12 +1,11 @@
 import json
-from datetime import datetime
-
-from freezegun import freeze_time
 import uuid
+from datetime import datetime
 
 import anyio
 import httpx
 import pytest
+from freezegun import freeze_time
 
 # TODO: These tests are not actually testing the API. It seems they were created as placeholders via an AI tool.
 # Helper function to return sample petition data matching your PetitionCreate schema.
@@ -125,8 +124,11 @@ import pytest
 #     data = response.json()
 #     assert data["detail"] == "Petition not found"
 
+
 @pytest.mark.anyio
-async def test_clerk_petition_websocket(petition_student_action, student_documents, clerk_ws_setup):
+async def test_clerk_petition_websocket(
+    petition_student_action, student_documents, clerk_ws_setup
+):
     ws = clerk_ws_setup
 
     async with anyio.create_task_group() as tg:
@@ -134,10 +136,12 @@ async def test_clerk_petition_websocket(petition_student_action, student_documen
 
         await ws.c2s.put({"type": "websocket.connect"})
         assert (await ws.s2c.get())["type"] == "websocket.accept"
-        await ws.c2s.put({
-              "type": "websocket.receive",
-              "text": json.dumps({"type": "auth", "token": "some_valid_token"})
-        })
+        await ws.c2s.put(
+            {
+                "type": "websocket.receive",
+                "text": json.dumps({"type": "auth", "token": "some_valid_token"}),
+            }
+        )
 
         # On connect: petition is STUDENT_ACTION → not clerk-relevant → empty list
         websocket_message = await ws.s2c.get()
@@ -162,6 +166,7 @@ async def test_clerk_petition_websocket(petition_student_action, student_documen
 
         await ws.c2s.put({"type": "websocket.disconnect", "code": 1000})
 
+
 @pytest.mark.anyio
 async def test_websocket_invalid_id(client, clerk_ws_setup):
     ws = clerk_ws_setup
@@ -176,6 +181,7 @@ async def test_websocket_invalid_id(client, clerk_ws_setup):
         assert close_message["type"] == "websocket.close"
         assert close_message["code"] == 1008
 
+
 @pytest.mark.anyio
 async def test_websocket_no_auth_sent(client, clerk_ws_setup):
     ws = clerk_ws_setup
@@ -189,6 +195,7 @@ async def test_websocket_no_auth_sent(client, clerk_ws_setup):
             assert close_message["type"] == "websocket.close"
             assert close_message["code"] == 1008
 
+
 @pytest.mark.anyio
 async def test_websocket_auth_sent(client, clerk_ws_setup):
     ws = clerk_ws_setup
@@ -196,10 +203,12 @@ async def test_websocket_auth_sent(client, clerk_ws_setup):
         tg.start_soon(ws.app, ws.ws_scope, ws.receive, ws.send)
         await ws.c2s.put({"type": "websocket.connect"})
         assert (await ws.s2c.get())["type"] == "websocket.accept"
-        await ws.c2s.put({
-              "type": "websocket.receive",
-              "text": json.dumps({"type": "auth", "token": "some_valid_token"})
-        })
+        await ws.c2s.put(
+            {
+                "type": "websocket.receive",
+                "text": json.dumps({"type": "auth", "token": "some_valid_token"}),
+            }
+        )
         websocket_message = await ws.s2c.get()
         recieved_data = json.loads(websocket_message["text"])
         assert recieved_data["type"] == "new_petition"

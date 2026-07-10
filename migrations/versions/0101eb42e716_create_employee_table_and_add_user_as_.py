@@ -7,10 +7,10 @@ Create Date: 2025-03-18 01:19:34.080285
 """
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
 import sqlmodel
+from alembic import op
+
 # revision identifiers, used by Alembic.
 revision: str = '0101eb42e716'
 down_revision: Union[str, None] = 'c5f71e650057'

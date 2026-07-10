@@ -1,9 +1,8 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import Any, Dict
 
 from fastapi import WebSocket
-from typing import Dict, Any
-
 from starlette.websockets import WebSocketState
 
 
@@ -23,7 +22,10 @@ class ConnectionArray:
 
     async def remove(self, client_id: str, code: int = 1008):
         connection = self.connections.get(client_id)
-        if connection and connection.websocket.application_state == WebSocketState.CONNECTED:
+        if (
+            connection
+            and connection.websocket.application_state == WebSocketState.CONNECTED
+        ):
             await self.connections[client_id].websocket.close(code)
         del self.connections[client_id]
 
@@ -31,7 +33,7 @@ class ConnectionArray:
         if client_id in self.connections:
             self.connections[client_id].is_authenticated = True
 
-    def get_connection(self, client_id: str) -> Connection|None:
+    def get_connection(self, client_id: str) -> Connection | None:
         return self.connections.get(client_id)
 
     def __iter__(self):
@@ -43,7 +45,11 @@ class WebsocketConnectionManager:
         self.active_connections: ConnectionArray = ConnectionArray()
         self.authenticator = authenticator_func
 
-    def authenticate(self, client_id: str, token: str,):
+    def authenticate(
+        self,
+        client_id: str,
+        token: str,
+    ):
         try:
             self.authenticator(token)
         except Exception as e:
@@ -57,7 +63,9 @@ class WebsocketConnectionManager:
 
     async def connect(self, client_id: str, websocket: WebSocket):
         await websocket.accept()
-        self.active_connections.add(Connection(client_id=client_id, websocket=websocket))
+        self.active_connections.add(
+            Connection(client_id=client_id, websocket=websocket)
+        )
 
     async def disconnect(self, client_id: str, code: int):
         connection = self.active_connections.get_connection(client_id)

@@ -9,7 +9,9 @@ class TestValidateBudgetPercentageSum:
     def test_single_position_at_100_passes(self, base_petition, budget_position):
         PetitionCreate(
             **base_petition,
-            budget_positions=[BudgetPositionCreate(**budget_position, percentage=100.0)],
+            budget_positions=[
+                BudgetPositionCreate(**budget_position, percentage=100.0)
+            ],
         )
 
     def test_two_positions_summing_to_100_passes(self, base_petition, budget_position):
@@ -41,7 +43,9 @@ class TestValidateBudgetPercentageSum:
                 ],
             )
 
-    def test_floating_point_within_tolerance_passes(self, base_petition, budget_position):
+    def test_floating_point_within_tolerance_passes(
+        self, base_petition, budget_position
+    ):
         PetitionCreate(
             **base_petition,
             budget_positions=[

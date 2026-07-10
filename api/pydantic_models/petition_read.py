@@ -1,6 +1,5 @@
-from typing import Optional, List
 import uuid
-
+from typing import List, Optional
 
 from .budget_position import BudgetPositionRead
 from .petition import PetitionBase
@@ -24,8 +23,5 @@ class PetitionStudentRead(PetitionBaseRead):
     time_exce_student: Optional[bool] = None
     duration_exce_student: Optional[bool] = None
     ba_degree: Optional[bool] = None
-    
+
     budget_positions: List[BudgetPositionRead]
-
-
-

@@ -1,6 +1,8 @@
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
+
 from pydantic import BaseModel
+
 
 class StudentDocumentsUpdate(BaseModel):
     elstam_url: Optional[str] = None  # Accept URLs as strings
@@ -10,6 +12,7 @@ class StudentDocumentsUpdate(BaseModel):
     ba_degree_url: Optional[str] = None  # Accept URLs as strings
     residence_permit_url: Optional[str] = None
     id_photo_url: Optional[str] = None
+
 
 class StudentDocumentsRead(BaseModel):
     id: UUID
@@ -24,4 +27,3 @@ class StudentDocumentsRead(BaseModel):
 
     class Config:
         orm_mode = True
-

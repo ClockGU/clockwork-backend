@@ -1,9 +1,11 @@
 from typing import Optional
 from uuid import UUID
+
 from sqlmodel import Session, select
 
 from api.db.schema import Petition
 from api.db.schema.budget_position import BudgetPosition
+
 
 class BudgetPositionManager:
     def __init__(self, db: Session):
@@ -13,12 +15,14 @@ class BudgetPositionManager:
         """Get a specific budget position by ID"""
         return self.db.get(BudgetPosition, budget_position_id)
 
-    def update_budget_position_status(self, budget_position_id: UUID, budget_position_approved: bool) -> Optional[BudgetPosition]:
+    def update_budget_position_status(
+        self, budget_position_id: UUID, budget_position_approved: bool
+    ) -> Optional[BudgetPosition]:
         """Update the approval status of a budget position"""
         budget_position = self.db.get(BudgetPosition, budget_position_id)
         if not budget_position:
             return None
-        
+
         budget_position.budget_position_approved = budget_position_approved
         self.db.add(budget_position)
         self.db.commit()
@@ -27,12 +31,18 @@ class BudgetPositionManager:
 
     def check_all_budget_positions_approved(self, petition_id: UUID) -> bool:
         """Check if all budget positions for a petition are approved"""
-        statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
+        statement = select(BudgetPosition).where(
+            BudgetPosition.petition_id == petition_id
+        )
         budget_positions = self.db.execute(statement).scalars().all()
-        
+
         return all(bp.budget_position_approved for bp in budget_positions)
 
-    def get_budget_positions_by_petition(self, petition: Petition) -> list[BudgetPosition]:
+    def get_budget_positions_by_petition(
+        self, petition: Petition
+    ) -> list[BudgetPosition]:
         """Get all budget positions for a petition"""
-        statement = select(BudgetPosition).where(BudgetPosition.petition_id == petition.id)
+        statement = select(BudgetPosition).where(
+            BudgetPosition.petition_id == petition.id
+        )
         return self.db.execute(statement).scalars().all()

@@ -1,18 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
-from typing import Optional
-from uuid import UUID
-from sqlmodel import Session
 import os
 import uuid
-from fastapi.responses import FileResponse
+from typing import Optional
+from uuid import UUID
 
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
+from sqlmodel import Session
+
+from api.db.dependencies import get_db
 from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.employee_handler import EmployeeHandler
-from api.pydantic_models import StudentDocumentsUpdate, StudentDocumentsRead
-from api.db.dependencies import get_db
-from api.security import get_current_student, get_current_clerk
+from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
+from api.security import get_current_clerk, get_current_student
 
 router = APIRouter()
+
 
 # Dependency to get the document handler
 def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandler:
@@ -22,7 +24,9 @@ def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandle
 @router.get("/documents", response_model=StudentDocumentsRead)
 def get_document(
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db)),
+    employee_handler: EmployeeHandler = Depends(
+        lambda db=Depends(get_db): EmployeeHandler(db)
+    ),
     user=Depends(get_current_student),  # Secure the endpoint
 ):
     """
@@ -37,7 +41,6 @@ def get_document(
     return documents[0]
 
 
-
 @router.patch("/documents")
 def update_document(
     elstam: Optional[UploadFile] = File(None),
@@ -48,15 +51,21 @@ def update_document(
     residence_permit: Optional[UploadFile] = File(None),
     id_photo: Optional[UploadFile] = File(None),
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db)),
+    employee_handler: EmployeeHandler = Depends(
+        lambda db=Depends(get_db): EmployeeHandler(db)
+    ),
     user=Depends(get_current_student),  # Secure the endpoint
 ):
     """
     Update a document by the user's associated employee ID. Save uploaded files and update their URLs in the database.
     """
     # Define the root directory as the parent directory of the 'routers' folder
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Go one level up to the 'api' directory
-    upload_dir = os.path.join(root_dir, "uploads")  # Create the uploads folder in the root directory
+    root_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..")
+    )  # Go one level up to the 'api' directory
+    upload_dir = os.path.join(
+        root_dir, "uploads"
+    )  # Create the uploads folder in the root directory
     os.makedirs(upload_dir, exist_ok=True)  # Create the folder if it doesn't exist
 
     # Get the employee associated with the user
@@ -72,13 +81,19 @@ def update_document(
     # TODO: Make this dynamic to avoid repetition
     file_urls = {}
     if elstam:
-        file_urls["elstam_url"] = save_file(elstam, upload_dir)  
+        file_urls["elstam_url"] = save_file(elstam, upload_dir)
     if studienbescheinigung:
-        file_urls["studienbescheinigung_url"] = save_file(studienbescheinigung, upload_dir)  
+        file_urls["studienbescheinigung_url"] = save_file(
+            studienbescheinigung, upload_dir
+        )
     if versicherungsbescheinigung:
-        file_urls["versicherungsbescheinigung_url"] = save_file(versicherungsbescheinigung, upload_dir)
+        file_urls["versicherungsbescheinigung_url"] = save_file(
+            versicherungsbescheinigung, upload_dir
+        )
     if sozialversicherungsbogen:
-        file_urls["sozialversicherungsbogen_url"] = save_file(sozialversicherungsbogen, upload_dir)
+        file_urls["sozialversicherungsbogen_url"] = save_file(
+            sozialversicherungsbogen, upload_dir
+        )
     if ba_degree:
         file_urls["ba_degree_url"] = save_file(ba_degree, upload_dir)
     if residence_permit:
@@ -86,10 +101,10 @@ def update_document(
     if id_photo:
         file_urls["id_photo_url"] = save_file(id_photo, upload_dir)
 
-    document_data = StudentDocumentsUpdate(**file_urls)  
+    document_data = StudentDocumentsUpdate(**file_urls)
 
     updated_document = handler.update_document(document.id, document_data)
-    
+
     return updated_document
 
 
@@ -105,7 +120,9 @@ def save_file(file: UploadFile, upload_dir: str) -> str:
 
 
 @router.get("/download-file")
-def download_file(file_url: str = Query(..., description="The URL of the file to download")):
+def download_file(
+    file_url: str = Query(..., description="The URL of the file to download")
+):
     """
     Takes the URL of a file and returns the actual file.
     """
@@ -117,8 +134,9 @@ def download_file(file_url: str = Query(..., description="The URL of the file to
     return FileResponse(
         file_url,
         media_type="application/octet-stream",
-        filename=os.path.basename(file_url)
+        filename=os.path.basename(file_url),
     )
+
 
 @router.get("/clerk/documents-by-username", response_model=StudentDocumentsRead)
 def get_documents_by_student_username(
