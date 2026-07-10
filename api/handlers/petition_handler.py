@@ -11,6 +11,7 @@ from api.db.managers.budget_position_manager import BudgetPositionManager
 from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.managers.student_document import StudentDocumentManager
 from api.db.schema.petition import Petition
+from api.handlers.budget_position_handler import BudgetPositionsHandler
 from api.handlers.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
 from api.pdf.contract import create_contract_pdf
@@ -27,7 +28,6 @@ class PetitionHandler:
 
     def __init__(self, db: Session, object_instance: Optional[Petition] = None):
         self.manager = PetitionManager(db)
-        self.budget_position_manager = BudgetPositionManager(db)
         self.student_document_manager = StudentDocumentManager(db)
         self.employee_manager = EmployeeManager(db)
         self.db = db
@@ -713,19 +713,8 @@ class PetitionHandler:
 
         # This makes approved budget positions unapproved again
         if not budget_positions_updated:
-            budget_positions = (
-                self.budget_position_manager.get_budget_positions_by_petition(
-                    petition
-                )
-            )
-            for budget_position in budget_positions:
-                if budget_position.budget_position_approved:
-                    self.budget_position_manager.update_budget_position_status(
-                        budget_position.id, False
-                    )
-
-        # Send emails to budget approvers if budget positions were updated
-        self._send_budget_position_update_emails(petition)
+            budget_positions_handler = BudgetPositionsHandler.from_petition(self.db, self._object_instance)
+            budget_positions_handler.reset_approval_status()
 
         if (
                 petition.status == PetitionStatus.APPROVER_REVISION
