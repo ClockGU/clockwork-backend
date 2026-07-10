@@ -72,13 +72,8 @@ class PetitionManager:
         return petitions
 
     def update_petition(
-        self, petition_id: UUID, petition_data: dict
+        self, petition: Petition, petition_data: dict
     ) -> Optional[Petition]:
-        # Find the petition first
-        petition = self.db.get(self.schema, petition_id)
-        if not petition:
-            return None
-
         # Extract budget positions from update data
         budget_positions_data = petition_data.pop("budget_positions", None)
 
@@ -90,13 +85,13 @@ class PetitionManager:
         if budget_positions_data:
             # Delete existing budget positions
             self.db.execute(
-                delete(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
+                delete(BudgetPosition).where(BudgetPosition.petition_id == petition.id)
             )
             # Create new budget positions
             self.db.add_all(
                 [
                     BudgetPosition(
-                        petition_id=petition_id,
+                        petition_id=petition.id,
                         **(budget_position | {"budget_position_approved": False}),
                     )
                     for budget_position in budget_positions_data
