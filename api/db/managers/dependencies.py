@@ -1,7 +1,9 @@
+from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException
 from sqlmodel import Session
+from starlette.requests import Request
 
 from api.db.dependencies import get_db
 from api.db.managers import PetitionManager
@@ -9,8 +11,15 @@ from api.db.schema import Petition
 
 
 def get_specified_petition(
-    petition_id: UUID, db: Session = Depends(get_db)
-) -> Petition:
+    petition_id: Optional[UUID], request: Request,db: Session = Depends(get_db)
+) -> Optional[Petition]:
+    """
+    Dependency function to retrieve a specified petition if a petition_id was provided in the path.
+    :raises: HTTPException with status code 404 if the petition is not found.
+    """
+    if not petition_id:
+        return None
+
     existing_petition = PetitionManager(db).get_petition(petition_id)
     if not existing_petition:
         raise HTTPException(
