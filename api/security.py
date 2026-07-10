@@ -125,8 +125,7 @@ def get_current_student(request: Request, db: Session = Depends(get_db)):
             }
             new_employee = employee_handler.create_employee(new_employee_data)
 
-            # Create a new document entry for the employee
-            document_handler.manager.create_document({"employee_id": new_employee.id})
+            document_handler.create_document(new_employee)
         return payload
 
     except jwt.ExpiredSignatureError:

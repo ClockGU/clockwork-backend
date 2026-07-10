@@ -272,7 +272,7 @@ class EmailHandler:
         except Exception as e:
             print(f"Error sending budget position update emails: {str(e)}", flush=True)
 
-    def send_clerk_approval_email(self, approved: bool, budget_positions: list) -> None:
+    def send_clerk_approval_email(self, budget_positions: list["BudgetPosition"]) -> None:
         """Send email when clerk approves or rejects petition"""
         if not self.petition:
             raise ValueError("Petition is required for this email operation")
@@ -282,11 +282,11 @@ class EmailHandler:
                 self.send_email(
                     recipient=self.petition.supervisor_mail,
                     subject="[ClockWork] Neuer Antragstatus / Application status update",
-                    body=f"Der Antrag {self.petition.id} wurde von PersonalServices {'freigegeben' if approved else 'zurückgewiesen'}.\n\n"
+                    body=f"Der Antrag {self.petition.id} wurde von PersonalServices freigegeben.\n\n"
                     f"Bitte melden Sie sich an, um den Antragsstatus zu überprüfen."
                     f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                     f"\n\n--------------\n\n"
-                    f"Your application {self.petition.id} has been {'approved' if approved else 'rejected'} by PersonalServices.\n\n"
+                    f"Your application {self.petition.id} has been approved by PersonalServices.\n\n"
                     f"Please log in and review the application's status."
                     f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
                 )
@@ -295,10 +295,10 @@ class EmailHandler:
                 self.send_email(
                     recipient=budget_position.budget_approver,
                     subject="[ClockWork] Neuer Antragstatus / Application status update",
-                    body=f"Der Antrag {self.petition.id} wurde von PersonalServices {'freigegeben' if approved else 'zurückgewiesen'}."
+                    body=f"Der Antrag {self.petition.id} wurde von PersonalServices freigegeben."
                          f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                     f"\n\n--------------\n\n"
-                    f"The application {self.petition.id} has been {'approved' if approved else 'rejected'} by PersonalServices."
+                    f"The application {self.petition.id} has been approved by PersonalServices."
                     f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n"
                 )
         except Exception as e:

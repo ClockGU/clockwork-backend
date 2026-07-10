@@ -1,24 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from typing import List
 from uuid import UUID
 from sqlmodel import Session
-from json import dumps, JSONEncoder
+from json import JSONEncoder
 from datetime import date
 
 from api.env import settings
 from api.handlers import PetitionHandler, EmailHandler
 from api.pydantic_models import (
-    PetitionSupervisorCreate,
     PetitionRead,
-    PetitionSupervisorUpdate
+    PetitionSupervisorUpdate, PetitionCreate
 )
 from api.db.dependencies import get_db
+from api.pydantic_models.dependencies import get_supervisor_petition_update_model
 from api.security import (
-    get_current_supervisor, 
-    get_current_student, 
-    get_current_clerk,
-    generate_signature,
-    verify_signature
+    get_current_supervisor,
+    generate_signature
 )
 
 # Custom JSON encoder to handle UUIDs and dates
@@ -42,7 +39,7 @@ def get_petition_handler(
 
 @router.post("/supervisor/petitions", response_model=PetitionRead)
 async def create_petition(
-    petition: PetitionSupervisorCreate,
+    petition: PetitionCreate,
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_supervisor)
 ):
@@ -92,7 +89,7 @@ def read_petition(
 @router.patch("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
 def update_petition(
     petition_id: UUID,
-    petition: PetitionSupervisorUpdate,
+    petition: PetitionSupervisorUpdate = Depends(get_supervisor_petition_update_model),
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_supervisor)
 ):

@@ -65,19 +65,15 @@ class EmployeeHandler:
             raise self.exc.not_found("Employees", message="No employees found")
         return employees
 
-    def update_employee(self, employee_id: UUID, employee_data: dict) -> Employee:
+    def update_employee(self, employee: Employee, employee_data: dict) -> Employee:
         """
         Update an existing employee record.
         """
-        # Check if the employee exists
-        existing_employee = self.manager.get_employee(employee_id)
-        if not existing_employee:
-            raise self.exc.not_found("Employee", str(employee_id))
 
         # Proceed with the update
-        updated_employee = self.manager.update_employee(employee_id, employee_data)
+        updated_employee = self.manager.update_employee(employee, employee_data)
         if not updated_employee:
-            raise self.exc.update_failed("Employee", str(employee_id))
+            raise self.exc.update_failed("Employee", str(employee))
         return updated_employee
 
     def delete_employee(self, employee_id: UUID) -> dict:
@@ -140,7 +136,7 @@ class EmployeeHandler:
         
         # Convert to Pydantic models
         employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
-        petition_read = PetitionRead.model_validate(petition, from_attributes=True)
+        petition_read = PetitionRead.model_validate(petition)
         
         # Generate PDF
         try:

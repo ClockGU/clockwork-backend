@@ -8,6 +8,7 @@ class PetitionStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
+    SUPERVISOR_ACTION = "supervisor_action"
     STUDENT_ACTION = "student_action"
     APPROVER_ACTION = "approver_action"
     APPROVER_REVISION = "approver_revision"

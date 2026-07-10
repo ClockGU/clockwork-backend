@@ -27,7 +27,7 @@ def update_employee_by_user(
     """
     # Use the handler to get the employee by user_account
     employee = handler.get_employee_by_user_account(user.get("sub"))
-    updated_employee = handler.update_employee(employee.id, employee_data.dict(exclude_unset=True))
+    updated_employee = handler.update_employee(employee, employee_data.dict(exclude_unset=True))
     return updated_employee
 
 

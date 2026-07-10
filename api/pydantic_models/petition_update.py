@@ -1,16 +1,26 @@
+"""
+Implementation of Pydantic models for updating petitions.
+The choice to overwrite the model_validate method is made to ensure that when updating
+a petition, the new data is validated against the same rules as when creating a petition.
+This ensures that the petition remains valid after updates.
+
+Subclasses of PetitionUpdateBase can be created for different user roles (e.g., supervisor, clerk, student)
+and implement role-specific validation logic if needed.
+"""
+
 from sqlmodel import SQLModel
-from typing import Optional, List
+from typing import Optional, List, Type, Any, Union, Dict
 from datetime import date
-import uuid
 from pydantic import (
-    field_validator, 
-    model_validator, 
     BaseModel
     )
-import re
 
-from api.consts import PetitionStatus, LEGAL_REGULAR_CONTRACT_LENGTH, LEGAL_REGULAR_WORKTIME
+from sqlmodel.main import _TSQLModel
+from api.consts import PetitionStatus
+from . import PetitionCreate, PetitionRead
 from .budget_position import BudgetPositionCreate
+from .validators.petition_validators import SupervisorUpdateValidator, StudentUpdateValidator, ClerkUpdateValidator
+from ..db.schema import Petition
 
 
 class PetitionUpdateBase(SQLModel):
@@ -40,134 +50,63 @@ class PetitionUpdateBase(SQLModel):
     duration_exce_start: Optional[date] = None
     duration_exce_end: Optional[date] = None
 
-    @field_validator("end_date")
-    def validate_dates(cls, end_date, info):
-        start_date = info.data.get("start_date")
-        if start_date and end_date and end_date <= start_date:
-            raise ValueError("end_date must be after start_date")
-        return end_date
+    @classmethod
+    def model_validate(
+        cls: Type[_TSQLModel],
+        obj: Any,
+        existing: Petition,
+        *,
+        strict: Union[bool, None] = None,
+        from_attributes: Union[bool, None] = None,
+        context: Union[Dict[str, Any], None] = None,
+        update: Union[Dict[str, Any], None] = None,
+    ) -> _TSQLModel:
+        """
+        Implementation of pydantic model validation for updating a petition.
 
-    @field_validator("minutes")
-    def validate_minutes(cls, minutes):
-        if minutes is not None and minutes <= 0:
-            raise ValueError("minutes must be greater than 0")
-        return minutes
-    
-    @field_validator("eos_number")
-    def validate_eos_number(cls, eos_number):
-        # Accept either 6 digits OR 'F' followed by 6 digits
-        if eos_number is not None and not re.match(r"^(F\d{6}|\d{6})$", eos_number):
-            raise ValueError("eos_number must be either 6 digits or start with 'F' followed by 6 digits (e.g., F123456 or 123456)")
-        return eos_number
+        On update a petition has to be still valid as if it was created.
+        Therefore, we merge the existing petition data with the new data
+        and validate it against the PetitionCreate model.
 
-    @field_validator("student_username")
-    def validate_student_username(cls, student_username):
-        if student_username is None or student_username == "":
-                raise ValueError("student_username is required")
-        return student_username
+        We stricten the type of obj to the respective model class since the
+        fastapi routes will use it as parser on the route anyway.
 
-    @field_validator("budget_positions")
-    def validate_budget_positions(cls, budget_positions):
-        if budget_positions is not None and len(budget_positions) == 0:
-            raise ValueError("At least one budget position is required if budget_positions is provided")
-        return budget_positions
+        Addition of existing to context.
+        In order to utilize mixin validator classes that require access to the existing petition
+        it is added to the context dict.
+        """
+        existing_read = PetitionRead.model_validate(existing)
+        merged = existing_read.model_dump() | obj
+        PetitionCreate.model_validate(merged)
+        context = {**(context or {}), "existing": existing}
+        return super(PetitionUpdateBase, cls).model_validate(obj, strict=strict,from_attributes=from_attributes, context=context, update=update)
 
-    @model_validator(mode="after")
-    def validate_time_exc(cls, values):
-        # Check if any time_exc fields are provided
-        time_exc_fields = [
-            # values.time_exce_start,
-            # values.time_exce_end,
-            values.time_exce_time,
-            values.time_exce_name,
-        ]
-        provided = [field for field in time_exc_fields if field is not None]
-        
-        # If some but not all are provided, raise error
-        if 0 < len(provided) < len(time_exc_fields):
-            raise ValueError("All time_exc fields must be provided together or not at all")
-        return values
+class PetitionUpdate(PetitionUpdateBase):
+    pass
 
-    @model_validator(mode="after")
-    def validate_duration_exc(cls, values):
-        # Check if any duration_exc fields are provided
-        duration_exc_fields = [
-            values.duration_exce_start,
-            values.duration_exce_end,
-            values.duration_exce_name,
-        ]
-        provided = [field for field in duration_exc_fields if field is not None]
-        
-        # If some but not all are provided, raise error
-        if 0 < len(provided) < len(duration_exc_fields):
-            raise ValueError("All duration_exc fields must be provided together or not at all")
-        return values
-
-    @model_validator(mode="after")
-    def validate_duration_requirement(cls, values):
-        if values.start_date and values.end_date:
-            days_diff = (values.end_date - values.start_date).days
-            if days_diff < LEGAL_REGULAR_CONTRACT_LENGTH:
-                if not values.duration_exce_name:
-                    raise ValueError("Contract duration is less than 1 year, duration_exception fields must be provided")
-        return values
-
-    @model_validator(mode="after")
-    def validate_time_requirement(cls, values):
-        if values.minutes is not None and values.minutes < LEGAL_REGULAR_WORKTIME:
-            if not values.time_exce_name:
-                raise ValueError("Worktime is less than 40h/month, time_exception fields must be provided")
-        return values
-
-    @model_validator(mode="after")
-    def validate_budget_percentage_sum(cls, values):
-        """Validate that budget position percentages sum up to 100 if budget_positions are provided"""
-        budget_positions = values.budget_positions
-        
-        # Only validate if budget_positions are being updated
-        if budget_positions is not None:
-            if len(budget_positions) == 0:
-                raise ValueError("At least one budget position is required if budget_positions is provided")
-            
-            # Calculate total percentage
-            # TODO: Change Percentage from decimal representation to intiger representation (e.g., 25% as 25) to avoid floating point issues
-            total_percentage = sum(budget_pos.percentage for budget_pos in budget_positions)
-            
-            # Check if total percentage equals 100
-            if abs(total_percentage - 100.0) > 0.01:
-                raise ValueError(f"Total budget position percentages must sum to 100, but got {total_percentage}")
-        
-        return values
-
-
-class PetitionSupervisorUpdate(PetitionUpdateBase):
+class PetitionSupervisorUpdate(PetitionUpdate, SupervisorUpdateValidator):
     """
     Pydantic model for updating a petition by supervisor.
     Inherits from PetitionUpdateBase.
+    Adds validation restricting updates for Supervisor role to petitions in status SUPERVISOR_ACTION.
     """
     pass
 
 
-class PetitionClerkUpdate(BaseModel):
+class PetitionClerkUpdate(PetitionUpdate, ClerkUpdateValidator):
     """
     Pydantic model for updating a petition by clerk.
     May have different permissions than supervisor updates.
     """
     approved : bool
 
-class PetitionStudentUpdate(BaseModel):
+class PetitionStudentUpdate(PetitionUpdate, StudentUpdateValidator):
     """
     Pydantic model for student petition acceptance.
     Only allows status updates with specific values.
     """
     approved: bool
 
-class PetitionApproverUpdate(PetitionUpdateBase):
-    """
-    Pydantic model for updating a petition by student.
-    May have different permissions than supervisor and clerk updates.
-    """
-    pass
 
 class ClerkRevisionRequest(BaseModel):
     message: str
@@ -176,6 +115,8 @@ class ClerkRevisionRequest(BaseModel):
 class ClerkDeletionRequest(BaseModel):
     reason: str = ""
 
-class PetitionStudentUpdateRequest(BaseModel):
+class StudenRevisionRequest(BaseModel):
     body: str
     subject: Optional[str] = None
+
+PetitionUpdateModel = Union[PetitionSupervisorUpdate, PetitionClerkUpdate, PetitionStudentUpdate]

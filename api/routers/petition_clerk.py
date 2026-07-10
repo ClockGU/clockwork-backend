@@ -3,6 +3,8 @@ from typing import List
 from uuid import UUID
 from sqlmodel import Session
 
+from api.db.managers.dependencies import get_specified_petition
+from api.db.schema import Petition
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
     PetitionRead, 
@@ -11,6 +13,7 @@ from api.pydantic_models import (
     ClerkDeletionRequest
     )
 from api.db.dependencies import get_db
+from api.pydantic_models.dependencies import get_clerk_petition_update_model
 from api.security import get_current_clerk
 from api.consts import PetitionStatus
 from api.websockets.routers.web_socket import send_serialized_data_to_clerks
@@ -35,41 +38,42 @@ def list_petitions_by_status(
 # 2. API to delete a petition by ID
 @router.delete("/clerk/petitions/{petition_id}")
 async def delete_petition(
-    petition_id: UUID,
+    petition: Petition = Depends(get_specified_petition),
     deletion_request: ClerkDeletionRequest = Body(default=ClerkDeletionRequest(reason="")),
     handler: PetitionHandler = Depends(get_petition_handler),
     user = Depends(get_current_clerk)
 ):
-    success = handler.delete_petition_as_clerk(petition_id, deletion_request.reason)
+    success = handler.delete_petition_as_clerk(petition, deletion_request.reason)
     await send_serialized_data_to_clerks([petition.dict(by_alias=True, exclude_none=True) for petition in handler.get_petitions_clerk()])
     return success
+
 # 3. API to update a petition
-@router.patch("/clerk/petitions/{petition_id}")
+@router.patch("/clerk/petitions/{petition_id}", response_model=PetitionRead)
 async def update_petition_as_clerk(
-    petition_id: UUID,
-    petition_data: PetitionClerkUpdate,
+    petition: Petition = Depends(get_specified_petition),
+    petition_data: PetitionClerkUpdate = Depends(get_clerk_petition_update_model),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)  
 ):
     updated_petition = handler.update_petition_as_clerk(
-        petition_id=petition_id,
+        petition=petition,
         approved=petition_data.approved
     )
     if updated_petition.status == 'rejected':
-        updated_petition = handler.delete_petition(petition_id)
+        return handler.delete_petition(petition)
    
    
     return updated_petition
 
 @router.patch("/clerk/petitions/{petition_id}/request-revision", response_model=PetitionRead)
 async def request_revision_from_student(
-    petition_id: UUID,
+    petition: Petition = Depends(get_specified_petition),
     revision: ClerkRevisionRequest = Body(...),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk)
 ):
     updated_petition = handler.request_revision_from_student(
-        petition_id=petition_id,
+        petition=petition,
         message=revision.message,
         subject=revision.subject
     )

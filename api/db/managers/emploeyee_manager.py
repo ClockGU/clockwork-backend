@@ -55,14 +55,10 @@ class EmployeeManager:
         result = self.db.execute(statement)
         return result.scalars().first()
 
-    def update_employee(self, employee_id: UUID, employee_data: dict) -> Optional[Employee]:
+    def update_employee(self, employee: Employee, employee_data: dict) -> Optional[Employee]:
         """
         Update an existing employee record.
         """
-        employee = self.db.get(self.schema, employee_id)
-        if not employee:
-            return None
-
         # Update only the provided fields
         for key, value in employee_data.items():
             setattr(employee, key, value)
