@@ -65,6 +65,9 @@ def read_petitions_by_user(
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
+    """
+    LIST endpoint for a supervisor to get all petitions they are involved in.
+    """
     petitions = handler.get_petitions_by_user(user.get("sub"))
     return petitions
 
