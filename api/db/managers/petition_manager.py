@@ -139,25 +139,13 @@ class PetitionManager:
 
     def get_student_petitions(self, student_username: str) -> List[Petition]:
         # Retrieve all petitions for a student and check the status
-        # TODO: Get rid of unnecessary statuses APPROVED, REJECTED, PENDING
-        statement = select(self.schema).where(
-            (self.schema.student_username == student_username)
-            & (
-                (self.schema.status != PetitionStatus.APPROVED)
-                | (self.schema.status != PetitionStatus.REJECTED)
-            )
+        statement = (
+            select(self.schema)
+            .where(self.schema.student_username == student_username)
+            .options(selectinload(self.schema.budget_positions))
         )
         result = self.db.execute(statement)
         petitions = result.scalars().all()
-
-        # Load budget positions for each petition
-        for petition in petitions:
-            budget_statement = select(BudgetPosition).where(
-                BudgetPosition.petition_id == petition.id
-            )
-            budget_result = self.db.execute(budget_statement)
-            petition.budget_positions = budget_result.scalars().all()
-
         return petitions
 
     def get_petitions_by_status(
