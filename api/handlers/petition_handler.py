@@ -256,17 +256,6 @@ class PetitionHandler:
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
 
-    def get_petitions_by_budget_approver(
-        self, budget_approver_email: str
-    ) -> List[Petition]:
-        petitions = self.manager.get_petitions_by_budget_approver(budget_approver_email)
-        if not petitions:
-            raise self.exc.not_found(
-                "Petitions",
-                message=f"No petitions found for budget approver with email {budget_approver_email}",
-            )
-        return petitions
-
 
     def _check_student_semester_eligibility(
         self, student_username: str, start_date: date
