@@ -512,7 +512,6 @@ class PetitionHandler:
 
     def mark_revision_done_student(self, petition_id: UUID) -> Petition:
         petition = self.manager.get_petition(petition_id)
-
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
         if petition.status != PetitionStatus.CLERK_REVISION:
@@ -717,9 +716,7 @@ class PetitionHandler:
         else:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
 
-    def update_petition_as_supervisor(
-        self, petition_data: PetitionUpdateModel
-    ) -> Petition:
+    def update_petition_as_supervisor(self, petition_data: PetitionUpdateModel) -> Petition:
         petition = self.get_object()
         update_data = petition_data.model_dump(exclude_unset=True)
 
