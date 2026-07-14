@@ -17,14 +17,13 @@ router = APIRouter()
     response_model=PetitionRead,
 )
 def read_petition(
-    petition_id: UUID,
     signature: str,
     budget_position_id: UUID,
     handler: PetitionHandler = Depends(get_petition_handler),
 ):
     if not verify_signature(signature):
         raise HTTPException(status_code=403, detail="Invalid signature")
-    petition = handler.get_petition_for_approver_action(petition_id, budget_position_id)
+    petition = handler.get_petition_for_approver_action(budget_position_id)
     return petition
 
 
