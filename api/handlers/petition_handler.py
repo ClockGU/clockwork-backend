@@ -559,7 +559,6 @@ class PetitionHandler:
         budget_position_approved: bool,
         message: Optional[str] = None,
         revision_requested: bool = False,
-        rejected: bool = False,
         subject: Optional[str] = None,
     ) -> Petition:
         """Update budget position approval and handle petition status accordingly"""
