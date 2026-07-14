@@ -596,7 +596,7 @@ class PetitionHandler:
             if budget_position_approved:
                 # Check if all budget positions are now approved
                 all_approved = (
-                    self.budget_position_manager.check_all_budget_positions_approved(
+                    self.budget_positions_handler.check_all_budget_positions_approved(
                         petition.id
                     )
                 )
