@@ -134,7 +134,7 @@ class ClerkDeletionRequest(BaseModel):
 
 
 class StudenRevisionRequest(BaseModel):
-    body: str
+    message: str
     subject: Optional[str] = None
 
 
