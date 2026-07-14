@@ -89,8 +89,6 @@ async def request_revision_from_supervisor(
     Sends email to supervisor and changes petition status to 'student_revision'.
     Body: {"body": "revision message"}
     """
-    if not revision_data.body:
-        raise HTTPException(status_code=400, detail="Revision request text is required")
 
     updated_petition = handler.request_revision_from_supervisor(
         petition, revision_data.body, subject=revision_data.subject
