@@ -416,16 +416,7 @@ class PetitionHandler:
 
     def approve_petition_as_clerk(self, petition: Petition) -> Petition:
 
-        # Update petition status
-        petition = self.manager.update_petition_status(
-            petition, PetitionStatus.AWAITING_SIGNATURE
-        )
-
-        email_handler = EmailHandler(petition)
-        budget_positions = (
-            self.budget_position_manager.get_budget_positions_by_petition(petition.id)
-        )
-        email_handler.send_clerk_approval_email(budget_positions)
+        budget_positions = self.budget_positions_handler.get_objects()
 
         try:
             employee = self.employee_manager.get_employee_by_username(
@@ -438,12 +429,23 @@ class PetitionHandler:
             petition_read = PetitionRead.model_validate(petition)
 
             contract_pdf_buffer = create_contract_pdf(employee_read, petition_read)
+            
+        except Exception as e:
+            raise self.exc.internal_error("creating contract PDF", e)
 
-            # Send contract PDF via email
+        try:
+
+            email_handler = EmailHandler(petition)
             email_handler.send_contract_pdf_email(contract_pdf_buffer)
+            email_handler.send_clerk_approval_email(budget_positions)
 
         except Exception as e:
-            raise self.exc.internal_error("creating/sending contract PDF", e)
+            raise self.exc.internal_error("sending contract PDF", e)
+
+        # Update petition status
+        petition = self.manager.update_petition_status(
+            petition, PetitionStatus.AWAITING_SIGNATURE
+        )
 
         return petition
 
