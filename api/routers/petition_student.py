@@ -7,6 +7,7 @@ from sqlmodel import Session
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import get_specified_petition
 from api.db.schema import Petition
+from api.handlers.dependencies import get_petition_handler
 from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
@@ -26,10 +27,6 @@ def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandle
     return StudentDocumentHandler(db)
 
 
-def get_petition_handler(db: Session = Depends(get_db)) -> PetitionHandler:
-    return PetitionHandler(db)
-
-
 # Api to list all the petitions of students
 @router.get("/students/petitions", response_model=List[PetitionStudentRead])
 def read_petitions(
@@ -39,6 +36,7 @@ def read_petitions(
 ):
     petitions = handler.get_student_petitions(user.get("username"))
     return petitions
+
 
 # TODO: Aproval/Rejection needs to be handled via centralized endpoint. Rejection is always a deletion patch masks that here
 @router.patch("/students/petitions/{petition_id}/student-action")
@@ -75,6 +73,7 @@ async def mark_revision_done(
     return updated_petition
 
 
+# TODO:Should be a POST endpoint
 @router.patch(
     "/students/petitions/{petition_id}/request-revision",
     response_model=PetitionStudentRead,
