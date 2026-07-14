@@ -1,4 +1,5 @@
 from typing import Optional, Self
+from uuid import UUID
 
 from sqlmodel import Session
 
@@ -73,3 +74,9 @@ class BudgetPositionsHandler:
         except Exception as e:
             raise self.exc.internal_error("sending budget position update emails", e)
 
+    def get_assigned_budget_position_by_id(self, budget_position_id: UUID) -> Optional[BudgetPosition]:
+
+        for budget_position in self.get_objects():
+            if budget_position.id == budget_position_id:
+                return budget_position
+        return None
