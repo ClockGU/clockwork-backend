@@ -74,11 +74,10 @@ def read_petitions_by_user(
 
 @router.get("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
 def read_petition(
-    petition_id: UUID,
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
-    petition = handler.get_petition(petition_id)
+    petition = handler.get_petition()
     return petition
 
 

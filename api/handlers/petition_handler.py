@@ -170,11 +170,11 @@ class PetitionHandler:
             raise self.exc.not_found("Petitions", message="No petitions found")
         return petitions
 
-    def get_petition(self, petition_id: UUID) -> Petition:
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-        return petition
+    def get_petition(self) -> Petition:
+        """
+        Get the specified petiition as wrapper for HTTP GET detail endpoint.
+        """
+        return self.get_object()
 
     def get_petition_for_approver_action(
         self, budget_position_id: UUID
