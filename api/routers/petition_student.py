@@ -40,34 +40,6 @@ def read_petitions(
     petitions = handler.get_student_petitions(user.get("username"))
     return petitions
 
-
-# TODO: Endpoint is unused by frontend
-@router.patch("/students/petitions/accept")
-async def update_petition_acceptance(
-    acceptance_data: PetitionStudentUpdate,
-    petition_id: UUID = Query(..., description="The ID of the petition to update"),
-    signature: str = Query(..., description="Security signature for verification"),
-    handler: PetitionHandler = Depends(get_petition_handler),
-):
-    """
-    API for students to accept or reject their petition after receiving approval email.
-    Accepts petition_id and signature as query parameters.
-    Only allows status updates to 'rejected' or 'clerk_action'.
-    """
-    if not verify_signature(signature):
-        raise HTTPException(status_code=403, detail="Invalid signature")
-
-    handler.check_petition_exists(petition_id)
-
-    updated_petition = handler.update_student_petition_status(
-        petition_id=petition_id, status=acceptance_data.status
-    )
-    if updated_petition.status == "rejected":
-        updated_petition = handler.delete_petition(petition_id)
-
-    return updated_petition
-
-
 # TODO: Aproval/Rejection needs to be handled via centralized endpoint. Rejection is always a deletion patch masks that here
 @router.patch("/students/petitions/{petition_id}/student-action")
 async def student_accept_or_reject_petition(
