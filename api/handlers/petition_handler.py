@@ -510,22 +510,6 @@ class PetitionHandler:
         except Exception as e:
             raise self.exc.internal_error("fetching clerk petitions", e)
 
-    def mark_revision_done_student(self, petition_id: UUID) -> Petition:
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-        if petition.status != PetitionStatus.CLERK_REVISION:
-            raise self.exc.invalid_status(
-                PetitionStatus.CLERK_REVISION,
-                message="Revision can only be marked done when petition status is clerk_revision",
-            )
-
-        # Change status back to clerk_action
-        petition = self.manager.update_petition_status(
-            petition_id, PetitionStatus.CLERK_ACTION
-        )
-
-        return petition
 
     def request_revision_from_supervisor(
         self, petition: Petition, message: str, subject: Optional[str] = None

@@ -57,21 +57,6 @@ async def student_accept_or_reject_petition(
     return updated_petition
 
 
-@router.patch(
-    "/students/petitions/{petition_id}/revision-done",
-    response_model=PetitionStudentRead,
-)
-async def mark_revision_done(
-    petition_id: UUID,
-    handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_student),
-):
-    """
-    API for students to mark their petition as revision done.
-    """
-    updated_petition = handler.mark_revision_done_student(petition_id)
-    return updated_petition
-
 
 # TODO:Should be a POST endpoint
 @router.patch(
