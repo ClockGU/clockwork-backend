@@ -5,6 +5,26 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
 
+class EmployeeValidate(BaseModel):
+    first_name: str
+    last_name: str
+    user_email: str
+    form_of_address: str
+    gender: str
+    date_of_birth: date
+    city_of_birth: str
+    address: str
+    postal_code: str
+    married: bool
+    nationality: str
+    telephone_number: str
+    health_insurance: str
+    previously_employed: bool
+    prev_emp_duration: str
+    iban: str
+    bic: str
+    bank_name: str
+
 class EmployeeUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None

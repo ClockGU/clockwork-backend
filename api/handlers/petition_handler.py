@@ -16,6 +16,7 @@ from api.handlers.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
 from api.pdf.contract import create_contract_pdf
 from api.pydantic_models import EmployeeRead, PetitionCreate, PetitionRead
+from api.pydantic_models.employee import EmployeeValidate
 from api.pydantic_models.petition_update import (
     PetitionSupervisorUpdate,
     PetitionUpdateModel,
@@ -379,10 +380,9 @@ class PetitionHandler:
                 raise self.exc.bad_request(
                     "You cannot approve the petition unless you are registered as an employee."
                 )
-            if employee.date_of_birth is None or employee.address is None:
-                raise self.exc.bad_request(
-                    "You cannot approve the petition unless your employee profile is complete (date of birth and address)."
-                )
+            # Validate all fields are populated
+            EmployeeValidate.model_validate(employee, from_attributes=True)
+
             has_uploaded_documents = (
                 self.student_document_manager.check_student_documents_uploaded(
                     employee, check_ba_degree=petition.ba_degree
@@ -485,8 +485,6 @@ class PetitionHandler:
             PetitionStatus.CLERK_ACTION,
         ]
         return self.manager.get_petitions_by_status(statuses)
-
-
 
     def request_revision_from_supervisor(
         self, petition: Petition, message: str, subject: Optional[str] = None
