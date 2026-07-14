@@ -96,9 +96,9 @@ def update_petition(
 
 @router.delete("/supervisor/petitions/{petition_id}")
 def delete_petition(
-    petition_id: UUID,
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
-    success = handler.delete_petition(petition_id)
+    # TODO: Maybe simply calling handler.delete_petition() is not enough, we might need to add some mail logic to it.
+    success = handler.delete_petition()
     return {"detail": "Petition deleted successfully"}
