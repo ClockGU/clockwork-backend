@@ -242,20 +242,6 @@ class PetitionHandler:
             )
         return petitions
 
-    def get_petitions_by_status(self, status: str) -> List[Petition]:
-        petitions = self.manager.get_petitions_by_status(status)
-        if not petitions:
-            raise self.exc.not_found(
-                "Petitions", message=f"No petitions found with status '{status}'"
-            )
-        return petitions
-
-    def check_petition_exists(self, petition_id: UUID) -> None:
-        # Check if the petition exists
-        petition = self.manager.get_petition(petition_id)
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-
 
     def _check_student_semester_eligibility(
         self, student_username: str, start_date: date
