@@ -555,7 +555,6 @@ class PetitionHandler:
 
     def update_budget_position_approval(
         self,
-        petition_id: UUID,
         budget_position_id: UUID,
         budget_position_approved: bool,
         message: Optional[str] = None,
@@ -565,9 +564,7 @@ class PetitionHandler:
     ) -> Petition:
         """Update budget position approval and handle petition status accordingly"""
         try:
-            petition = self.manager.get_petition(petition_id)
-            if not petition:
-                raise self.exc.not_found("Petition", str(petition_id))
+            petition = self.get_object()
 
             # Check if budget position exists and belongs to this petition
             budget_position = self.budget_position_manager.get_budget_position(
