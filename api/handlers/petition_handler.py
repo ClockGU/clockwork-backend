@@ -649,63 +649,6 @@ class PetitionHandler:
         except Exception as e:
             raise self.exc.internal_error("updating budget position", e)
 
-    def update_student_petition_status(
-        self, petition_id: UUID, status: str
-    ) -> Petition:
-        """Update petition status when student accepts or rejects the petition"""
-        try:
-            # Check if petition exists
-            petition = self.manager.get_petition(petition_id)
-            if not petition:
-                raise self.exc.not_found("Petition", str(petition_id))
-
-            # Check if petition is in the correct status to be updated by student
-            if petition.status != PetitionStatus.STUDENT_ACTION:
-                raise self.exc.invalid_status(
-                    petition.status,
-                    PetitionStatus.STUDENT_ACTION,
-                    "Petition status must be 'student_action' to be updated by student",
-                )
-            if status == PetitionStatus.CLERK_ACTION:
-                # Check if student has uploaded documents before approving
-                employee = self.employee_manager.get_employee_by_username(
-                    petition.student_username
-                )
-                if not employee:
-                    raise self.exc.bad_request(
-                        "You cannot approve the petition unless you are registered as an employee."
-                    )
-                if employee.date_of_birth is None or employee.address is None:
-                    raise self.exc.bad_request(
-                        "You cannot approve the petition unless your employee profile is complete (date of birth and address)."
-                    )
-            # Update petition status using manager
-            petition = self.manager.update_petition_status(petition_id, status)
-            if not petition:
-                raise self.exc.update_failed(
-                    "Petition", message="Failed to update petition status"
-                )
-
-            # Load budget positions
-            petition.budget_positions = (
-                self.budget_position_manager.get_budget_positions_by_petition(
-                    petition_id
-                )
-            )
-
-            # Send notification emails based on status
-            if status == PetitionStatus.CLERK_ACTION:
-                self._send_student_acceptance_email(petition)
-            elif status == PetitionStatus.REJECTED:
-                self._send_student_rejection_email(petition)
-
-            return petition
-
-        except HTTPException as e:
-            raise
-        except Exception as e:
-            raise self.exc.internal_error("updating petition status", e)
-
     # TODO: untangle the acception from rejection
     def update_petition_as_clerk(self, approved: bool) -> Petition:
 
