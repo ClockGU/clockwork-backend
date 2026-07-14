@@ -199,7 +199,7 @@ class EmailHandler:
             print(f"Error sending revision request email: {str(e)}", flush=True)
 
     def send_rejection_email(
-        self, rejected_budget_position: "BudgetPosition", budget_positions: list
+        self, rejected_budget_position: BudgetPosition, budget_positions: list[BudgetPosition]
     ) -> None:
         """Send email when a budget position is rejected"""
         if not self.petition:
