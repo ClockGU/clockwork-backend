@@ -128,20 +128,14 @@ class PetitionHandler:
         """Send email when a budget approver requests revision"""
         try:
             email_handler = EmailHandler(petition)
-
-            # Get all budget positions for this petition
-            budget_positions = (
-                self.budget_position_manager.get_budget_positions_by_petition(
-                    petition.id
-                )
-            )
+            budget_positions = self.budget_positions_handler.get_objects()
 
             email_handler.send_revision_request_email(
                 requesting_budget_position, budget_positions, message, subject
             )
 
         except Exception as e:
-            print(f"Error sending revision request email: {str(e)}", flush=True)
+            self.exc.not_found(f"Error sending revision request email: {str(e)}")
 
     def _send_rejection_email(
         self, petition: Petition, rejected_budget_position
