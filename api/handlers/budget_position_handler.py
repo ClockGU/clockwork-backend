@@ -80,3 +80,11 @@ class BudgetPositionsHandler:
             if budget_position.id == budget_position_id:
                 return budget_position
         return None
+
+    def update_budget_position_status(self, budget_position: BudgetPosition, status: bool) -> BudgetPosition:
+        updated = self.manager.update_budget_position_status(budget_position, status)
+        if not updated:
+            raise self.exc.update_failed(
+                "Budget position", message="Failed to update budget position"
+            )
+        return updated

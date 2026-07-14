@@ -567,8 +567,10 @@ class PetitionHandler:
             petition = self.get_object()
 
             # Check if budget position exists and belongs to this petition
-            budget_position = self.budget_positions_handler.get_assigned_budget_position_by_id(
-                budget_position_id
+            budget_position = (
+                self.budget_positions_handler.get_assigned_budget_position_by_id(
+                    budget_position_id
+                )
             )
             if not budget_position:
                 raise self.exc.not_found("Budget position", str(budget_position_id))
@@ -585,14 +587,10 @@ class PetitionHandler:
 
             # Update the budget position status
             updated_budget_position = (
-                self.budget_position_manager.update_budget_position_status(
-                    budget_position_id, budget_position_approved
+                self.budget_positions_handler.update_budget_position_status(
+                    budget_position, budget_position_approved
                 )
             )
-            if not updated_budget_position:
-                raise self.exc.update_failed(
-                    "Budget position", message="Failed to update budget position"
-                )
 
             # Handle different status cases
             if budget_position_approved:
@@ -634,9 +632,7 @@ class PetitionHandler:
 
             # Load budget positions
             petition.budget_positions = (
-                self.budget_position_manager.get_budget_positions_by_petition(
-                    petition
-                )
+                self.budget_position_manager.get_budget_positions_by_petition(petition)
             )
 
             return petition
