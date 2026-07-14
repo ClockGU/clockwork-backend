@@ -464,14 +464,14 @@ class PetitionHandler:
 
     def complete_petition_as_clerk(self, petition: Petition) -> Petition:
 
+        # Send completion emails
+        email_handler = EmailHandler(petition)
+        email_handler.send_petition_completion_emails()
+
         # Update petition status to completed
         petition = self.manager.update_petition_status(
             petition, PetitionStatus.COMPLETED
         )
-
-        # Send completion emails
-        email_handler = EmailHandler(petition)
-        email_handler.send_petition_completion_emails()
 
         return petition
 
