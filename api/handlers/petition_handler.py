@@ -94,10 +94,13 @@ class PetitionHandler:
                     petition.student_username, check_ba_degree=petition.ba_degree
                 )
             )
+            # TODO: is_semester_eligible is a built in check that a student may only have one petition going!!! Big issue
+            # TODO: is_semeste_eligible should stand for "Send mail that all data is present" aka no more uploads are required.
             is_semester_eligible = self._check_student_semester_eligibility(
                 petition.student_username, petition.start_date
             )
-
+            # TODO: send_approval_emails sends a mail to student to provide data,
+            #  if he is eligible and has uploaded documents already we send him another mail saying he just needs to approve.
             # Use the existing send_approval_emails method from EmailHandler
             email_handler.send_approval_emails(
                 budget_positions, has_uploaded_documents, is_semester_eligible
@@ -302,7 +305,7 @@ class PetitionHandler:
         self, student_username: str, start_date: date
     ) -> bool:
         """
-        Check if student is eligible to have a petition in the given semester.
+        Check if the student is eligible to have a petition in the given semester.
         Returns True if eligible (no approved petition in same semester), False otherwise.
         """
         try:
