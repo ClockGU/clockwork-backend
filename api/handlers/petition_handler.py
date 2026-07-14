@@ -414,8 +414,9 @@ class PetitionHandler:
 
         return petition
 
-    def approve_petition_as_clerk(self, petition: Petition) -> Petition:
+    def approve_petition_as_clerk(self) -> Petition:
 
+        petition = self.get_object()
         budget_positions = self.budget_positions_handler.get_objects()
 
         try:
@@ -429,7 +430,7 @@ class PetitionHandler:
             petition_read = PetitionRead.model_validate(petition)
 
             contract_pdf_buffer = create_contract_pdf(employee_read, petition_read)
-            
+
         except Exception as e:
             raise self.exc.internal_error("creating contract PDF", e)
 
@@ -462,8 +463,9 @@ class PetitionHandler:
         )
         return petition
 
-    def complete_petition_as_clerk(self, petition: Petition) -> Petition:
+    def complete_petition_as_clerk(self) -> Petition:
 
+        petition = self.get_object()
         # Send completion emails
         email_handler = EmailHandler(petition)
         email_handler.send_petition_completion_emails()
@@ -706,16 +708,18 @@ class PetitionHandler:
             raise self.exc.internal_error("updating petition status", e)
 
     # TODO: untangle the acception from rejection
-    def update_petition_as_clerk(self, petition: Petition, approved: bool) -> Petition:
+    def update_petition_as_clerk(self, approved: bool) -> Petition:
 
-        if petition.status == PetitionStatus.CLERK_ACTION:
-            return self.approve_petition_as_clerk(petition)
-        elif petition.status == PetitionStatus.AWAITING_SIGNATURE and approved:
-            return self.complete_petition_as_clerk(petition)
+        if self.get_object().status == PetitionStatus.CLERK_ACTION:
+            return self.approve_petition_as_clerk()
+        elif self.get_object().status == PetitionStatus.AWAITING_SIGNATURE and approved:
+            return self.complete_petition_as_clerk()
         else:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
 
-    def update_petition_as_supervisor(self, petition_data: PetitionUpdateModel) -> Petition:
+    def update_petition_as_supervisor(
+        self, petition_data: PetitionUpdateModel
+    ) -> Petition:
         petition = self.get_object()
         update_data = petition_data.model_dump(exclude_unset=True)
 
