@@ -63,6 +63,7 @@ async def update_petition_as_clerk(
 ):
     updated_petition = handler.update_petition_as_clerk(approved=petition_data.approved)
 
+    # TODO: Get rid of this part after reassuring that the frontend does not use it.
     if updated_petition.status == "rejected":
         return handler.delete_petition(petition)
 
