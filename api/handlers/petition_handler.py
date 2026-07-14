@@ -200,9 +200,10 @@ class PetitionHandler:
 
         return petition
 
-    def delete_petition(self, petition: Petition) -> dict:
+    def delete_petition(self) -> dict:
         # Proceed with the deletion
-        success = self.manager.delete_petition(petition.id)
+        petition = self.get_object()
+        success = self.manager.delete_petition(petition)
         if not success:
             raise self.exc.delete_failed("Petition", str(petition.id))
         return {"detail": "Petition deleted successfully"}
@@ -305,7 +306,7 @@ class PetitionHandler:
             email_handler.send_student_rejection_to_budget_approvers_email(
                 petition.budget_positions
             )
-            return self.delete_petition(petition)
+            return self.delete_petition()
 
         return petition
 
