@@ -534,15 +534,6 @@ class PetitionHandler:
         Student requests revision from supervisor.
         Sends email to supervisor and changes status to 'student_revision'.
         """
-        # Check if petition is in a valid status for student to request revision
-        # Students can request revision when petition is in student_action, clerk_revision, or awaiting_signature
-        valid_statuses = [PetitionStatus.STUDENT_ACTION, PetitionStatus.CLERK_REVISION]
-        if petition.status not in valid_statuses:
-            raise self.exc.invalid_status(
-                petition.status,
-                message=f"Student cannot request revision at this stage. Current status: {petition.status}",
-            )
-
         email_handler = EmailHandler(petition)
         email_handler.send_student_revision_request_email(message, subject)
 
