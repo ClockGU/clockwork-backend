@@ -133,7 +133,7 @@ class ClerkDeletionRequest(BaseModel):
     reason: str = ""
 
 
-class StudenRevisionRequest(BaseModel):
+class StudenRevisionRequest(BaseModel, StudentUpdateValidator):
     message: str
     subject: Optional[str] = None
 
