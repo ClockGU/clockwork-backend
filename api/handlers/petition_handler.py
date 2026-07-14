@@ -609,13 +609,13 @@ class PetitionHandler:
 
                     # Send approval emails
                     self._send_approval_emails(petition)
-
+            # TODO: This branch is an effective DELETE on the petition. This should be handled by a DELETE endpoint not this patch.
             elif not budget_position_approved and not revision_requested:
 
                 # Send rejection email
                 self._send_rejection_email(petition, updated_budget_position)
 
-                deleted = self.manager.delete_petition(petition)
+                self.manager.delete_petition(petition)
                 return {"detail": "Petition rejected and deleted successfully"}
 
             elif revision_requested:
@@ -625,7 +625,6 @@ class PetitionHandler:
                     petition, PetitionStatus.APPROVER_REVISION
                 )
 
-                # send rejection emails
                 self._send_revision_request_email(
                     petition, updated_budget_position, message, subject
                 )
