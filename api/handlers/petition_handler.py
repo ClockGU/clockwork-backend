@@ -163,7 +163,7 @@ class PetitionHandler:
 
         except Exception as e:
             print(f"Error sending rejection email: {str(e)}", flush=True)
-
+    # Method currently not used but possibly needed soon.
     def list_petitions(self, offset: int = 0, limit: int = 100) -> List[Petition]:
         petitions = self.manager.get_petitions(offset=offset, limit=limit)
         if not petitions:
