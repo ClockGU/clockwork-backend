@@ -123,17 +123,13 @@ class PetitionManager:
 
     def get_petitions_by_user(self, user_account: UUID) -> List[Petition]:
         # Retrieve all petitions associated with a user
-        statement = select(self.schema).where(self.schema.user_account == user_account)
+        statement = (
+            select(self.schema)
+            .where(self.schema.user_account == user_account)
+            .options(selectinload(self.schema.budget_positions))
+        )
         result = self.db.execute(statement)
         petitions = result.scalars().all()
-
-        # Load budget positions for each petition
-        for petition in petitions:
-            budget_statement = select(BudgetPosition).where(
-                BudgetPosition.petition_id == petition.id
-            )
-            budget_result = self.db.execute(budget_statement)
-            petition.budget_positions = budget_result.scalars().all()
 
         return petitions
 
