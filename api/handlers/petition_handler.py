@@ -602,13 +602,22 @@ class PetitionHandler:
                 )
 
                 if all_approved:
-                    # Update petition status to student_action using manager
                     petition = self.manager.update_petition_status(
                         petition, PetitionStatus.STUDENT_ACTION
                     )
 
-                    # Send approval emails
                     self._send_approval_emails(petition)
+
+            elif revision_requested:
+                # Set status to APPROVER_REVISION
+                petition = self.manager.update_petition_status(
+                    petition, PetitionStatus.APPROVER_REVISION
+                )
+
+                self._send_revision_request_email(
+                    petition, updated_budget_position, message, subject
+                )
+
             # TODO: This branch is an effective DELETE on the petition. This should be handled by a DELETE endpoint not this patch.
             elif not budget_position_approved and not revision_requested:
 
@@ -617,17 +626,6 @@ class PetitionHandler:
 
                 self.manager.delete_petition(petition)
                 return {"detail": "Petition rejected and deleted successfully"}
-
-            elif revision_requested:
-                # Budget approver wants revision - keep petition status as pending
-                # Send revision request email
-                petition = self.manager.update_petition_status(
-                    petition, PetitionStatus.APPROVER_REVISION
-                )
-
-                self._send_revision_request_email(
-                    petition, updated_budget_position, message, subject
-                )
 
             return petition
 
