@@ -479,35 +479,13 @@ class PetitionHandler:
 
     def get_petitions_clerk(self) -> List[Petition]:
         """Return petitions relevant to clerks (several statuses)."""
-        try:
-            statuses = [
-                PetitionStatus.AWAITING_SIGNATURE,
-                PetitionStatus.COMPLETED,
-                PetitionStatus.CLERK_ACTION,
-            ]
-            petitions = []
-            for s in statuses:
-                # call manager directly to avoid raising on empty per-status result
-                res = self.manager.get_petitions_by_status(s)
-                if res:
-                    petitions.extend(res)
+        statuses = [
+            PetitionStatus.AWAITING_SIGNATURE,
+            PetitionStatus.COMPLETED,
+            PetitionStatus.CLERK_ACTION,
+        ]
+        return self.manager.get_petitions_by_status(statuses)
 
-            # dedupe by id
-            seen = set()
-            unique = []
-            for p in petitions:
-                if getattr(p, "id", None) not in seen:
-                    seen.add(p.id)
-                    unique.append(p)
-
-            if not unique:
-                return []
-
-            return unique
-        except HTTPException as e:
-            raise
-        except Exception as e:
-            raise self.exc.internal_error("fetching clerk petitions", e)
 
 
     def request_revision_from_supervisor(

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Union
 from uuid import UUID
 
 from sqlalchemy import delete
@@ -160,20 +160,18 @@ class PetitionManager:
 
         return petitions
 
-    def get_petitions_by_status(self, status: str) -> List[Petition]:
-        statement = select(self.schema).where(self.schema.status == status)
+    def get_petitions_by_status(
+        self, status: Union[str, List[str]]
+    ) -> List[Petition]:
+
+        statuses = [status] if isinstance(status, str) else status
+        statement = (
+            select(self.schema)
+            .where(self.schema.status.in_(statuses))
+            .options(selectinload(self.schema.budget_positions))
+        )
         result = self.db.execute(statement)
-        petitions = result.scalars().all()
-
-        # Load budget positions for each petition
-        for petition in petitions:
-            budget_statement = select(BudgetPosition).where(
-                BudgetPosition.petition_id == petition.id
-            )
-            budget_result = self.db.execute(budget_statement)
-            petition.budget_positions = budget_result.scalars().all()
-
-        return petitions
+        return result.scalars().all()
 
     def get_petitions_by_budget_approver(
         self, budget_approver_email: str
