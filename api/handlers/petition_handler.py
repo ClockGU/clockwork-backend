@@ -567,7 +567,7 @@ class PetitionHandler:
             petition = self.get_object()
 
             # Check if budget position exists and belongs to this petition
-            budget_position = self.budget_position_manager.get_budget_position(
+            budget_position = self.budget_positions_handler.get_assigned_budget_position_by_id(
                 budget_position_id
             )
             if not budget_position:
@@ -656,7 +656,9 @@ class PetitionHandler:
         else:
             raise self.exc.bad_request("Clerk cannot approve or reject at this stage")
 
-    def update_petition_as_supervisor(self, petition_data: PetitionUpdateModel) -> Petition:
+    def update_petition_as_supervisor(
+        self, petition_data: PetitionUpdateModel
+    ) -> Petition:
         petition = self.get_object()
         update_data = petition_data.model_dump(exclude_unset=True)
 
