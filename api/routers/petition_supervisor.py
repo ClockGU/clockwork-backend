@@ -100,5 +100,4 @@ def delete_petition(
     user=Depends(get_current_supervisor),
 ):
     # TODO: Maybe simply calling handler.delete_petition() is not enough, we might need to add some mail logic to it.
-    success = handler.delete_petition()
-    return {"detail": "Petition deleted successfully"}
+    return handler.delete_petition()
