@@ -23,16 +23,6 @@ from api.websockets.routers.web_socket import send_serialized_data_to_clerks
 router = APIRouter()
 
 
-# 1. API to list all petitions with the status of "pending"
-@router.get("/clerk/petitions", response_model=List[PetitionRead])
-def list_petitions_by_status(
-    handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_clerk),
-):
-    petitions = handler.get_petitions_clerk()
-    return petitions
-
-
 # 2. API to delete a petition by ID
 @router.delete("/clerk/petitions/{petition_id}")
 async def delete_petition(
