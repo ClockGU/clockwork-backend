@@ -283,23 +283,6 @@ class PetitionHandler:
         except Exception as e:
             print(f"Error sending student rejection email: {str(e)}", flush=True)
 
-    def _send_budget_position_update_emails(self, petition: Petition) -> None:
-        """Send emails to budget approvers when budget positions are updated"""
-        try:
-            email_handler = EmailHandler(petition)
-
-            # Get updated budget positions
-            budget_positions = (
-                self.budget_position_manager.get_budget_positions_by_petition(
-                    petition.id
-                )
-            )
-
-            email_handler.send_budget_position_update_emails(budget_positions)
-
-        except Exception as e:
-            raise self.exc.internal_error("sending budget position update emails", e)
-
     def _check_student_semester_eligibility(
         self, student_username: str, start_date: date
     ) -> bool:
