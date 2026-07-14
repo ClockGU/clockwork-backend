@@ -91,6 +91,6 @@ async def request_revision_from_supervisor(
     """
 
     updated_petition = handler.request_revision_from_supervisor(
-        petition, revision_data.body, subject=revision_data.subject
+        petition, revision_data.message, revision_data.subject
     )
     return updated_petition

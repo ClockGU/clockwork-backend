@@ -528,7 +528,7 @@ class PetitionHandler:
         return petition
 
     def request_revision_from_supervisor(
-        self, petition: Petition, text: str, subject: Optional[str] = None
+        self, petition: Petition, message: str, subject: Optional[str] = None
     ) -> Petition:
         """
         Student requests revision from supervisor.
@@ -544,7 +544,7 @@ class PetitionHandler:
             )
 
         email_handler = EmailHandler(petition)
-        email_handler.send_student_revision_request_email(text, subject)
+        email_handler.send_student_revision_request_email(message, subject)
 
         # Update petition status to student_revision
         petition = self.manager.update_petition_status(
