@@ -483,7 +483,6 @@ class PetitionHandler:
             statuses = [
                 PetitionStatus.AWAITING_SIGNATURE,
                 PetitionStatus.COMPLETED,
-                PetitionStatus.CLERK_REVISION,
                 PetitionStatus.CLERK_ACTION,
             ]
             petitions = []
