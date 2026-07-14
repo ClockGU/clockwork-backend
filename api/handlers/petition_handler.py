@@ -629,11 +629,6 @@ class PetitionHandler:
                     petition, updated_budget_position, message, subject
                 )
 
-            # Load budget positions
-            petition.budget_positions = (
-                self.budget_position_manager.get_budget_positions_by_petition(petition)
-            )
-
             return petition
 
         except HTTPException as e:
