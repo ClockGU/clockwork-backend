@@ -8,6 +8,7 @@ from api.consts import PetitionStatus
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import get_specified_petition
 from api.db.schema import Petition
+from api.handlers.dependencies import get_petition_handler
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
     ClerkDeletionRequest,
@@ -20,11 +21,6 @@ from api.security import get_current_clerk
 from api.websockets.routers.web_socket import send_serialized_data_to_clerks
 
 router = APIRouter()
-
-
-# Dependency to get the petition handler
-def get_petition_handler(db: Session = Depends(get_db)) -> PetitionHandler:
-    return PetitionHandler(db)
 
 
 # 1. API to list all petitions with the status of "pending"
@@ -65,9 +61,8 @@ async def update_petition_as_clerk(
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk),
 ):
-    updated_petition = handler.update_petition_as_clerk(
-        petition=petition, approved=petition_data.approved
-    )
+    updated_petition = handler.update_petition_as_clerk(approved=petition_data.approved)
+
     if updated_petition.status == "rejected":
         return handler.delete_petition(petition)
 
