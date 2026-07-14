@@ -267,21 +267,6 @@ class PetitionHandler:
             )
         return petitions
 
-    def _send_student_acceptance_email(self, petition: Petition) -> None:
-        """Send email when student accepts the petition"""
-        try:
-            email_handler = EmailHandler(petition)
-            email_handler.send_student_acceptance_email()
-        except Exception as e:
-            print(f"Error sending student acceptance email: {str(e)}", flush=True)
-
-    def _send_student_rejection_email(self, petition: Petition) -> None:
-        """Send email when student rejects the petition"""
-        try:
-            email_handler = EmailHandler(petition)
-            email_handler.send_student_rejection_email()
-        except Exception as e:
-            print(f"Error sending student rejection email: {str(e)}", flush=True)
 
     def _check_student_semester_eligibility(
         self, student_username: str, start_date: date
