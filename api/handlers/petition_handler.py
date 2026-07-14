@@ -207,16 +207,16 @@ class PetitionHandler:
             raise self.exc.delete_failed("Petition", str(petition.id))
         return {"detail": "Petition deleted successfully"}
 
-    def delete_petition_as_clerk(self, petition: Petition, reason: str = "") -> dict:
+    def delete_petition_as_clerk(self, reason: str = "") -> dict:
+        petition = self.get_object()
+
         # Get budget positions to notify
-        budget_positions = (
-            self.budget_position_manager.get_budget_positions_by_petition(petition)
-        )
+        budget_positions = self.budget_positions_handler.get_objects()
 
         # Proceed with the deletion
-        success = self.manager.delete_petition(petition_id)
+        success = self.manager.delete_petition(petition)
         if not success:
-            raise self.exc.delete_failed("Petition", str(petition_id))
+            raise self.exc.delete_failed("Petition", str(petition.id))
 
         # Send deletion emails
         email_handler = EmailHandler(petition)
