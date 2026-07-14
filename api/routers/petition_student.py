@@ -30,10 +30,12 @@ def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandle
 # Api to list all the petitions of students
 @router.get("/students/petitions", response_model=List[PetitionStudentRead])
 def read_petitions(
-    petition: Depends(get_specified_petition),
     handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_student),
+    user=Depends(get_current_student)
 ):
+    """
+    LIST endpoint for a student to get all petitions they are involved in.
+    """
     petitions = handler.get_student_petitions(user.get("username"))
     return petitions
 
