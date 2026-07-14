@@ -573,7 +573,7 @@ class PetitionHandler:
             if not budget_position:
                 raise self.exc.not_found("Budget position", str(budget_position_id))
 
-            if budget_position.petition_id != petition_id:
+            if budget_position.petition_id != petition.id:
                 raise self.exc.bad_request(
                     "Budget position does not belong to this petition"
                 )
@@ -599,14 +599,14 @@ class PetitionHandler:
                 # Check if all budget positions are now approved
                 all_approved = (
                     self.budget_position_manager.check_all_budget_positions_approved(
-                        petition_id
+                        petition.id
                     )
                 )
 
                 if all_approved:
                     # Update petition status to student_action using manager
                     petition = self.manager.update_petition_status(
-                        petition_id, PetitionStatus.STUDENT_ACTION
+                        petition, PetitionStatus.STUDENT_ACTION
                     )
 
                     # Send approval emails
@@ -617,14 +617,14 @@ class PetitionHandler:
                 # Send rejection email
                 self._send_rejection_email(petition, updated_budget_position)
 
-                deleted = self.manager.delete_petition(petition_id)
+                deleted = self.manager.delete_petition(petition)
                 return {"detail": "Petition rejected and deleted successfully"}
 
             elif revision_requested:
                 # Budget approver wants revision - keep petition status as pending
                 # Send revision request email
                 petition = self.manager.update_petition_status(
-                    petition_id, PetitionStatus.APPROVER_REVISION
+                    petition, PetitionStatus.APPROVER_REVISION
                 )
 
                 # send rejection emails
@@ -635,7 +635,7 @@ class PetitionHandler:
             # Load budget positions
             petition.budget_positions = (
                 self.budget_position_manager.get_budget_positions_by_petition(
-                    petition_id
+                    petition
                 )
             )
 
