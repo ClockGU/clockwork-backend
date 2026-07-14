@@ -81,17 +81,16 @@ class PetitionHandler:
         try:
             email_handler = EmailHandler(petition)
 
-            # Get all budget positions for this petition
-            budget_positions = (
-                self.budget_position_manager.get_budget_positions_by_petition(
-                    petition.id
-                )
-            )
+            budget_positions = self.budget_positions_handler.get_objects()
+
 
             # Check if student has uploaded documents before sending email
+            # TODO: fetching the employee here is not ideal. It is a neccessary fix for now as the signiture of
+            #  check_student_documents_uploaded was refactored to require an employee object.
+            employee = self.employee_manager.get_employee_by_username(petition.student_username)
             has_uploaded_documents = (
                 self.student_document_manager.check_student_documents_uploaded(
-                    petition.student_username, check_ba_degree=petition.ba_degree
+                    employee, check_ba_degree=petition.ba_degree
                 )
             )
             # TODO: is_semester_eligible is a built in check that a student may only have one petition going!!! Big issue
