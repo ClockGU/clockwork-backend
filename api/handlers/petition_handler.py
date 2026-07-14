@@ -397,14 +397,12 @@ class PetitionHandler:
                 petition, PetitionStatus.CLERK_ACTION
             )
             # Send email to supervisor
-            if petition.supervisor_mail:
-                email_handler = EmailHandler(petition)
-                email_handler.send_student_acceptance_email()
+            email_handler = EmailHandler(petition)
+            email_handler.send_student_acceptance_email()
         else:
             # Student rejected, notify and then move to clerk_action
             email_handler = EmailHandler(petition)
-            if petition.supervisor_mail:
-                email_handler.send_student_rejection_email()
+            email_handler.send_student_rejection_email()
 
             # Send to budget approvers
             email_handler.send_student_rejection_to_budget_approvers_email(
