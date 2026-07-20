@@ -65,12 +65,12 @@ class EmployeeHandler:
         employee = self.manager.get_employee_by_user_account(user_account)
         return employee is not None
 
-    def update_employee(self, employee: Employee, employee_data: dict) -> Employee:
+    def update_employee(self, employee_data: dict) -> Employee:
         """
         Update an existing employee record.
         """
 
-        # Proceed with the update
+        employee = self.get_object()
         updated_employee = self.manager.update_employee(employee, employee_data)
         if not updated_employee:
             raise self.exc.update_failed("Employee", str(employee))
