@@ -25,9 +25,11 @@ class EmployeeValidate(BaseModel):
     bic: str
     bank_name: str
 
+
 class EmployeeCreate(BaseModel):
     user_account: UUID = Field(default_factory=UUID, alias="user_account")
     username: str
+
 
 class EmployeeUpdate(BaseModel):
     first_name: Optional[str] = None

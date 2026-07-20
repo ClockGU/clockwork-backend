@@ -144,9 +144,7 @@ class PetitionManager:
         petitions = result.scalars().all()
         return petitions
 
-    def get_petitions_by_status(
-        self, status: Union[str, List[str]]
-    ) -> List[Petition]:
+    def get_petitions_by_status(self, status: Union[str, List[str]]) -> List[Petition]:
 
         statuses = [status] if isinstance(status, str) else status
         statement = (

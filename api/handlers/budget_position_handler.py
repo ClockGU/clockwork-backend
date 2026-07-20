@@ -74,22 +74,28 @@ class BudgetPositionsHandler:
         except Exception as e:
             raise self.exc.internal_error("sending budget position update emails", e)
 
-    def get_assigned_budget_position_by_id(self, budget_position_id: UUID) -> Optional[BudgetPosition]:
+    def get_assigned_budget_position_by_id(
+        self, budget_position_id: UUID
+    ) -> Optional[BudgetPosition]:
 
         for budget_position in self.get_objects():
             if budget_position.id == budget_position_id:
                 return budget_position
         return None
 
-    def update_budget_position_status(self, budget_position: BudgetPosition, status: bool) -> BudgetPosition:
+    def update_budget_position_status(
+        self, budget_position: BudgetPosition, status: bool
+    ) -> BudgetPosition:
         updated = self.manager.update_budget_position_status(budget_position, status)
         if not updated:
             raise self.exc.update_failed(
                 "Budget position", message="Failed to update budget position"
             )
         return updated
-    
+
     def check_all_budget_positions_approved(self, petition_id: Optional[UUID]) -> bool:
         if self.get_objects():
-            return all(budget_position.approved for budget_position in self.get_objects())
+            return all(
+                budget_position.approved for budget_position in self.get_objects()
+            )
         return self.manager.check_all_budget_positions_approved(petition_id)

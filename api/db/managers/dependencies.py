@@ -8,7 +8,7 @@ from starlette.requests import Request
 from api.db.dependencies import get_db
 from api.db.managers import PetitionManager
 from api.db.managers.emploeyee_manager import EmployeeManager
-from api.db.schema import Petition, Employee
+from api.db.schema import Employee, Petition
 from api.security import get_current_student
 
 
@@ -29,6 +29,7 @@ def get_specified_petition(
         )
     return existing_petition
 
+
 def get_employee_for_student(
     student: dict = Depends(get_current_student), db: Session = Depends(get_db)
 ) -> Optional[Employee]:
@@ -39,9 +40,12 @@ def get_employee_for_student(
     if not student:
         return None
 
-    existing_employee = EmployeeManager(db).get_employee_by_user_account(student.get("sub"))
+    existing_employee = EmployeeManager(db).get_employee_by_user_account(
+        student.get("sub")
+    )
     if not existing_employee:
         raise HTTPException(
-            status_code=404, detail=f"Petition with ID{str(student.get("sub"))} not found"
+            status_code=404,
+            detail=f"Petition with ID{str(student.get("sub"))} not found",
         )
     return existing_employee

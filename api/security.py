@@ -92,7 +92,7 @@ def get_current_supervisor(request: Request):
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
 
-def get_current_student(request: Request, db: Session = Depends(get_db))-> dict:
+def get_current_student(request: Request, db: Session = Depends(get_db)) -> dict:
     """
     Decode the JWT token to inject user in API and checks the role of student.
     If no employee entry exists for the user, create one and also create a document entry.
@@ -130,7 +130,9 @@ def get_current_student(request: Request, db: Session = Depends(get_db))-> dict:
         # Todo: This could become a handler method setup_employee_entry_for_user
         if not employee_handler.employee_exists_by_user_account(user_account):
             # Create a new employee entry
-            new_employee_data = EmployeeCreate(user_account=user_account, username=payload.get("username"))
+            new_employee_data = EmployeeCreate(
+                user_account=user_account, username=payload.get("username")
+            )
 
             new_employee = employee_handler.create_employee(new_employee_data)
 

@@ -4,8 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 
-from api.handlers.employee_handler import EmployeeHandler
 from api.handlers.dependencies import get_employee_handler
+from api.handlers.employee_handler import EmployeeHandler
 from api.pydantic_models.employee import EmployeeRead, EmployeeUpdate
 from api.security import (  # Import the dependency for student authentication
     get_current_clerk,
@@ -24,9 +24,7 @@ def update_employee_by_user(
     """
     Update an employee record by the user ID (user_account).
     """
-    updated_employee = handler.update_employee(
-        employee_data.dict(exclude_unset=True)
-    )
+    updated_employee = handler.update_employee(employee_data.dict(exclude_unset=True))
     return updated_employee
 
 

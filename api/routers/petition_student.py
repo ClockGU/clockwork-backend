@@ -21,11 +21,12 @@ router = APIRouter()
 
 ## these are the api's fo petitions related to students
 
+
 # Api to list all the petitions of students
 @router.get("/students/petitions", response_model=List[PetitionStudentRead])
 def read_petitions(
     handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_student)
+    user=Depends(get_current_student),
 ):
     """
     LIST endpoint for a student to get all petitions they are involved in.
@@ -51,7 +52,6 @@ async def student_accept_or_reject_petition(
     )
 
     return updated_petition
-
 
 
 # TODO:Should be a POST endpoint

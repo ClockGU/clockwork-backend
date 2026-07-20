@@ -5,11 +5,12 @@ from sqlmodel import Session
 
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import (
-    get_specified_petition,
     get_employee_for_student,
+    get_specified_petition,
 )
-from api.db.schema import Petition, Employee
-from api.handlers import PetitionHandler, EmployeeHandler
+from api.db.schema import Employee, Petition
+from api.handlers import EmployeeHandler, PetitionHandler
+
 
 def get_petition_handler(
     petition: Optional[Petition] = Depends(get_specified_petition),
@@ -23,10 +24,11 @@ def get_petition_handler(
         return PetitionHandler.from_existing_object(db, petition)
     return PetitionHandler(db)
 
+
 def get_employee_handler(
-        employee: Optional[Employee] = Depends(get_employee_for_student),
-        db: Session = Depends(get_db)
-)-> EmployeeHandler:
+    employee: Optional[Employee] = Depends(get_employee_for_student),
+    db: Session = Depends(get_db),
+) -> EmployeeHandler:
     """
     Dependency function to provide a EmployeeHandler depending on whether a emplyoee was
     specified in the request.

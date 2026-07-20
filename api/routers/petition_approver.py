@@ -12,6 +12,7 @@ from api.security import verify_signature
 
 router = APIRouter()
 
+
 @router.get(
     "/approver/petitions/{petition_id}/{signature}/{budget_position_id}",
     response_model=PetitionRead,

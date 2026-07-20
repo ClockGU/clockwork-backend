@@ -83,11 +83,12 @@ class PetitionHandler:
 
             budget_positions = self.budget_positions_handler.get_objects()
 
-
             # Check if student has uploaded documents before sending email
             # TODO: fetching the employee here is not ideal. It is a neccessary fix for now as the signiture of
             #  check_student_documents_uploaded was refactored to require an employee object.
-            employee = self.employee_manager.get_employee_by_username(petition.student_username)
+            employee = self.employee_manager.get_employee_by_username(
+                petition.student_username
+            )
             has_uploaded_documents = (
                 self.student_document_manager.check_student_documents_uploaded(
                     employee, check_ba_degree=petition.ba_degree
@@ -165,18 +166,21 @@ class PetitionHandler:
         """
         return self.get_object()
 
-    def get_petition_for_approver_action(
-        self, budget_position_id: UUID
-    ) -> Petition:
+    def get_petition_for_approver_action(self, budget_position_id: UUID) -> Petition:
         petition = self.get_object()
 
         if petition.status != PetitionStatus.APPROVER_ACTION:
             raise self.exc.invalid_status(
-                current_status=petition.status, required_status=PetitionStatus.APPROVER_ACTION
+                current_status=petition.status,
+                required_status=PetitionStatus.APPROVER_ACTION,
             )
 
         # Check if the budget position is already approved
-        budget_position = self.budget_positions_handler.get_assigned_budget_position_by_id(budget_position_id)
+        budget_position = (
+            self.budget_positions_handler.get_assigned_budget_position_by_id(
+                budget_position_id
+            )
+        )
 
         if budget_position.budget_position_approved:
             raise self.exc.bad_request(
@@ -227,7 +231,6 @@ class PetitionHandler:
                 message=f"No petitions found for student username {student_username}",
             )
         return petitions
-
 
     def _check_student_semester_eligibility(
         self, student_username: str, start_date: date
