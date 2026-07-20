@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from api.db.schema.employee import Employee
+from api.pydantic_models.employee import EmployeeCreate
 
 
 class EmployeeManager:
@@ -12,15 +13,17 @@ class EmployeeManager:
         self.db = db
         self.schema = Employee  # Reference to the Employee model
 
-    def create_employee(self, employee_data: Employee) -> Employee:
+    def create_employee(self, employee_data: EmployeeCreate) -> Employee:
         """
         Create a new employee record.
         """
+        employee_dict = employee_data.model_dump()
+        employee = self.schema.model_validate(employee_dict)
         try:
-            self.db.add(employee_data)
+            self.db.add(employee)
             self.db.commit()
-            self.db.refresh(employee_data)
-            return employee_data
+            self.db.refresh(employee)
+            return employee
         except IntegrityError:
             self.db.rollback()
             return self.get_employee_by_user_account(employee_data.user_account)
