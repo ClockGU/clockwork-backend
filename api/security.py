@@ -91,7 +91,7 @@ def get_current_supervisor(request: Request):
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
 
-def get_current_student(request: Request, db: Session = Depends(get_db)):
+def get_current_student(request: Request, db: Session = Depends(get_db))-> dict:
     """
     Decode the JWT token to inject user in API and checks the role of student.
     If no employee entry exists for the user, create one and also create a document entry.
