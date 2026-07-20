@@ -80,7 +80,6 @@ class EmployeeHandler:
         """
         Generate and return student data PDF for a given petition ID.
         """
-        # Get petition
         petition = self.petition_manager.get_petition(petition_id)
 
         if not petition:
@@ -88,7 +87,6 @@ class EmployeeHandler:
 
         student_username = petition.student_username
 
-        # Get employee by username
         employee = self.manager.get_employee_by_username(student_username)
         if not employee:
             raise self.exc.not_found(
