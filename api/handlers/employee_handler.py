@@ -76,31 +76,17 @@ class EmployeeHandler:
             raise self.exc.update_failed("Employee", str(employee))
         return updated_employee
 
-    def get_student_data_pdf(self, petition_id: UUID) -> BytesIO:
+    def get_student_data_pdf(self) -> BytesIO:
         """
         Generate and return student data PDF for a given petition ID.
         """
-        petition = self.petition_manager.get_petition(petition_id)
 
-        if not petition:
-            raise self.exc.not_found("Petition", str(petition_id))
-
-        student_username = petition.student_username
-
-        employee = self.manager.get_employee_by_username(student_username)
-        if not employee:
-            raise self.exc.not_found(
-                "Employee",
-                message=f"Employee with username {student_username} not found",
-            )
-
-        # Convert to Pydantic models
+        employee = self.get_object()
         employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
-        petition_read = PetitionRead.model_validate(petition)
 
         # Generate PDF
         try:
-            pdf_buffer = create_student_data_pdf(employee_read, petition_read)
+            pdf_buffer = create_student_data_pdf(employee_read)
             return pdf_buffer
         except Exception as e:
             raise self.exc.internal_error("generating student data PDF", e)
