@@ -7,6 +7,7 @@ from sqlmodel import Session
 
 from api.db.dependencies import get_db
 from api.handlers.employee_handler import EmployeeHandler
+from api.handlers.dependencies import get_employee_handler
 from api.pydantic_models.employee import EmployeeRead, EmployeeUpdate
 from api.security import (  # Import the dependency for student authentication
     get_current_clerk,
@@ -15,10 +16,6 @@ from api.security import (  # Import the dependency for student authentication
 )
 
 router = APIRouter()
-
-
-def get_employee_handler(db: Session = Depends(get_db)) -> EmployeeHandler:
-    return EmployeeHandler(db)
 
 
 @router.patch("/employees", response_model=EmployeeRead)
