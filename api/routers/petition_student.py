@@ -8,7 +8,6 @@ from api.db.dependencies import get_db
 from api.db.managers.dependencies import get_specified_petition
 from api.db.schema import Petition
 from api.handlers.dependencies import get_petition_handler
-from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
     PetitionStudentRead,
@@ -21,11 +20,6 @@ from api.security import get_current_student, get_current_supervisor, verify_sig
 router = APIRouter()
 
 ## these are the api's fo petitions related to students
-
-
-def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandler:
-    return StudentDocumentHandler(db)
-
 
 # Api to list all the petitions of students
 @router.get("/students/petitions", response_model=List[PetitionStudentRead])
