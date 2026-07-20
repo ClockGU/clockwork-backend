@@ -46,15 +46,6 @@ class EmployeeHandler:
             raise self.exc.created_failed("Employee")
         return employee
 
-    def get_employee(self, employee_id: UUID) -> Employee:
-        """
-        Retrieve a single employee by their UUID.
-        """
-        employee = self.manager.get_employee(employee_id)
-        if not employee:
-            raise self.exc.not_found("Employee", str(employee_id))
-        return employee
-
     def get_employee_by_user_account(self, user_account: UUID) -> Employee:
         """
         Retrieve an employee by their user_account UUID.
