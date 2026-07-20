@@ -82,12 +82,11 @@ class EmployeeHandler:
         """
         # Get petition
         petition = self.petition_manager.get_petition(petition_id)
+
         if not petition:
             raise self.exc.not_found("Petition", str(petition_id))
 
         student_username = petition.student_username
-        if not student_username:
-            raise self.exc.not_found("Petition", str(petition_id))
 
         # Get employee by username
         employee = self.manager.get_employee_by_username(student_username)

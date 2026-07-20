@@ -66,7 +66,8 @@ def get_student_data_pdf(
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
-
+# Todo: This endpoint and the related handler method revolves around a petition id rather than the actual employee entry
+# Should be refactored to the /petitions endpoints
 @router.get("/employees/petition/{petition_id}", response_model=EmployeeRead)
 def get_employee_by_petition_id(
     petition_id: UUID,
