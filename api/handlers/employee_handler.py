@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from sqlmodel import Session
@@ -13,10 +13,18 @@ from api.pydantic_models import EmployeeRead, PetitionRead
 
 
 class EmployeeHandler:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, object_instance: Optional[Employee] = None):
         self.manager = EmployeeManager(db)
         self.petition_manager = PetitionManager(db)
         self.exc = ExceptionHandler()
+        self._object_instance = object_instance
+
+    def get_object(self) -> Employee:
+        if not self._object_instance:
+            raise RuntimeError(
+                "Calling get_object() is not allowed when no existing objects was provided at initialization."
+            )
+        return self._object_instance
 
     def create_employee(self, employee_data: dict) -> Employee:
         """
