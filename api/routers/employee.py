@@ -42,18 +42,6 @@ def get_employee_by_user(
     return employee
 
 
-@router.delete("/employees")
-def delete_employee_by_user(
-    handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student),  # Secure the endpoint
-):
-    """
-    Delete an employee by the user ID (user_account).
-    """
-    result = handler.delete_employee_by_user_account(user.get("sub"))
-    return result
-
-
 @router.get("/employees/student-data-pdf")
 def get_student_data_pdf(
     petition_id: UUID = Query(..., description="Petition ID"),

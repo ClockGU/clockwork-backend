@@ -76,27 +76,6 @@ class EmployeeHandler:
             raise self.exc.update_failed("Employee", str(employee))
         return updated_employee
 
-    def delete_employee_by_user_account(self, user_account: UUID) -> dict:
-        """
-        Delete an employee by their user_account UUID.
-        """
-        # Retrieve the employee by user_account
-        employee = self.manager.get_employee_by_user_account(user_account)
-        if not employee:
-            raise self.exc.not_found(
-                "Employee",
-                message=f"Employee with user_account {user_account} not found",
-            )
-
-        # Ensure related documents are deleted (handled by cascade)
-        success = self.manager.delete_employee(employee.id)
-        if not success:
-            raise self.exc.delete_failed(
-                "Employee",
-                message=f"Employee with user_account {user_account} could not be deleted",
-            )
-        return {"detail": "Employee and related documents deleted successfully"}
-
     def get_employee_by_username(self, username: str) -> Employee:
         """
         Retrieve an employee by their email and return their associated documents.
