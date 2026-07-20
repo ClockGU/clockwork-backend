@@ -76,21 +76,6 @@ class EmployeeHandler:
             raise self.exc.update_failed("Employee", str(employee))
         return updated_employee
 
-    def delete_employee(self, employee_id: UUID) -> dict:
-        """
-        Delete an employee by their UUID.
-        """
-        # Check if the employee exists
-        existing_employee = self.manager.get_employee(employee_id)
-        if not existing_employee:
-            raise self.exc.not_found("Employee", str(employee_id))
-
-        # Proceed with the deletion
-        success = self.manager.delete_employee(employee_id)
-        if not success:
-            raise self.exc.delete_failed("Employee", str(employee_id))
-        return {"detail": "Employee deleted successfully"}
-
     def delete_employee_by_user_account(self, user_account: UUID) -> dict:
         """
         Delete an employee by their user_account UUID.
