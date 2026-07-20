@@ -76,18 +76,6 @@ class EmployeeHandler:
             raise self.exc.update_failed("Employee", str(employee))
         return updated_employee
 
-    def get_employee_by_username(self, username: str) -> Employee:
-        """
-        Retrieve an employee by their email and return their associated documents.
-        """
-        # Use the EmployeeManager to get the employee by email
-        employee = self.manager.get_employee_by_username(username)
-        if not employee:
-            raise self.exc.not_found(
-                "Employee", message=f"Employee with username {username} not found"
-            )
-        return employee
-
     def get_student_data_pdf(self, petition_id: UUID) -> BytesIO:
         """
         Generate and return student data PDF for a given petition ID.
