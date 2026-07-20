@@ -65,15 +65,6 @@ class EmployeeHandler:
         employee = self.manager.get_employee_by_user_account(user_account)
         return employee is not None
 
-    def list_employees(self, offset: int = 0, limit: int = 100) -> List[Employee]:
-        """
-        Retrieve a list of employees with pagination.
-        """
-        employees = self.manager.get_employees(offset=offset, limit=limit)
-        if not employees:
-            raise self.exc.not_found("Employees", message="No employees found")
-        return employees
-
     def update_employee(self, employee: Employee, employee_data: dict) -> Employee:
         """
         Update an existing employee record.

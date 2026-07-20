@@ -127,7 +127,7 @@ def get_current_student(request: Request, db: Session = Depends(get_db))-> dict:
         document_handler = StudentDocumentHandler(db)
 
         # Check if an employee entry exists
-
+        # Todo: This could become a handler method setup_employee_entry_for_user
         if not employee_handler.employee_exists_by_user_account(user_account):
             # Create a new employee entry
             new_employee_data = EmployeeCreate(user_account=user_account, username=payload.get("username"))
