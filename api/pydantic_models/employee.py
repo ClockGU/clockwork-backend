@@ -55,6 +55,7 @@ class EmployeeRead(BaseModel):
     first_name: Optional[str] = None
     user_email: Optional[str] = None
     last_name: Optional[str] = None
+    username: Optional[str] = None
     form_of_address: Optional[str] = None
     gender: Optional[str] = None
     date_of_birth: Optional[date] = None
