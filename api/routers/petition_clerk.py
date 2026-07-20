@@ -37,7 +37,7 @@ async def delete_petition(
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk),
 ):
-    success = handler.delete_petition_as_clerk(petition, deletion_request.reason)
+    success = handler.delete_petition_as_clerk(deletion_request.reason)
     await send_serialized_data_to_clerks(
         [
             petition.dict(by_alias=True, exclude_none=True)
@@ -59,7 +59,7 @@ async def update_petition_as_clerk(
 
     # TODO: Get rid of this part after reassuring that the frontend does not use it.
     if updated_petition.status == "rejected":
-        return handler.delete_petition(petition)
+        return handler.delete_petition()
 
     return updated_petition
 
