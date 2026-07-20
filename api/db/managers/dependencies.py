@@ -11,7 +11,7 @@ from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.schema import Petition, Employee
 
 def get_specified_petition(
-    petition_id: Optional[UUID], request: Request,db: Session = Depends(get_db)
+    petition_id: Optional[UUID], db: Session = Depends(get_db)
 ) -> Optional[Petition]:
     """
     Dependency function to retrieve a specified petition if a petition_id was provided in the path.
@@ -28,7 +28,7 @@ def get_specified_petition(
     return existing_petition
 
 def get_specified_employee(
-    employee_id: Optional[UUID], request: Request,db: Session = Depends(get_db)
+    employee_id: Optional[UUID], db: Session = Depends(get_db)
 ) -> Optional[Employee]:
     """
     Dependency function to retrieve a specified employee if a employee_id was provided in the path.
