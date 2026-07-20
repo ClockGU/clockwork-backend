@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import List, Optional
+from typing import List, Optional, Self
 from uuid import UUID
 
 from sqlmodel import Session
@@ -25,6 +25,13 @@ class EmployeeHandler:
                 "Calling get_object() is not allowed when no existing objects was provided at initialization."
             )
         return self._object_instance
+
+    @classmethod
+    def from_existing_object(cls, db: Session, object_instance: Employee) -> Self:
+        """
+        Explicitly create a EmployeeHandler instance from an existing Employee object.
+        """
+        return cls(db, object_instance)
 
     def create_employee(self, employee_data: dict) -> Employee:
         """
