@@ -1,18 +1,15 @@
 from datetime import date
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
-from sqlmodel import Session
 
-from api.db.dependencies import get_db
 from api.handlers.employee_handler import EmployeeHandler
 from api.handlers.dependencies import get_employee_handler
 from api.pydantic_models.employee import EmployeeRead, EmployeeUpdate
 from api.security import (  # Import the dependency for student authentication
     get_current_clerk,
     get_current_student,
-    get_current_supervisor,
 )
 
 router = APIRouter()
