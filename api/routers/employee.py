@@ -42,30 +42,6 @@ def get_employee_by_user(
     return employee
 
 
-@router.get("/employees/student-data-pdf")
-def get_student_data_pdf(
-    petition_id: UUID = Query(..., description="Petition ID"),
-    handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_clerk),
-):
-    """
-    Get student data PDF for a given petition ID.
-    Derived the student username from the petition.
-    """
-    # Generate PDF
-    pdf_buffer = handler.get_student_data_pdf(petition_id)
-
-    # Get employee for filename
-    employee = handler.get_employee_by_petition(petition_id)
-    filename = f"Student_Data_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
-
-    # Return as streaming response
-    return StreamingResponse(
-        pdf_buffer,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
-    )
-
 # Todo: This endpoint and the related handler method revolves around a petition id rather than the actual employee entry
 # Should be refactored to the /petitions endpoints
 @router.get("/employees/petition/{petition_id}", response_model=EmployeeRead)

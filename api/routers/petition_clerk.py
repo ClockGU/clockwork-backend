@@ -1,13 +1,17 @@
+from datetime import date
 from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlmodel import Session
+from starlette.responses import StreamingResponse
 
 from api.consts import PetitionStatus
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import get_specified_petition
+from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.schema import Petition
+from api.handlers import EmployeeHandler
 from api.handlers.dependencies import get_petition_handler
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import (
@@ -73,3 +77,25 @@ async def request_revision_from_student(
         petition=petition, message=revision.message, subject=revision.subject
     )
     return updated_petition
+
+
+@router.get("/clerk/petitions/{petition_id}/student-data-pdf")
+async def get_student_data_pdf(
+    handler: PetitionHandler = Depends(get_petition_handler),
+    user=Depends(get_current_clerk),
+):
+    petition = handler.get_object()
+    employee = EmployeeManager(handler.db).get_employee_by_username(
+        petition.student_username
+    )
+    employee_handler = EmployeeHandler.from_existing_object(handler.db, employee)
+    pdf_buffer = employee_handler.get_student_data_pdf()
+
+    filename = f"Student_Data_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
+
+    # Return as streaming response
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

@@ -83,7 +83,6 @@ class EmployeeHandler:
 
         employee = self.get_object()
         employee_read = EmployeeRead.model_validate(employee, from_attributes=True)
-
         # Generate PDF
         try:
             pdf_buffer = create_student_data_pdf(employee_read)
