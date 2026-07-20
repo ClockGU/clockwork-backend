@@ -41,11 +41,11 @@ class EmployeeHandler:
             # Convert the dictionary to an Employee instance
             employee_instance = Employee(**employee_data)
             employee = self.manager.create_employee(employee_instance)
-            if not employee:
-                raise self.exc.created_failed("Employee")
-            return employee
         except Exception as e:
             raise self.exc.internal_error("creating the employee", e)
+        if not employee:
+            raise self.exc.created_failed("Employee")
+        return employee
 
     def get_employee(self, employee_id: UUID) -> Employee:
         """
