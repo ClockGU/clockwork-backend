@@ -10,6 +10,7 @@ from api.db.schema.employee import Employee
 from api.handlers.exception_handler import ExceptionHandler
 from api.pdf.student_data import create_student_data_pdf
 from api.pydantic_models import EmployeeRead, PetitionRead
+from api.pydantic_models.employee import EmployeeCreate
 
 
 class EmployeeHandler:
@@ -33,14 +34,12 @@ class EmployeeHandler:
         """
         return cls(db, object_instance)
 
-    def create_employee(self, employee_data: dict) -> Employee:
+    def create_employee(self, employee_data: EmployeeCreate) -> Employee:
         """
         Create a new employee record.
         """
         try:
-            # Convert the dictionary to an Employee instance
-            employee_instance = Employee(**employee_data)
-            employee = self.manager.create_employee(employee_instance)
+            employee = self.manager.create_employee(employee_data)
         except Exception as e:
             raise self.exc.internal_error("creating the employee", e)
         if not employee:

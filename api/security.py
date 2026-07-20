@@ -12,6 +12,7 @@ from api.db.dependencies import get_db
 from api.env import settings
 from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.employee_handler import EmployeeHandler
+from api.pydantic_models.employee import EmployeeCreate
 
 # Replace with your actual public key
 PUBLIC_KEY_PATH = settings.JWT_PUBLIC_KEY_PATH
@@ -129,10 +130,8 @@ def get_current_student(request: Request, db: Session = Depends(get_db))-> dict:
 
         if not employee_handler.employee_exists_by_user_account(user_account):
             # Create a new employee entry
-            new_employee_data = {
-                "user_account": user_account,
-                "username": payload.get("username"),
-            }
+            new_employee_data = EmployeeCreate(user_account=user_account, username=payload.get("username"))
+
             new_employee = employee_handler.create_employee(new_employee_data)
 
             document_handler.create_document(new_employee)
