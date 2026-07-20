@@ -4,7 +4,10 @@ from fastapi import Depends
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
-from api.db.managers.dependencies import get_specified_petition, get_specified_employee
+from api.db.managers.dependencies import (
+    get_specified_petition,
+    get_employee_for_student,
+)
 from api.db.schema import Petition, Employee
 from api.handlers import PetitionHandler, EmployeeHandler
 
@@ -21,7 +24,7 @@ def get_petition_handler(
     return PetitionHandler(db)
 
 def get_employee_handler(
-        employee: Optional[Employee] = Depends(get_specified_employee),
+        employee: Optional[Employee] = Depends(get_employee_for_student),
         db: Session = Depends(get_db)
 )-> EmployeeHandler:
     """
