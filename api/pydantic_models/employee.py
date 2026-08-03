@@ -2,10 +2,11 @@ from datetime import date
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 
 class EmployeeValidate(BaseModel):
+    id: UUID = Field(default_factory=UUID, alias="id")
     first_name: str
     last_name: str
     user_email: str
@@ -20,10 +21,16 @@ class EmployeeValidate(BaseModel):
     telephone_number: str
     health_insurance: str
     previously_employed: bool
-    prev_emp_duration: str
+    prev_emp_duration: Optional[str] = None
     iban: str
     bic: str
     bank_name: str
+
+    @model_validator(mode="after")
+    def validate_prev_emp_set(cls, values):
+        if values.previously_employed and not values.prev_emp_duration:
+            raise ValueError("prev_emp_duration is required if previously_employed is True")
+        return values
 
 
 class EmployeeCreate(BaseModel):
@@ -53,7 +60,7 @@ class EmployeeUpdate(BaseModel):
 
 
 class EmployeeRead(BaseModel):
-    id: UUID
+    id: UUID = Field(default_factory=UUID, alias="id")
     first_name: Optional[str] = None
     user_email: Optional[str] = None
     last_name: Optional[str] = None
