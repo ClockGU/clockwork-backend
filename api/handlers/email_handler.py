@@ -9,9 +9,8 @@ from fastapi import HTTPException
 
 from api.env import settings
 
-if TYPE_CHECKING:
-    from api.db.schema.budget_position import BudgetPosition
-    from api.db.schema.petition import Petition
+from api.db.schema.budget_position import BudgetPosition
+from api.db.schema.petition import Petition
 
 
 class EmailHandler:
