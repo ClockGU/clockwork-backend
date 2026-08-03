@@ -23,8 +23,7 @@ class EmployeeValidate(BaseModel):
     previously_employed: bool
     prev_emp_duration: Optional[str] = None
     iban: str
-    bic: str
-    bank_name: str
+
 
     @model_validator(mode="after")
     def validate_prev_emp_set(cls, values):
