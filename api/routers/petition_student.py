@@ -14,7 +14,6 @@ from api.pydantic_models import (
     PetitionStudentUpdate,
     StudenRevisionRequest,
 )
-from api.pydantic_models.dependencies import get_student_petition_update_model
 from api.security import get_current_student, get_current_supervisor, verify_signature
 
 router = APIRouter()
@@ -38,8 +37,8 @@ def read_petitions(
 # TODO: Aproval/Rejection needs to be handled via centralized endpoint. Rejection is always a deletion patch masks that here
 @router.patch("/students/petitions/{petition_id}/student-action")
 async def student_accept_or_reject_petition(
+    body: dict,
     petition: Petition = Depends(get_specified_petition),
-    petition_data: PetitionStudentUpdate = Depends(get_student_petition_update_model),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_student),
 ):
@@ -47,8 +46,9 @@ async def student_accept_or_reject_petition(
     API for students to accept or reject their petition.
     Only allowed if petition status is 'student_action'.
     """
+    approval_data = PetitionStudentUpdate.model_validate(body,context={"existing": petition})
     updated_petition = handler.student_accept_or_reject_petition(
-        petition=petition, approved=petition_data.approved
+        petition=petition, approved=approval_data.approved
     )
 
     return updated_petition
@@ -60,7 +60,7 @@ async def student_accept_or_reject_petition(
     response_model=PetitionStudentRead,
 )
 async def request_revision_from_supervisor(
-    revision_data: StudenRevisionRequest,
+    body: dict,
     petition: Petition = Depends(get_specified_petition),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_student),
@@ -68,9 +68,11 @@ async def request_revision_from_supervisor(
     """
     API for students to request revision from supervisor.
     Sends email to supervisor and changes petition status to 'student_revision'.
-    Body: {"body": "revision message"}
+    Body: {message: "revision message", "subject": "revision subject"}
     """
-
+    # Fix for now as the Status vaildation implemented in the petition_validator models
+    # assumes proper "petition" models and not additional fields only.
+    revision_data = StudenRevisionRequest.model_validate(body,context={"existing": petition})
     updated_petition = handler.request_revision_from_supervisor(
         petition, revision_data.message, revision_data.subject
     )

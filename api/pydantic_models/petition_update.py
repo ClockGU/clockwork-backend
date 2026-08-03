@@ -115,7 +115,7 @@ class PetitionClerkUpdate(PetitionUpdate, ClerkUpdateValidator):
     approved: bool
 
 
-class PetitionStudentUpdate(PetitionUpdate, StudentUpdateValidator):
+class PetitionStudentUpdate(BaseModel, StudentUpdateValidator):
     """
     Pydantic model for student petition acceptance.
     Only allows status updates with specific values.
