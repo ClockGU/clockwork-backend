@@ -13,7 +13,7 @@ from api.security import get_current_student
 
 
 def get_specified_petition(
-    petition_id: Optional[UUID], db: Session = Depends(get_db)
+    petition_id: Optional[UUID] = None, db: Session = Depends(get_db)
 ) -> Optional[Petition]:
     """
     Dependency function to retrieve a specified petition if a petition_id was provided in the path.
