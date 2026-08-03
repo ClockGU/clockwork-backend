@@ -71,7 +71,9 @@ class PetitionHandler:
             # Send notification email to student
             email_handler = EmailHandler(petition)
             email_handler.send_petition_creation_student_email()
-
+            petition = self.manager.update_petition_status(
+                petition, PetitionStatus.APPROVER_ACTION
+            )
             return petition
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)
