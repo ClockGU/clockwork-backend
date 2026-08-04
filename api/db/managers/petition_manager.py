@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Union
 from uuid import UUID
 
 from sqlalchemy import delete
@@ -72,13 +72,8 @@ class PetitionManager:
         return petitions
 
     def update_petition(
-        self, petition_id: UUID, petition_data: dict
+        self, petition: Petition, petition_data: dict
     ) -> Optional[Petition]:
-        # Find the petition first
-        petition = self.db.get(self.schema, petition_id)
-        if not petition:
-            return None
-
         # Extract budget positions from update data
         budget_positions_data = petition_data.pop("budget_positions", None)
 
@@ -90,13 +85,13 @@ class PetitionManager:
         if budget_positions_data:
             # Delete existing budget positions
             self.db.execute(
-                delete(BudgetPosition).where(BudgetPosition.petition_id == petition_id)
+                delete(BudgetPosition).where(BudgetPosition.petition_id == petition.id)
             )
             # Create new budget positions
             self.db.add_all(
                 [
                     BudgetPosition(
-                        petition_id=petition_id,
+                        petition_id=petition.id,
                         **(budget_position | {"budget_position_approved": False}),
                     )
                     for budget_position in budget_positions_data
@@ -128,57 +123,37 @@ class PetitionManager:
 
     def get_petitions_by_user(self, user_account: UUID) -> List[Petition]:
         # Retrieve all petitions associated with a user
-        statement = select(self.schema).where(self.schema.user_account == user_account)
+        statement = (
+            select(self.schema)
+            .where(self.schema.user_account == user_account)
+            .options(selectinload(self.schema.budget_positions))
+        )
         result = self.db.execute(statement)
         petitions = result.scalars().all()
-
-        # Load budget positions for each petition
-        for petition in petitions:
-            budget_statement = select(BudgetPosition).where(
-                BudgetPosition.petition_id == petition.id
-            )
-            budget_result = self.db.execute(budget_statement)
-            petition.budget_positions = budget_result.scalars().all()
 
         return petitions
 
     def get_student_petitions(self, student_username: str) -> List[Petition]:
         # Retrieve all petitions for a student and check the status
-        # TODO: Get rid of unnecessary statuses APPROVED, REJECTED, PENDING
-        statement = select(self.schema).where(
-            (self.schema.student_username == student_username)
-            & (
-                (self.schema.status != PetitionStatus.APPROVED)
-                | (self.schema.status != PetitionStatus.REJECTED)
-            )
+        statement = (
+            select(self.schema)
+            .where(self.schema.student_username == student_username)
+            .options(selectinload(self.schema.budget_positions))
         )
         result = self.db.execute(statement)
         petitions = result.scalars().all()
-
-        # Load budget positions for each petition
-        for petition in petitions:
-            budget_statement = select(BudgetPosition).where(
-                BudgetPosition.petition_id == petition.id
-            )
-            budget_result = self.db.execute(budget_statement)
-            petition.budget_positions = budget_result.scalars().all()
-
         return petitions
 
-    def get_petitions_by_status(self, status: str) -> List[Petition]:
-        statement = select(self.schema).where(self.schema.status == status)
+    def get_petitions_by_status(self, status: Union[str, List[str]]) -> List[Petition]:
+
+        statuses = [status] if isinstance(status, str) else status
+        statement = (
+            select(self.schema)
+            .where(self.schema.status.in_(statuses))
+            .options(selectinload(self.schema.budget_positions))
+        )
         result = self.db.execute(statement)
-        petitions = result.scalars().all()
-
-        # Load budget positions for each petition
-        for petition in petitions:
-            budget_statement = select(BudgetPosition).where(
-                BudgetPosition.petition_id == petition.id
-            )
-            budget_result = self.db.execute(budget_statement)
-            petition.budget_positions = budget_result.scalars().all()
-
-        return petitions
+        return result.scalars().all()
 
     def get_petitions_by_budget_approver(
         self, budget_approver_email: str

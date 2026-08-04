@@ -9,9 +9,8 @@ from fastapi import HTTPException
 
 from api.env import settings
 
-if TYPE_CHECKING:
-    from api.db.schema.budget_position import BudgetPosition
-    from api.db.schema.petition import Petition
+from api.db.schema.budget_position import BudgetPosition
+from api.db.schema.petition import Petition
 
 
 class EmailHandler:
@@ -199,7 +198,9 @@ class EmailHandler:
             print(f"Error sending revision request email: {str(e)}", flush=True)
 
     def send_rejection_email(
-        self, rejected_budget_position: "BudgetPosition", budget_positions: list
+        self,
+        rejected_budget_position: BudgetPosition,
+        budget_positions: list[BudgetPosition],
     ) -> None:
         """Send email when a budget position is rejected"""
         if not self.petition:

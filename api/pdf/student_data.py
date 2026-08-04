@@ -8,7 +8,7 @@ import api.consts as consts
 from api.pydantic_models import EmployeeRead, PetitionRead
 
 
-def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> BytesIO:
+def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
     if not employee:
         raise ValueError("Employee data is missing")
 
@@ -142,10 +142,9 @@ def create_student_data_pdf(employee: EmployeeRead, petition: PetitionRead) -> B
 
             # Student Information from Petition
             # Safely check petition if provided
-            if petition:
-                student_username = getattr(petition, "student_username", None)
-                if student_username:
-                    safe_set_field("Name Vorname", student_username)
+            student_username = getattr(employee, "username", None)
+            if student_username:
+                safe_set_field("Name Vorname", student_username)
 
             # Fill current date
             safe_set_field("Frankfurt den", date.today().strftime("%d.%m.%Y"))

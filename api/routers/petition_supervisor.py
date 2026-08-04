@@ -4,11 +4,10 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from sqlmodel import Session
 
-from api.db.dependencies import get_db
 from api.env import settings
 from api.handlers import EmailHandler, PetitionHandler
+from api.handlers.dependencies import get_petition_handler
 from api.pydantic_models import PetitionCreate, PetitionRead, PetitionSupervisorUpdate
 from api.pydantic_models.dependencies import get_supervisor_petition_update_model
 from api.security import generate_signature, get_current_supervisor
@@ -27,10 +26,6 @@ class UUIDEncoder(JSONEncoder):
 router = APIRouter()
 
 ## these are the api's fo petitions related to supervisor
-
-
-def get_petition_handler(db: Session = Depends(get_db)) -> PetitionHandler:
-    return PetitionHandler(db)
 
 
 @router.post("/supervisor/petitions", response_model=PetitionRead)
@@ -70,36 +65,38 @@ def read_petitions_by_user(
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
+    """
+    LIST endpoint for a supervisor to get all petitions they are involved in.
+    """
     petitions = handler.get_petitions_by_user(user.get("sub"))
     return petitions
 
 
 @router.get("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
 def read_petition(
-    petition_id: UUID,
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
-    petition = handler.get_petition(petition_id)
+    petition = handler.get_petition()
     return petition
 
 
 @router.patch("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
 def update_petition(
-    petition_id: UUID,
-    petition: PetitionSupervisorUpdate = Depends(get_supervisor_petition_update_model),
+    petition_data: PetitionSupervisorUpdate = Depends(
+        get_supervisor_petition_update_model
+    ),
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
-    updated_petition = handler.update_petition(petition_id, petition)
+    updated_petition = handler.update_petition_as_supervisor(petition_data)
     return updated_petition
 
 
 @router.delete("/supervisor/petitions/{petition_id}")
 def delete_petition(
-    petition_id: UUID,
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
-    success = handler.delete_petition(petition_id)
-    return {"detail": "Petition deleted successfully"}
+    # TODO: Maybe simply calling handler.delete_petition() is not enough, we might need to add some mail logic to it.
+    return handler.delete_petition()

@@ -16,13 +16,9 @@ class BudgetPositionManager:
         return self.db.get(BudgetPosition, budget_position_id)
 
     def update_budget_position_status(
-        self, budget_position_id: UUID, budget_position_approved: bool
+        self, budget_position: BudgetPosition, budget_position_approved: bool
     ) -> Optional[BudgetPosition]:
         """Update the approval status of a budget position"""
-        budget_position = self.db.get(BudgetPosition, budget_position_id)
-        if not budget_position:
-            return None
-
         budget_position.budget_position_approved = budget_position_approved
         self.db.add(budget_position)
         self.db.commit()
