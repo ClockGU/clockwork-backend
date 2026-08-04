@@ -1,8 +1,9 @@
+import warnings
 from datetime import date
 from typing import List, Optional, Self
 from uuid import UUID
 
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 from sqlmodel import Session
 
 from api.consts import PetitionStatus
@@ -27,7 +28,7 @@ from api.pydantic_models.petition_update import (
 
 class PetitionHandler:
 
-    def __init__(self, db: Session, object_instance: Optional[Petition] = None):
+    def __init__(self, db: Session, object_instance: Optional[Petition] = None, background_tasks: Optional[BackgroundTasks] = None):
         self.manager = PetitionManager(db)
         self.student_document_manager = StudentDocumentManager(db)
         self.employee_manager = EmployeeManager(db)
@@ -39,6 +40,7 @@ class PetitionHandler:
             if self._object_instance
             else None
         )
+        self.background_tasks = background_tasks
 
     @property
     def budget_positions_handler(self) -> BudgetPositionsHandler:
@@ -56,11 +58,18 @@ class PetitionHandler:
         return self._object_instance
 
     @classmethod
-    def from_existing_object(cls, db: Session, object_instance: Petition) -> Self:
+    def from_existing_object(cls, db: Session, object_instance: Petition, background_tasks: Optional[BackgroundTasks] = None) -> Self:
         """
         Explicitly create a PetitionHandler instance from an existing Petition object.
         """
-        return cls(db, object_instance)
+        return cls(db, object_instance, background_tasks)
+
+    def add_background_task(self, task_func, *args, **kwargs):
+        if self.background_tasks is not None:
+            self.background_tasks.add_task(task_func, *args, **kwargs)
+        else:
+            warnings.warn("Background tasks are not enabled. Code is run concurrently.")
+            task_func(*args, **kwargs)
 
     def create_petition(self, petition_data: PetitionCreate) -> Petition:
         try:
