@@ -118,7 +118,9 @@ def save_file(file: UploadFile, upload_dir: str) -> str:
         f.write(file.file.read())
     return file_path
 
-
+# TODO: THIS IS A NO-GO. This basically exposes the entire services filesystem to the outside world.
+# Solution: /download-file/{student_document_id}/{document_type} and then check if the student_document_id
+# belongs to the user and if the document_type is valid. Then return the file.
 @router.get("/download-file")
 def download_file(
     file_url: str = Query(..., description="The URL of the file to download")
