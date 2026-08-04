@@ -1,4 +1,5 @@
 import smtplib
+from contextlib import contextmanager
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -17,6 +18,36 @@ class EmailHandler:
     def __init__(self, petition: Optional["Petition"] = None):
         self.environment = settings.APP_ENV
         self.petition = petition
+        self.server = None
+
+    def get_or_create_smtp_server(self):
+        if self.server is None:
+            self.server = self._setup_smtp_server()
+        return self.server
+
+    def _setup_smtp_server(self):
+        smtp_server = settings.SMTP_SERVER
+        smtp_port = settings.SMTP_PORT
+        smtp_user = settings.SMTP_USER
+        smtp_password = settings.SMTP_PASSWORD
+        smtp_tls = settings.SMTP_TLS
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        if smtp_tls:  # Only start TLS if SMTP_TLS is true
+            server.starttls()
+        if smtp_user and smtp_password:  # Only login if credentials are provided
+            server.login(smtp_user, smtp_password)
+        return server
+
+    def _close_server(self):
+        self.server.quit()
+        self.server = None
+
+    @contextmanager
+    def smtp_session(self):
+        try:
+            yield self.get_or_create_smtp_server()
+        finally:
+            self._close_server()
 
     def send_email(
         self,
@@ -26,11 +57,8 @@ class EmailHandler:
         attachment_bytes: bytes = None,
         attachment_filename: str = None,
     ):
-        smtp_server = settings.SMTP_SERVER
-        smtp_port = settings.SMTP_PORT
         smtp_user = settings.SMTP_USER
-        smtp_password = settings.SMTP_PASSWORD
-        smtp_tls = settings.SMTP_TLS
+
 
         # If there is an attachment, create a multipart message
         if attachment_bytes and attachment_filename:
@@ -53,16 +81,10 @@ class EmailHandler:
         msg["To"] = recipient
 
         try:
-            with smtplib.SMTP(smtp_server, smtp_port) as server:
-                if smtp_tls:  # Only start TLS if SMTP_TLS is true
-                    server.starttls()
-                if (
-                    smtp_user and smtp_password
-                ):  # Only login if credentials are provided
-                    server.login(smtp_user, smtp_password)
-                server.sendmail(msg["From"], recipient, msg.as_string())
-                print(f"Email sent to {recipient}", flush=True)
+            self.server.sendmail(msg["From"], recipient, msg.as_string())
+            print(f"Email sent to {recipient}", flush=True)
         except Exception as e:
+            # TODO: Add logging rather than print statements
             print(f"Failed to send email: {e}", flush=True)
 
     def send_approval_emails(
