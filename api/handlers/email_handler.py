@@ -104,6 +104,19 @@ class EmailHandler:
             # TODO: Add logging rather than print statements
             print(f"Failed to send email: {e}", flush=True)
 
+    def send_budget_pos_mail(self, budget_position: BudgetPosition, petition_url:str):
+        with self.smtp_session():
+            self.send_email(
+                recipient=budget_position.budget_approver,
+                subject="[ClockWork] Neuer Antrag (Einstellung stud. Hilfskraft) / New approval request (new student assistant)",
+                body=f"Sie haben einen Antrag  für die Einstellung einer studentischen Hilfskraft auf die Kostenstelle {budget_position.budget_position} erhalten und müssen diesen freigeben.\n\n"
+                f"Mit diesem Link gelangen Sie zum Antrag und können diesen genehmigen, ablehnen oder eine Änderung anfordern: {petition_url}"
+                f"\n\n--------------\n\n"
+                f"You received an approval request for the employment of a new student assistant on the budget position {budget_position.budget_position}.\n\n"
+                f"Please use the link to review the request. You can either approve or reject the request or you can demand a revision: {petition_url}",
+            )
+
+
     def send_approval_emails(
         self,
         budget_positions: list,

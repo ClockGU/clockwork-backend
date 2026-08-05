@@ -3,7 +3,7 @@ from json import JSONEncoder
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 
 from api.env import settings
 from api.handlers import EmailHandler, PetitionHandler
@@ -31,6 +31,7 @@ router = APIRouter()
 @router.post("/supervisor/petitions", response_model=PetitionRead)
 async def create_petition(
     petition: PetitionCreate,
+    background_tasks: BackgroundTasks,
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
@@ -47,15 +48,7 @@ async def create_petition(
         petition_url = f"{settings.FRONTEND_URL}/approver?petition_id={created_petition.id}&signature={signature}&budget_position_id={budget_position.id}"
         print(f"Budget Position URL: {petition_url}", flush=True)
 
-        email_handler.send_email(
-            recipient=budget_position.budget_approver,
-            subject="[ClockWork] Neuer Antrag (Einstellung stud. Hilfskraft) / New approval request (new student assistant)",
-            body=f"Sie haben einen Antrag  für die Einstellung einer studentischen Hilfskraft auf die Kostenstelle {budget_position.budget_position} erhalten und müssen diesen freigeben.\n\n"
-            f"Mit diesem Link gelangen Sie zum Antrag und können diesen genehmigen, ablehnen oder eine Änderung anfordern: {petition_url}"
-            f"\n\n--------------\n\n"
-            f"You received an approval request for the employment of a new student assistant on the budget position {budget_position.budget_position}.\n\n"
-            f"Please use the link to review the request. You can either approve or reject the request or you can demand a revision: {petition_url}",
-        )
+        background_tasks.add_task(email_handler.send_budget_pos_mail, budget_position, petition_url)
 
     return created_petition
 
