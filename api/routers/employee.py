@@ -28,7 +28,7 @@ def update_employee_by_user(
     return updated_employee
 
 
-@router.get("/employees", response_model=EmployeeRead)
+@router.get("/employees/me", response_model=EmployeeRead)
 def get_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_student),
@@ -42,9 +42,9 @@ def get_employee_by_user(
 
 # Todo: This endpoint and the related handler method revolves around a petition id rather than the actual employee entry
 # Should be refactored to the /petitions endpoints
-@router.get("/employees/petition/{petition_id}", response_model=EmployeeRead)
+@router.get("/employees/{username}", response_model=EmployeeRead)
 def get_employee_by_petition_id(
-    petition_id: UUID,
+    username: str,
     handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_clerk),
 ):
@@ -52,5 +52,5 @@ def get_employee_by_petition_id(
     Retrieve an employee record by the petition ID.
     Only accessible by CLERK role.
     """
-    employee = handler.get_employee_by_petition(petition_id)
+    employee = handler.get_employee_by_username(username)
     return employee
