@@ -33,6 +33,7 @@ class Petition(SQLModel, table=True):
     time_exce_time: Optional[int] = None
     # optional fields
     duration_exce_course: Optional[bool] = None
+    duration_exec_student: Optional[bool] = None
     duration_exce_name: Optional[str] = None
     duration_exce_start: Optional[date] = None
     duration_exce_end: Optional[date] = None
