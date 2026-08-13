@@ -1,8 +1,9 @@
+import warnings
 from datetime import date
 from typing import List, Optional, Self
 from uuid import UUID
 
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 from sqlmodel import Session
 
 from api.consts import PetitionStatus
@@ -27,7 +28,7 @@ from api.pydantic_models.petition_update import (
 
 class PetitionHandler:
 
-    def __init__(self, db: Session, object_instance: Optional[Petition] = None):
+    def __init__(self, db: Session, object_instance: Optional[Petition] = None, background_tasks: Optional[BackgroundTasks] = None):
         self.manager = PetitionManager(db)
         self.student_document_manager = StudentDocumentManager(db)
         self.employee_manager = EmployeeManager(db)
@@ -39,6 +40,7 @@ class PetitionHandler:
             if self._object_instance
             else None
         )
+        self.background_tasks = background_tasks
 
     @property
     def budget_positions_handler(self) -> BudgetPositionsHandler:
@@ -56,11 +58,18 @@ class PetitionHandler:
         return self._object_instance
 
     @classmethod
-    def from_existing_object(cls, db: Session, object_instance: Petition) -> Self:
+    def from_existing_object(cls, db: Session, object_instance: Petition, background_tasks: Optional[BackgroundTasks] = None) -> Self:
         """
         Explicitly create a PetitionHandler instance from an existing Petition object.
         """
-        return cls(db, object_instance)
+        return cls(db, object_instance, background_tasks)
+
+    def add_background_task(self, task_func, *args, **kwargs):
+        if self.background_tasks is not None:
+            self.background_tasks.add_task(task_func, *args, **kwargs)
+        else:
+            warnings.warn("Background tasks are not enabled. Code is run concurrently.")
+            task_func(*args, **kwargs)
 
     def create_petition(self, petition_data: PetitionCreate) -> Petition:
         try:
@@ -70,7 +79,8 @@ class PetitionHandler:
 
             # Send notification email to student
             email_handler = EmailHandler(petition)
-            email_handler.send_petition_creation_student_email()
+            self.add_background_task(email_handler.send_petition_creation_student_email)
+
             petition = self.manager.update_petition_status(
                 petition, PetitionStatus.APPROVER_ACTION
             )
@@ -104,19 +114,22 @@ class PetitionHandler:
             # TODO: send_approval_emails sends a mail to student to provide data,
             #  if he is eligible and has uploaded documents already we send him another mail saying he just needs to approve.
             # Use the existing send_approval_emails method from EmailHandler
-            email_handler.send_approval_emails(
-                budget_positions, has_uploaded_documents, is_semester_eligible
+            self.add_background_task(
+                email_handler.send_approval_emails,
+                budget_positions,
+                has_uploaded_documents,
+                is_semester_eligible
             )
-
+            # TODO: Not sure if we should keep this functionality here.
             # If student is eligible and has documents, send acceptance link
             if has_uploaded_documents and is_semester_eligible:
                 from api.security import generate_signature
 
                 signature = generate_signature()
-                email_handler.send_student_acceptance_link_email(signature)
+                self.add_background_task(email_handler.send_student_acceptance_link_email, signature)
             else:
                 # Send email asking student to upload documents
-                email_handler.send_student_documents_upload_request_email()
+                self.add_background_task(email_handler.send_student_documents_upload_request_email)
 
         except Exception as e:
             print(f"Error sending approval emails: {str(e)}", flush=True)
@@ -132,9 +145,12 @@ class PetitionHandler:
         try:
             email_handler = EmailHandler(petition)
             budget_positions = self.budget_positions_handler.get_objects()
-
-            email_handler.send_revision_request_email(
-                requesting_budget_position, budget_positions, message, subject
+            self.add_background_task(
+                email_handler.send_revision_request_email,
+                requesting_budget_position,
+                budget_positions,
+                message,
+                subject
             )
 
         except Exception as e:
@@ -148,9 +164,9 @@ class PetitionHandler:
             email_handler = EmailHandler(petition)
             budget_positions = self.budget_positions_handler.get_objects()
 
-            email_handler.send_rejection_email(
-                rejected_budget_position, budget_positions
-            )
+            self.add_background_task(email_handler.send_rejection_email,
+                rejected_budget_position, budget_positions)
+
 
         except Exception as e:
             self.exc.not_found(f"Error sending rejection email: {str(e)}")
@@ -212,7 +228,7 @@ class PetitionHandler:
 
         # Send deletion emails
         email_handler = EmailHandler(petition)
-        email_handler.send_clerk_deletion_email(reason, budget_positions)
+        self.add_background_task(email_handler.send_clerk_deletion_email, reason, budget_positions)
 
         return {"detail": "Petition deleted successfully"}
 
@@ -286,14 +302,15 @@ class PetitionHandler:
             )
             # Send email to supervisor
             email_handler = EmailHandler(petition)
-            email_handler.send_student_acceptance_email()
+            self.add_background_task(email_handler.send_student_acceptance_email)
         else:
             # Student rejected, notify and then move to clerk_action
             email_handler = EmailHandler(petition)
-            email_handler.send_student_rejection_email()
+            self.add_background_task(email_handler.send_student_rejection_email)
 
             # Send to budget approvers
-            email_handler.send_student_rejection_to_budget_approvers_email(
+            self.add_background_task(
+                email_handler.send_student_rejection_to_budget_approvers_email,
                 petition.budget_positions
             )
             return self.delete_petition()
@@ -323,8 +340,8 @@ class PetitionHandler:
         try:
 
             email_handler = EmailHandler(petition)
-            email_handler.send_contract_pdf_email(contract_pdf_buffer)
-            email_handler.send_clerk_approval_email(budget_positions)
+            self.add_background_task(email_handler.send_contract_pdf_email, contract_pdf_buffer)
+            self.add_background_task(email_handler.send_clerk_approval_email, budget_positions)
 
         except Exception as e:
             raise self.exc.internal_error("sending contract PDF", e)
@@ -341,7 +358,7 @@ class PetitionHandler:
     ) -> Petition:
         # Send email to student
         email_handler = EmailHandler(petition)
-        email_handler.send_clerk_revision_request_email(message, subject)
+        self.add_background_task(email_handler.send_clerk_revision_request_email, message, subject)
 
         # Change status to clerk_revision
         petition = self.manager.update_petition_status(
@@ -354,7 +371,7 @@ class PetitionHandler:
         petition = self.get_object()
         # Send completion emails
         email_handler = EmailHandler(petition)
-        email_handler.send_petition_completion_emails()
+        self.add_background_task(email_handler.send_petition_completion_emails)
 
         # Update petition status to completed
         petition = self.manager.update_petition_status(
@@ -380,7 +397,7 @@ class PetitionHandler:
         Sends email to supervisor and changes status to 'student_revision'.
         """
         email_handler = EmailHandler(petition)
-        email_handler.send_student_revision_request_email(message, subject)
+        self.add_background_task(email_handler.send_student_revision_request_email, message, subject)
 
         # Update petition status to student_revision
         petition = self.manager.update_petition_status(

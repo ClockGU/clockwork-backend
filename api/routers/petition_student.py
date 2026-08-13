@@ -36,7 +36,7 @@ def read_petitions(
 
 # TODO: Aproval/Rejection needs to be handled via centralized endpoint. Rejection is always a deletion patch masks that here
 @router.patch("/students/petitions/{petition_id}/student-action")
-async def student_accept_or_reject_petition(
+def student_accept_or_reject_petition(
     body: dict,
     petition: Petition = Depends(get_specified_petition),
     handler: PetitionHandler = Depends(get_petition_handler),
@@ -59,7 +59,7 @@ async def student_accept_or_reject_petition(
     "/students/petitions/{petition_id}/request-revision",
     response_model=PetitionStudentRead,
 )
-async def request_revision_from_supervisor(
+def request_revision_from_supervisor(
     body: dict,
     petition: Petition = Depends(get_specified_petition),
     handler: PetitionHandler = Depends(get_petition_handler),
