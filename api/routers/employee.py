@@ -28,7 +28,7 @@ def update_employee_by_user(
     return updated_employee
 
 
-@router.get("/employees", response_model=EmployeeRead)
+@router.get("/employees/me", response_model=EmployeeRead)
 def get_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_student),
