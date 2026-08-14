@@ -42,20 +42,16 @@ class PetitionValidationMixin:
     @model_validator(mode="after")
     def validate_time_exc(cls, values):
         # Ensure all time_exc fields are either fully provided or all are None
-        time_exc_fields = [
+        time_exce_fields = [
             values.time_exce_name,
-            values.time_exce_start,
-            values.time_exce_end,
             values.time_exce_time,
         ]
-        provided = [field for field in time_exc_fields if field is not None]
         if (
-            (values.time_exce_student is None or values.time_exce_student is False)
-            and len(provided) > 0
-            and len(provided) != len(time_exc_fields)
+            (values.time_exce_student or values.time_exce_course)
+            and not all(time_exce_fields)
         ):
             raise ValueError(
-                "All time_exc fields must be provided together or not at all"
+                "All time_exce fields must be provided together or not at all"
             )
         return values
 
