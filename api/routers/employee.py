@@ -14,20 +14,6 @@ from api.security import (  # Import the dependency for student authentication
 
 router = APIRouter()
 
-
-@router.patch("/employees", response_model=EmployeeRead)
-def update_employee_by_user(
-    employee_data: EmployeeUpdate,
-    handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student),
-):
-    """
-    Update an employee record by the user ID (user_account).
-    """
-    updated_employee = handler.update_employee(employee_data.dict(exclude_unset=True))
-    return updated_employee
-
-
 @router.get("/employees/me", response_model=EmployeeRead)
 def get_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
@@ -54,3 +40,16 @@ def get_employee_by_petition_id(
     """
     employee = handler.get_employee_by_username(username)
     return employee
+
+@router.patch("/employees/{employee_id}", response_model=EmployeeRead)
+def update_employee(
+    employee_data: EmployeeUpdate,
+    employee_id: str,
+    handler: EmployeeHandler = Depends(get_employee_handler),
+    user=Depends(get_current_student),
+):
+    """
+    Update an employee record by the user ID (user_account).
+    """
+    updated_employee = handler.update_employee(employee_data.dict(exclude_unset=True))
+    return updated_employee
