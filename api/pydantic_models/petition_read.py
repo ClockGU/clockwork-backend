@@ -8,6 +8,8 @@ from .petition import PetitionBase
 # Base class for shared fields
 class PetitionBaseRead(PetitionBase):
     id: uuid.UUID
+    student_mail: str
+
     budget_positions: List[BudgetPositionRead]
 
 
