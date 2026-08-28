@@ -5,6 +5,7 @@ from pikepdf import Dictionary, Name, String
 from pikepdf.form import ExtendedAppearanceStreamGenerator, Form, Pdf
 
 import api.consts as consts
+from api.db.schema.employee import Gender
 from api.pydantic_models import EmployeeRead, PetitionRead
 
 
@@ -27,31 +28,16 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
             af["/DA"] = String("/Helv 11 Tf 0 g")
             form = Form(pdf, ExtendedAppearanceStreamGenerator)
 
-            # Helper function to safely set field values
             def safe_set_field(field_name: str, value: str):
-                try:
-                    if field_name in form:
-                        form[field_name].value = value
-                except Exception as e:
-                    print(
-                        f"Warning: Could not set field '{field_name}': {e}", flush=True
-                    )
+                if field_name in form:
+                    form[field_name].value = value
 
-            # Helper function to safely set checkbox values
             def safe_set_checkbox(field_name: str, checked: bool = True):
-                try:
-                    if checked:
-                        # form fields to implemented later
-                        pass
-                except Exception as e:
-                    print(
-                        f"Warning: Could not set checkbox '{field_name}': {e}",
-                        flush=True,
-                    )
+                if field_name in form:
+                    form[field_name].checked = checked
 
             # Dictionary mapping PDF fields to EmployeeRead attributes
             # Format: "PDF_Field_Name": "employee_attribute_name"
-            # This mapping handles simple string assignments to avoid repetitive if-blocks
             simple_fields = {
                 "Nachname": "last_name",
                 "Vorname": "first_name",
@@ -67,13 +53,11 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
 
             # Process simple string fields - accessing attributes safely
             for pdf_field, attr_name in simple_fields.items():
-                # Safe access: default to None if attribute doesn't exist
                 value = getattr(employee, attr_name, None)
                 if value:
                     safe_set_field(pdf_field, value)
 
             # Process fields with specific formatting or logic
-
             # Date of Birth
             dob = getattr(employee, "date_of_birth", None)
             if dob:
@@ -99,12 +83,11 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
             # Gender Checkboxes
             gender = getattr(employee, "gender", None)
             if gender:
-                g_lower = gender.lower()
-                if g_lower in ["weiblich", "female"]:
+                if gender == Gender.FEMALE:
                     safe_set_checkbox("weiblich", True)
-                elif g_lower in ["männlich", "male"]:
+                elif gender == Gender.MALE:
                     safe_set_checkbox("männlich", True)
-                elif g_lower == "divers":
+                elif gender == Gender.OTHER:
                     safe_set_checkbox("divers", True)
                 else:
                     safe_set_checkbox("keine Angabe", True)
@@ -127,26 +110,17 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
                 iban = iban_val.replace(" ", "")  # Remove any spaces
                 # German IBAN: DE + 2 digits + bank code (8 digits) + account number (10 digits) = 22 chars
                 # IBAN format for the 6 fields: each field should be 4 characters
-                if len(iban) >= 4:
-                    safe_set_field("IBAN_1", iban[0:4])  # First 4 chars
-                if len(iban) >= 8:
-                    safe_set_field("IBAN_2", iban[4:8])  # Next 4 chars
-                if len(iban) >= 12:
-                    safe_set_field("IBAN_3", iban[8:12])  # Next 4 chars
-                if len(iban) >= 16:
-                    safe_set_field("IBAN_4", iban[12:16])  # Next 4 chars
-                if len(iban) >= 20:
-                    safe_set_field("IBAN_5", iban[16:20])  # Next 4 chars
-                if len(iban) >= 22:
-                    safe_set_field("IBAN_6", iban[20:])  # Remaining chars
+                safe_set_field("IBAN_1", iban[0:4])
+                safe_set_field("IBAN_2", iban[4:8])
+                safe_set_field("IBAN_3", iban[8:12])
+                safe_set_field("IBAN_4", iban[12:16])
+                safe_set_field("IBAN_5", iban[16:20])
+                safe_set_field("IBAN_6", iban[20:])
 
-            # Student Information from Petition
-            # Safely check petition if provided
-            student_username = getattr(employee, "username", None)
-            if student_username:
-                safe_set_field("Name Vorname", student_username)
+            # Fill signature lastname ,firstname field
+            safe_set_field("Name Vorname", f"{last}, {first}")
 
-            # Fill current date
+            # Fill signature current date
             safe_set_field("Frankfurt den", date.today().strftime("%d.%m.%Y"))
 
             # Set NeedAppearances to True so PDF viewers regenerate the appearance streams
