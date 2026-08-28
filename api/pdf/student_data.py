@@ -110,18 +110,12 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
                 iban = iban_val.replace(" ", "")  # Remove any spaces
                 # German IBAN: DE + 2 digits + bank code (8 digits) + account number (10 digits) = 22 chars
                 # IBAN format for the 6 fields: each field should be 4 characters
-                if len(iban) >= 4:
-                    safe_set_field("IBAN_1", iban[0:4])  # First 4 chars
-                if len(iban) >= 8:
-                    safe_set_field("IBAN_2", iban[4:8])  # Next 4 chars
-                if len(iban) >= 12:
-                    safe_set_field("IBAN_3", iban[8:12])  # Next 4 chars
-                if len(iban) >= 16:
-                    safe_set_field("IBAN_4", iban[12:16])  # Next 4 chars
-                if len(iban) >= 20:
-                    safe_set_field("IBAN_5", iban[16:20])  # Next 4 chars
-                if len(iban) >= 22:
-                    safe_set_field("IBAN_6", iban[20:])  # Remaining chars
+                safe_set_field("IBAN_1", iban[0:4])
+                safe_set_field("IBAN_2", iban[4:8])
+                safe_set_field("IBAN_3", iban[8:12])
+                safe_set_field("IBAN_4", iban[12:16])
+                safe_set_field("IBAN_5", iban[16:20])
+                safe_set_field("IBAN_6", iban[20:])
 
             student_username = getattr(employee, "username", None)
             if student_username:
