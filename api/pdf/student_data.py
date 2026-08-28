@@ -5,6 +5,7 @@ from pikepdf import Dictionary, Name, String
 from pikepdf.form import ExtendedAppearanceStreamGenerator, Form, Pdf
 
 import api.consts as consts
+from api.db.schema.employee import Gender
 from api.pydantic_models import EmployeeRead, PetitionRead
 
 
@@ -82,12 +83,11 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
             # Gender Checkboxes
             gender = getattr(employee, "gender", None)
             if gender:
-                g_lower = gender.lower()
-                if g_lower in ["weiblich", "female"]:
+                if gender == Gender.FEMALE:
                     safe_set_checkbox("weiblich", True)
-                elif g_lower in ["männlich", "male"]:
+                elif gender == Gender.MALE:
                     safe_set_checkbox("männlich", True)
-                elif g_lower == "divers":
+                elif gender == Gender.OTHER:
                     safe_set_checkbox("divers", True)
                 else:
                     safe_set_checkbox("keine Angabe", True)

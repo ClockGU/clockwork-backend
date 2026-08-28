@@ -2,7 +2,8 @@ from datetime import date
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, Field, model_validator
+from api.db.schema.employee import Gender
 
 
 class EmployeeValidate(BaseModel):
@@ -11,7 +12,7 @@ class EmployeeValidate(BaseModel):
     last_name: str
     user_email: str
     form_of_address: str
-    gender: str
+    gender: Optional[Gender] = None
     date_of_birth: date
     city_of_birth: str
     address: str
@@ -42,7 +43,7 @@ class EmployeeUpdate(BaseModel):
     last_name: Optional[str] = None
     user_email: Optional[str] = None
     form_of_address: Optional[str] = None
-    gender: Optional[str] = None
+    ender: Optional[Gender] = None
     date_of_birth: Optional[date] = None
     city_of_birth: Optional[str] = None
     address: Optional[str] = None
@@ -65,7 +66,7 @@ class EmployeeRead(BaseModel):
     last_name: Optional[str] = None
     username: Optional[str] = None
     form_of_address: Optional[str] = None
-    gender: Optional[str] = None
+    gender: Optional[Gender] = None
     date_of_birth: Optional[date] = None
     city_of_birth: Optional[str] = None
     address: Optional[str] = None
