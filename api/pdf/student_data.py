@@ -27,27 +27,13 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
             af["/DA"] = String("/Helv 11 Tf 0 g")
             form = Form(pdf, ExtendedAppearanceStreamGenerator)
 
-            # Helper function to safely set field values
             def safe_set_field(field_name: str, value: str):
-                try:
-                    if field_name in form:
-                        form[field_name].value = value
-                except Exception as e:
-                    print(
-                        f"Warning: Could not set field '{field_name}': {e}", flush=True
-                    )
+                if field_name in form:
+                    form[field_name].value = value
 
-            # Helper function to safely set checkbox values
             def safe_set_checkbox(field_name: str, checked: bool = True):
-                try:
-                    if checked:
-                        # form fields to implemented later
-                        pass
-                except Exception as e:
-                    print(
-                        f"Warning: Could not set checkbox '{field_name}': {e}",
-                        flush=True,
-                    )
+                if field_name in form:
+                    form[field_name].checked = checked
 
             # Dictionary mapping PDF fields to EmployeeRead attributes
             # Format: "PDF_Field_Name": "employee_attribute_name"
