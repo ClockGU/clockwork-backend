@@ -117,11 +117,10 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
                 safe_set_field("IBAN_5", iban[16:20])
                 safe_set_field("IBAN_6", iban[20:])
 
-            student_username = getattr(employee, "username", None)
-            if student_username:
-                safe_set_field("Name Vorname", student_username)
+            # Fill signature lastname ,firstname field
+            safe_set_field("Name Vorname", f"{last}, {first}")
 
-            # Fill current date
+            # Fill signature current date
             safe_set_field("Frankfurt den", date.today().strftime("%d.%m.%Y"))
 
             # Set NeedAppearances to True so PDF viewers regenerate the appearance streams
