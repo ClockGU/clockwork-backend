@@ -1,11 +1,19 @@
 import uuid
 from datetime import date
 from typing import List, Optional
+from enum import Enum as PyEnum, auto
 
-from sqlalchemy.orm import relationship  # Import relationship for cascade behavior
+from sqlalchemy import Enum, Column
+from sqlalchemy.orm import relationship
 from sqlmodel import Field, Relationship, SQLModel
 
-from api.db.schema.student_documents import StudentDocuments  # Import the related model
+from api.db.schema.student_documents import StudentDocuments
+
+
+class Gender(PyEnum):
+    MALE = auto()
+    FEMALE = auto()
+    OTHER = auto()
 
 
 class Employee(SQLModel, table=True):
@@ -15,7 +23,7 @@ class Employee(SQLModel, table=True):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     form_of_address: Optional[str] = None
-    gender: Optional[str] = None
+    gender: Optional[Gender] = Field(default=None, sa_column=Column(Enum(Gender), nullable=True))
     date_of_birth: Optional[date] = None
     city_of_birth: Optional[str] = None
     address: Optional[str] = None
