@@ -37,7 +37,6 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
 
             # Dictionary mapping PDF fields to EmployeeRead attributes
             # Format: "PDF_Field_Name": "employee_attribute_name"
-            # This mapping handles simple string assignments to avoid repetitive if-blocks
             simple_fields = {
                 "Nachname": "last_name",
                 "Vorname": "first_name",
@@ -53,13 +52,11 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
 
             # Process simple string fields - accessing attributes safely
             for pdf_field, attr_name in simple_fields.items():
-                # Safe access: default to None if attribute doesn't exist
                 value = getattr(employee, attr_name, None)
                 if value:
                     safe_set_field(pdf_field, value)
 
             # Process fields with specific formatting or logic
-
             # Date of Birth
             dob = getattr(employee, "date_of_birth", None)
             if dob:
@@ -126,8 +123,6 @@ def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:
                 if len(iban) >= 22:
                     safe_set_field("IBAN_6", iban[20:])  # Remaining chars
 
-            # Student Information from Petition
-            # Safely check petition if provided
             student_username = getattr(employee, "username", None)
             if student_username:
                 safe_set_field("Name Vorname", student_username)
