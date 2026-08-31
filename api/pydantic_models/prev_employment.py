@@ -9,3 +9,10 @@ class PrevEmploymentCreate(BaseModel):
     start: date
     end: date
     employer_name: Optional[str] = None
+
+class ReadPrevEmploymentCreate(BaseModel):
+    user_account: uuid.UUID
+    start: date
+    end: date
+    employer_name: Optional[str] = None
+    proof: Optional[str] = None

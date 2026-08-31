@@ -47,3 +47,6 @@ class PrevEmploymentHandler:
         data["user_account"] = user_id
         validated_data = PrevEmploymentCreate.model_validate(data).model_dump()
         return self.manager.create(**validated_data)
+
+    def get_user_prev_employments(self, user_id: str) -> list[PrevEmployment]:
+        return self.manager.filter(user_account=user_id)
