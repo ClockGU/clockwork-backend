@@ -9,6 +9,7 @@ from .petition_approver import router as petition_approver_router
 from .petition_clerk import router as petition_clerk_router
 from .petition_student import router as petition_student_router
 from .petition_supervisor import router as petition_supervisor_router
+from .prev_employment import router as prev_employment_router
 
 router = APIRouter()
 
@@ -25,6 +26,9 @@ router.include_router(
 # Employee & Document Management
 router.include_router(employee_router, tags=["Employee Management"], prefix="")
 router.include_router(document_student_router, tags=["Document Management"], prefix="")
+
+# Previous employment records
+router.include_router(prev_employment_router, tags=["Pre-Employment"], prefix="")
 
 # Communication
 router.include_router(email_router, tags=["Email & Notifications"], prefix="")
