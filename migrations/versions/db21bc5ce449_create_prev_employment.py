@@ -1,8 +1,9 @@
-"""create prevEmplyment.
+"""create prev_employment
 
-Revision ID: 9dcf5576ef29
+
+Revision ID: db21bc5ce449
 Revises: 54a1dd4c2bd8
-Create Date: 2026-08-31 07:00:44.229771
+Create Date: 2026-08-31 08:56:35.650111
 
 """
 from typing import Sequence, Union
@@ -12,7 +13,7 @@ import sqlalchemy as sa
 
 import sqlmodel
 # revision identifiers, used by Alembic.
-revision: str = '9dcf5576ef29'
+revision: str = 'db21bc5ce449'
 down_revision: Union[str, None] = '54a1dd4c2bd8'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
