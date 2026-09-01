@@ -8,7 +8,7 @@ class PrevEmploymentManager:
         self.session = session
         self.schema = PrevEmployment
 
-    def get(self, **schema_fields):
+    def get(self, **schema_fields) -> PrevEmployment:
         results = self.session.query(self.schema).filter_by(**schema_fields).all()
         if not results:
             raise Exception(f"{self.schema.__name__} matching {schema_fields} does not exist.")
