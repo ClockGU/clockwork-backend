@@ -126,12 +126,3 @@ class StudentDocumentHandler:
         if not success:
             raise self.exc.delete_failed("Document", str(document_id))
         return {"detail": "Document deleted successfully"}
-
-    async def save_file(self, file: UploadFile) -> str:
-        """
-        Save the uploaded file to a storage system and return the file path or URL.
-        """
-        file_location = f"uploads/{file.filename}"
-        with open(file_location, "wb") as f:
-            f.write(await file.read())
-        return file_location

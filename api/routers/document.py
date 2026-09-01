@@ -1,7 +1,5 @@
 import os
-import uuid
 from typing import Optional
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
@@ -12,6 +10,7 @@ from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.employee_handler import EmployeeHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.security import get_current_clerk, get_current_student
+from api.utils import save_file
 
 router = APIRouter()
 
@@ -59,15 +58,6 @@ def update_document(
     """
     Update a document by the user's associated employee ID. Save uploaded files and update their URLs in the database.
     """
-    # Define the root directory as the parent directory of the 'routers' folder
-    root_dir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..")
-    )  # Go one level up to the 'api' directory
-    upload_dir = os.path.join(
-        root_dir, "uploads"
-    )  # Create the uploads folder in the root directory
-    os.makedirs(upload_dir, exist_ok=True)  # Create the folder if it doesn't exist
-
     # Get the employee associated with the user
     employee = employee_handler.get_employee_by_user_account(user.get("sub"))
 
@@ -81,25 +71,25 @@ def update_document(
     # TODO: Make this dynamic to avoid repetition
     file_urls = {}
     if elstam:
-        file_urls["elstam_url"] = save_file(elstam, upload_dir)
+        file_urls["elstam_url"] = save_file(elstam)
     if studienbescheinigung:
         file_urls["studienbescheinigung_url"] = save_file(
-            studienbescheinigung, upload_dir
+            studienbescheinigung
         )
     if versicherungsbescheinigung:
         file_urls["versicherungsbescheinigung_url"] = save_file(
-            versicherungsbescheinigung, upload_dir
+            versicherungsbescheinigung
         )
     if sozialversicherungsbogen:
         file_urls["sozialversicherungsbogen_url"] = save_file(
-            sozialversicherungsbogen, upload_dir
+            sozialversicherungsbogen
         )
     if ba_degree:
-        file_urls["ba_degree_url"] = save_file(ba_degree, upload_dir)
+        file_urls["ba_degree_url"] = save_file(ba_degree)
     if residence_permit:
-        file_urls["residence_permit_url"] = save_file(residence_permit, upload_dir)
+        file_urls["residence_permit_url"] = save_file(residence_permit)
     if id_photo:
-        file_urls["id_photo_url"] = save_file(id_photo, upload_dir)
+        file_urls["id_photo_url"] = save_file(id_photo)
 
     document_data = StudentDocumentsUpdate(**file_urls)
 
@@ -107,16 +97,6 @@ def update_document(
 
     return updated_document
 
-
-def save_file(file: UploadFile, upload_dir: str) -> str:
-    """
-    Save the uploaded file to the specified directory and return the file URL.
-    """
-    unique_filename = f"{uuid.uuid4()}_{file.filename}"
-    file_path = os.path.join(upload_dir, unique_filename)
-    with open(file_path, "wb") as f:
-        f.write(file.file.read())
-    return file_path
 
 # TODO: THIS IS A NO-GO. This basically exposes the entire services filesystem to the outside world.
 # Solution: /download-file/{student_document_id}/{document_type} and then check if the student_document_id

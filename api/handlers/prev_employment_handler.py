@@ -1,0 +1,80 @@
+import uuid
+from typing import Optional, Self
+
+from fastapi import UploadFile, HTTPException
+from sqlmodel import Session
+
+from api.db.managers.prev_employment_manager import PrevEmploymentManager
+from api.db.schema.prev_employment import PrevEmployment
+from api.env import settings
+from api.handlers.exception_handler import ExceptionHandler
+from api.pydantic_models.prev_employment import (
+    PrevEmploymentCreate,
+    PrevEmploymentUpdate,
+)
+from api.utils import save_file, delete_file
+
+class PrevEmploymentHandler:
+
+    def __init__(
+        self,
+        db: Session,
+        object_instances: Optional[list[PrevEmployment]] = None,
+        prev_employment: Optional[PrevEmployment] = None,
+    ):
+        self.manager = PrevEmploymentManager(db)
+        self.db = db
+        self.exc = ExceptionHandler()
+        self._object_instances = object_instances
+        self._prev_employment = prev_employment
+
+    def get_objects(self):
+        if not self._object_instances:
+            raise RuntimeError(
+                "Calling get_object() is not allowed when no existing objects was provided at initialization."
+            )
+        return self._object_instances
+
+    def get_prev_employment(self):
+        if not self._prev_employment:
+            raise RuntimeError(
+                "Calling get_petition() is not allowed when no existing petition was provided at initialization."
+            )
+        return self._prev_employment
+
+    @classmethod
+    def from_existing_object(cls, db: Session, object_instance: PrevEmployment) -> Self:
+        """
+        Explicitly create a PetitionHandler instance from an existing Petition object.
+        """
+        return cls(db, prev_employment=object_instance)
+
+    def create_prev_employment(self, data, user_id):
+        data["user_account"] = user_id
+        validated_data = PrevEmploymentCreate.model_validate(data).model_dump()
+        return self.manager.create(**validated_data)
+
+    def update_prev_employment(self, prev_employment_id: uuid.UUID, data: PrevEmploymentUpdate) -> PrevEmployment:
+        prev_employment = self.manager.get(id=prev_employment_id)
+        data_dict = data.model_dump(exclude_unset=True)
+        PrevEmploymentCreate.model_validate(prev_employment.model_dump() | data_dict)
+        updated_prev_employment = self.manager.update([prev_employment], data_dict)
+        return updated_prev_employment[0]
+
+    def get_user_prev_employments(self, user_id: str) -> list[PrevEmployment]:
+        return self.manager.filter(user_account=user_id)
+
+    def upload_file(self, prev_employment_id: uuid.UUID, file: UploadFile) -> PrevEmployment:
+        prev_employment = self.manager.get(id=prev_employment_id)
+        file_url = save_file(file)
+        updated_prev_employment = self.manager.update([prev_employment], {"proof": file_url})
+        return updated_prev_employment[0]
+
+    def delete_prev_employment(self, prev_employment_id) -> PrevEmployment:
+        prev_employment = self.manager.get(id=prev_employment_id)
+        try:
+            delete_file(prev_employment.proof)
+        except FileNotFoundError:
+            raise HTTPException(500, "Error deleting file for prev employment proof")
+        self.manager.delete(prev_employment)
+
