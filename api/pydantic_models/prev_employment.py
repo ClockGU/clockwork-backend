@@ -11,7 +11,7 @@ class PrevEmploymentCreate(BaseModel):
     end: date
     employer_name: Optional[str] = None
 
-class ReadPrevEmploymentCreate(BaseModel):
+class PrevEmploymentRead(BaseModel):
     id: uuid.UUID
     user_account: uuid.UUID
     start: date
