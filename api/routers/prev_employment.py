@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, Body
+import uuid
+
+from fastapi import APIRouter, Depends, Body, UploadFile
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
@@ -26,3 +28,7 @@ def get_prev_employments(
         user=Depends(get_current_student)
 ):
     return PrevEmploymentHandler(session).get_user_prev_employments(user["sub"])
+
+@router.patch("/prev_employments/{prev_employment_id}/proof", response_model=PrevEmployment)
+def upload_proof(prev_employment_id: uuid.UUID, proof: UploadFile, session: Session = Depends(get_db)):
+    return PrevEmploymentHandler(session).upload_file(prev_employment_id, proof)

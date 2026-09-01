@@ -1,11 +1,15 @@
+import uuid
 from typing import Optional, Self
 
+from fastapi import UploadFile
 from sqlmodel import Session
 
 from api.db.managers.prev_employment_manager import PrevEmploymentManager
 from api.db.schema.prev_employment import PrevEmployment
+from api.env import settings
 from api.handlers.exception_handler import ExceptionHandler
 from api.pydantic_models.prev_employment import PrevEmploymentCreate
+from api.utils import save_file
 
 
 class PrevEmploymentHandler:
@@ -50,3 +54,9 @@ class PrevEmploymentHandler:
 
     def get_user_prev_employments(self, user_id: str) -> list[PrevEmployment]:
         return self.manager.filter(user_account=user_id)
+
+    def upload_file(self, prev_employment_id: uuid.UUID, file: UploadFile) -> PrevEmployment:
+        prev_employment = self.manager.get(id=prev_employment_id)
+        file_url = save_file(file)
+        updated_prev_employment = self.manager.update([prev_employment], {"proof": file_url})
+        return updated_prev_employment[0]
