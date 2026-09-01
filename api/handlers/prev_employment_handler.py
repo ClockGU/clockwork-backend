@@ -1,16 +1,18 @@
 import uuid
 from typing import Optional, Self
 
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from sqlmodel import Session
 
 from api.db.managers.prev_employment_manager import PrevEmploymentManager
 from api.db.schema.prev_employment import PrevEmployment
 from api.env import settings
 from api.handlers.exception_handler import ExceptionHandler
-from api.pydantic_models.prev_employment import PrevEmploymentCreate
-from api.utils import save_file
-
+from api.pydantic_models.prev_employment import (
+    PrevEmploymentCreate,
+    PrevEmploymentUpdate,
+)
+from api.utils import save_file, delete_file
 
 class PrevEmploymentHandler:
 
@@ -51,6 +53,13 @@ class PrevEmploymentHandler:
         data["user_account"] = user_id
         validated_data = PrevEmploymentCreate.model_validate(data).model_dump()
         return self.manager.create(**validated_data)
+
+    def update_prev_employment(self, prev_employment_id: uuid.UUID, data: PrevEmploymentUpdate) -> PrevEmployment:
+        prev_employment = self.manager.get(id=prev_employment_id)
+        data_dict = data.model_dump(exclude_unset=True)
+        PrevEmploymentCreate.model_validate(prev_employment.model_dump() | data_dict)
+        updated_prev_employment = self.manager.update([prev_employment], data_dict)
+        return updated_prev_employment[0]
 
     def get_user_prev_employments(self, user_id: str) -> list[PrevEmployment]:
         return self.manager.filter(user_account=user_id)
