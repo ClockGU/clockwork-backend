@@ -69,3 +69,12 @@ class PrevEmploymentHandler:
         file_url = save_file(file)
         updated_prev_employment = self.manager.update([prev_employment], {"proof": file_url})
         return updated_prev_employment[0]
+
+    def delete_prev_employment(self, prev_employment_id) -> PrevEmployment:
+        prev_employment = self.manager.get(id=prev_employment_id)
+        try:
+            delete_file(prev_employment.proof)
+        except FileNotFoundError:
+            raise HTTPException(500, "Error deleting file for prev employment proof")
+        self.manager.delete(prev_employment)
+
