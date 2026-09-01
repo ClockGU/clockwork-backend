@@ -20,3 +20,11 @@ def save_file(file: UploadFile) -> str:
     with file_path.open("wb") as f:
         f.write(file.file.read())
     return file_name
+
+def delete_file(file_name: str) -> None:
+    """
+    Delete the specified file from the upload directory.
+    """
+    file_path = settings.UPLOAD_DIR / file_name
+    if file_path.exists():
+        file_path.unlink()
