@@ -66,6 +66,13 @@ class PrevEmploymentHandler:
 
     def upload_file(self, prev_employment_id: uuid.UUID, file: UploadFile) -> PrevEmployment:
         prev_employment = self.manager.get(id=prev_employment_id)
+        if prev_employment.proof:
+            try:
+                delete_file(prev_employment.proof)
+            except FileNotFoundError:
+                raise HTTPException(
+                    500, "Error deleting file for prev employment proof"
+                )
         file_url = save_file(file)
         updated_prev_employment = self.manager.update([prev_employment], {"proof": file_url})
         return updated_prev_employment[0]
@@ -77,4 +84,3 @@ class PrevEmploymentHandler:
         except FileNotFoundError:
             raise HTTPException(500, "Error deleting file for prev employment proof")
         self.manager.delete(prev_employment)
-
