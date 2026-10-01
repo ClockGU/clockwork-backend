@@ -77,7 +77,7 @@ class PrevEmploymentHandler:
         updated_prev_employment = self.manager.update([prev_employment], {"proof": file_url})
         return updated_prev_employment[0]
 
-    def delete_prev_employment(self, prev_employment_id) -> PrevEmployment:
+    def delete_prev_employment(self, prev_employment_id) -> None:
         prev_employment = self.manager.get(id=prev_employment_id)
         try:
             delete_file(prev_employment.proof)
