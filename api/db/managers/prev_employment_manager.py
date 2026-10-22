@@ -8,6 +8,9 @@ class PrevEmploymentManager:
         self.session = session
         self.schema = PrevEmployment
 
+    def get_prev_employment(self, prev_employment_id: str) -> PrevEmployment:
+        return self.get(id=prev_employment_id)
+
     def get(self, **schema_fields) -> PrevEmployment:
         results = self.session.query(self.schema).filter_by(**schema_fields).all()
         if not results:

@@ -1,7 +1,8 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Body, UploadFile
+from fastapi import APIRouter, Depends, Body, UploadFile, HTTPException
 from sqlmodel import Session
+from starlette.responses import FileResponse
 
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import (
@@ -18,6 +19,7 @@ from api.pydantic_models.prev_employment import (
     PrevEmploymentUpdate,
 )
 from api.security import get_current_student, get_current_clerk
+from api.utils import upload_file_path
 
 # from api.pydantic_models.prev_employment import PrevEmploymentCreate
 
@@ -62,3 +64,17 @@ def get_petitions_employees_employments(
 ):
     employee = employee_handler.get_employee_by_username(petition.student_username)
     return PrevEmploymentHandler(session).get_user_prev_employments(employee.user_account)
+
+
+@router.get("/clerk/prev_employments/{prev_employment_id}/download", response_class=FileResponse)
+def download_prev_employment_proof(
+        prev_employment_id: uuid.UUID,
+        prev_employmeent: PrevEmployment = Depends(get_specified_prev_employment),
+        user = Depends(get_current_clerk)
+):
+    if not prev_employmeent.proof:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Not file found for this entry.",
+        )
+    return upload_file_path(prev_employmeent.proof)
