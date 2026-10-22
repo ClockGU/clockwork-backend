@@ -4,13 +4,20 @@ from fastapi import APIRouter, Depends, Body, UploadFile
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
+from api.db.managers.dependencies import (
+    get_specified_petition,
+    get_specified_prev_employment,
+)
+from api.db.schema import Petition
 from api.db.schema.prev_employment import PrevEmployment
+from api.handlers import EmployeeHandler
+from api.handlers.dependencies import get_employee_handler
 from api.handlers.prev_employment_handler import PrevEmploymentHandler
 from api.pydantic_models.prev_employment import (
     PrevEmploymentRead,
     PrevEmploymentUpdate,
 )
-from api.security import get_current_student
+from api.security import get_current_student, get_current_clerk
 
 # from api.pydantic_models.prev_employment import PrevEmploymentCreate
 
@@ -43,3 +50,15 @@ def delete_prev_employment(prev_employment_id: uuid.UUID, session: Session = Dep
 @router.patch("/prev_employments/{prev_employment_id}", response_model=PrevEmployment)
 def update_prev_employment(prev_employment_id: uuid.UUID, body: PrevEmploymentUpdate, session: Session = Depends(get_db)):
     return PrevEmploymentHandler(session).update_prev_employment(prev_employment_id, body)
+
+# TODO: Refactor when we refactor how users ar distinguished in hr-login-backend
+@router.get("/clerk/prev_employments", response_model=list[PrevEmploymentRead])
+def get_petitions_employees_employments(
+        petition_id: uuid.UUID,
+        petition: Petition = Depends(get_specified_petition),
+        employee_handler: EmployeeHandler = Depends(get_employee_handler),
+        session: Session = Depends(get_db),
+        user = Depends(get_current_clerk)
+):
+    employee = employee_handler.get_employee_by_username(petition.student_username)
+    return PrevEmploymentHandler(session).get_user_prev_employments(employee.user_account)
