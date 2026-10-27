@@ -10,7 +10,7 @@ from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.employee_handler import EmployeeHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.security import get_current_clerk, get_current_student
-from api.utils import save_file
+from api.utils import save_file, upload_file_path
 
 router = APIRouter()
 
@@ -108,15 +108,15 @@ def download_file(
     """
     Takes the URL of a file and returns the actual file.
     """
-    # Check if the file exists at the given URL
-    if not os.path.exists(file_url):
+    upload_path = upload_file_path(file_url)
+    if not upload_path:
         raise HTTPException(status_code=404, detail="File not found")
 
     # Return the file as a response
     return FileResponse(
-        file_url,
+        upload_path,
         media_type="application/octet-stream",
-        filename=os.path.basename(file_url),
+        filename=file_url,
     )
 
 
