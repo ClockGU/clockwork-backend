@@ -54,7 +54,7 @@ def update_prev_employment(prev_employment_id: uuid.UUID, body: PrevEmploymentUp
     return PrevEmploymentHandler(session).update_prev_employment(prev_employment_id, body)
 
 # TODO: Refactor when we refactor how users ar distinguished in hr-login-backend
-@router.get("/clerk/prev_employments", response_model=list[PrevEmploymentRead])
+@router.get("/clerk/prev_employments/petition/{petition_id}", response_model=list[PrevEmploymentRead])
 def get_petitions_employees_employments(
         petition_id: uuid.UUID,
         petition: Petition = Depends(get_specified_petition),
