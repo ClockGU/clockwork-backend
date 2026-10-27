@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Annotated
 
 from pydantic import field_validator
@@ -23,6 +24,8 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: str = "password"
 
     ALLOWED_HOSTS: Annotated[list[str], NoDecode] = ["*"]
+    ROOT_DIR: Path = Path(__file__).resolve().parent.parent
+    UPLOAD_DIR: Path = ROOT_DIR / "uploads"
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
