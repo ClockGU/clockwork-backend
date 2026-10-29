@@ -7,17 +7,16 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
-from api.db.managers.dependencies import get_specified_petition
+from api.db.managers.dependencies import (
+    get_document_for_clerk_or_owner,
+    get_specified_petition,
+)
 from api.db.schema import Petition
 from api.db.schema.student_documents import StudentDocuments
 from api.handlers.document_handler import StudentDocumentHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.pydantic_models.documents import DocumentType
-from api.security import (
-    get_current_clerk,
-    get_current_student,
-    get_document_for_clerk_or_owner,
-)
+from api.security import get_current_clerk, get_current_student
 from api.utils import STUDENT_DOCUMENTS_DIR, file_response, save_student_doc_file
 
 router = APIRouter()

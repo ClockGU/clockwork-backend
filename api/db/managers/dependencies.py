@@ -9,8 +9,10 @@ from api.db.dependencies import get_db
 from api.db.managers import PetitionManager
 from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.managers.prev_employment_manager import PrevEmploymentManager
+from api.db.managers.student_document import StudentDocumentManager
 from api.db.schema import Employee, Petition, PrevEmployment
-from api.security import get_current_student
+from api.db.schema.student_documents import StudentDocuments
+from api.security import UserRole, decode_user_jwt, get_current_student
 
 
 def get_specified_petition(
@@ -63,3 +65,24 @@ def get_specified_prev_employment(
             status_code=404, detail=f"Employee with ID{str(prev_employment_id)} not found"
         )
     return existing_prev_employment
+
+
+def get_document_for_clerk_or_owner(
+    document_id: UUID,
+    user: dict = Depends(decode_user_jwt),
+    db: Session = Depends(get_db),
+) -> StudentDocuments:
+    """
+    Dependency function to retrieve the specified document if the user is a clerk or the student owning it.
+    :raises: HTTPException with status code 404 if the document is not found or not owned by the user,
+    so the document's existence is not disclosed.
+    """
+    document = StudentDocumentManager(db).get_document(document_id)
+    if not document or (
+        user.get("user_role") != UserRole.CLERK.value
+        and str(document.user_account) != user.get("sub")
+    ):
+        raise HTTPException(
+            status_code=404, detail=f"Document with ID{str(document_id)} not found"
+        )
+    return document
