@@ -197,11 +197,11 @@ def student_employee(db_session):
 def student_documents(db_session, student_employee):
     docs = StudentDocuments(
         user_account=student_employee.user_account,
-        elstam_url="elstam.pdf",
-        studienbescheinigung_url="studien.pdf",
-        versicherungsbescheinigung_url="versicherung.pdf",
-        sozialversicherungsbogen_url="sozialversicherung.pdf",
-        id_photo_url="id_photo.jpg",
+        elstam_file="elstam.pdf",
+        studienbescheinigung_file="studien.pdf",
+        versicherungsbescheinigung_file="versicherung.pdf",
+        sozialversicherungsbogen_file="sozialversicherung.pdf",
+        id_photo_file="id_photo.jpg",
     )
     db_session.add(docs)
     db_session.flush()

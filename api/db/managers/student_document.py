@@ -83,18 +83,18 @@ class StudentDocumentManager:
 
         # Check if all required document URLs are present and not empty
         required_documents = [
-            student_docs.elstam_url,
-            student_docs.studienbescheinigung_url,
-            student_docs.versicherungsbescheinigung_url,
-            student_docs.sozialversicherungsbogen_url,
-            student_docs.id_photo_url,
+            student_docs.elstam_file,
+            student_docs.studienbescheinigung_file,
+            student_docs.versicherungsbescheinigung_file,
+            student_docs.sozialversicherungsbogen_file,
+            student_docs.id_photo_file,
         ]
 
         if check_ba_degree:
-            required_documents.append(student_docs.ba_degree_url)
+            required_documents.append(student_docs.ba_degree_file)
         # TODO: Use global consts instead of magic string
         if employee.nationality and employee.nationality.lower() != "de":
-            required_documents.append(student_docs.residence_permit_url)
+            required_documents.append(student_docs.residence_permit_file)
 
         # Return True only if all documents have non-empty URLs
         return all(doc_url and doc_url.strip() for doc_url in required_documents)
