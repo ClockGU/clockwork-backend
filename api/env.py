@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: Annotated[list[str], NoDecode] = ["*"]
     ROOT_DIR: Path = Path(__file__).resolve().parent.parent
     UPLOAD_DIR: Path = ROOT_DIR / "uploads"
+    # Serve files via nginx X-Accel-Redirect (internal location /protected/) instead of FastAPI
+    SERVE_FILES_VIA_NGINX: bool = False
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod

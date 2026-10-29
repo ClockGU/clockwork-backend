@@ -1,6 +1,9 @@
+import mimetypes
 from pathlib import Path
+from urllib.parse import quote
 
-from fastapi import UploadFile
+from fastapi import Response, UploadFile
+from fastapi.responses import FileResponse
 
 from api.env import settings
 
@@ -21,6 +24,28 @@ def upload_file_path(subdir: str, file_name: str) -> Path:
     Generate the full path for the uploaded file.
     """
     return settings.UPLOAD_DIR / subdir / file_name
+
+
+def file_response(subdir: str, file_name: str, download_name: str) -> Response:
+    """
+    Return the uploaded file as an attachment, via nginx X-Accel-Redirect if
+    SERVE_FILES_VIA_NGINX is set, otherwise directly by FastAPI.
+    """
+    headers = {
+        "Content-Type": mimetypes.guess_type(file_name)[0]
+        or "application/octet-stream",
+        "Content-Disposition": f"attachment; filename*=UTF-8''{quote(download_name)}",
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+    }
+    if settings.SERVE_FILES_VIA_NGINX:
+        headers["X-Accel-Redirect"] = f"/protected/{subdir}/{file_name}"
+        return Response(headers=headers)
+    return FileResponse(
+        upload_file_path(subdir, file_name),
+        media_type=headers["Content-Type"],
+        headers=headers,
+    )
 
 
 def save_file(file: UploadFile, subdir: str, stem: str) -> str:
