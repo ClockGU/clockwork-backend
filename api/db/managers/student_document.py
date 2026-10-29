@@ -48,6 +48,18 @@ class StudentDocumentManager:
         result = self.db.execute(statement)
         return result.scalar_one_or_none()
 
+    def get_document_owned_by(
+        self, document_id: UUID, user_account: UUID
+    ) -> Optional[StudentDocuments]:
+        """
+        Retrieve a document by its UUID if it belongs to the given user account.
+        """
+        statement = select(self.schema).where(
+            self.schema.id == document_id, self.schema.user_account == user_account
+        )
+        result = self.db.execute(statement)
+        return result.scalar_one_or_none()
+
     def get_document_by_username(self, username: str) -> Optional[StudentDocuments]:
         """
         Retrieve the document of the employee with the given username.

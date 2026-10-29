@@ -49,6 +49,18 @@ class StudentDocumentHandler:
             raise self.exc.not_found("Document", str(document_id))
         return document
 
+    def get_document_owned_by(
+        self, document_id: UUID, user_account: UUID
+    ) -> StudentDocuments:
+        """
+        Retrieve a document owned by the given user account. A document that exists
+        but belongs to someone else is reported as not found.
+        """
+        document = self.manager.get_document_owned_by(document_id, user_account)
+        if not document:
+            raise self.exc.not_found("Document", str(document_id))
+        return document
+
     def get_document_by_user_account(self, user_account: UUID) -> StudentDocuments:
         """
         Retrieve the document associated with a specific user account.
