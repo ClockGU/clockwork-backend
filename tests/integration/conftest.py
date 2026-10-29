@@ -11,7 +11,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, create_engine, make_url
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session, SQLModel
 
@@ -31,11 +31,13 @@ from api.websockets.managers import (
     get_clerk_connection_manager,
 )
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Database configuration
-DB_URI = settings.DATABASE_URL.replace("/db_app", "/postgres")
-TEST_DB_URL = ""
+DB_URI = make_url(settings.DATABASE_URL).set(database="postgres").render_as_string(hide_password=False)
+# Unique per test run, so parallel runs never share (or migrate) the same database
+TEST_DB_NAME = f"test_db_{uuid.uuid4().hex[:8]}"
+TEST_DB_URL = make_url(settings.DATABASE_URL).set(database=TEST_DB_NAME).render_as_string(hide_password=False)
 engine: Engine
 TestingSessionLocal: Session
 
@@ -44,7 +46,7 @@ TestingSessionLocal: Session
 def run_migrations():
     config = Config(BASE_DIR / "alembic.ini")
     config.set_main_option("script_location", str(BASE_DIR / "migrations"))
-    config.set_main_option("sqlalchemy.url", TEST_DB_URL)
+    config.attributes["database_url"] = TEST_DB_URL
     command.upgrade(config, "head")
 
 
@@ -52,9 +54,7 @@ def create_test_database():
     conn = psycopg2.connect(DB_URI)
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
-    cur.execute("SELECT 1 FROM pg_database WHERE datname = 'test_db'")
-    if not cur.fetchone():
-        cur.execute("CREATE DATABASE test_db")
+    cur.execute(f"CREATE DATABASE {TEST_DB_NAME}")
     cur.close()
     conn.close()
 
@@ -63,7 +63,7 @@ def drop_test_database():
     conn = psycopg2.connect(DB_URI)
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
-    cur.execute("DROP DATABASE IF EXISTS test_db")
+    cur.execute(f"DROP DATABASE IF EXISTS {TEST_DB_NAME} WITH (FORCE)")
     cur.close()
     conn.close()
 
@@ -73,8 +73,7 @@ def drop_test_database():
 def apply_migrations():
     create_test_database()
     # point engine at test_db, not the real one
-    global engine, TestingSessionLocal, TEST_DB_URL
-    TEST_DB_URL = settings.DATABASE_URL.replace("/your_real_db", "/test_db")
+    global engine, TestingSessionLocal
     engine = create_engine(TEST_DB_URL)
     TestingSessionLocal = sessionmaker(bind=engine)
     run_migrations()
@@ -176,8 +175,18 @@ def student_employee(db_session):
     employee = Employee(
         user_account=uuid.uuid4(),
         username="teststudent",
+        first_name="Test",
+        last_name="Student",
+        form_of_address="Herr",
         date_of_birth=date(2000, 1, 1),
+        city_of_birth="Frankfurt",
         address="Test Street 1",
+        postal_code="60323",
+        married=False,
+        nationality="DE",
+        telephone_number="0123456789",
+        health_insurance="TK",
+        iban="DE89370400440532013000",
     )
     db_session.add(employee)
     db_session.flush()
@@ -187,11 +196,12 @@ def student_employee(db_session):
 @pytest.fixture
 def student_documents(db_session, student_employee):
     docs = StudentDocuments(
-        employee_id=student_employee.id,
-        elstam_url="elstam.pdf",
-        studienbescheinigung_url="studien.pdf",
-        versicherungsbescheinigung_url="versicherung.pdf",
-        sozialversicherungsbogen_url="sozialversicherung.pdf",
+        user_account=student_employee.user_account,
+        elstam_file="elstam.pdf",
+        studienbescheinigung_file="studien.pdf",
+        versicherungsbescheinigung_file="versicherung.pdf",
+        sozialversicherungsbogen_file="sozialversicherung.pdf",
+        id_photo_file="id_photo.jpg",
     )
     db_session.add(docs)
     db_session.flush()

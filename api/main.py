@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -13,8 +15,16 @@ from api.env import settings
 from api.events import register_all_events
 from api.routers import router
 from api.security import get_current_student, get_current_supervisor
+from api.utils import create_upload_dirs
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_upload_dirs()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 # Register event listeners
 register_all_events()

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
@@ -30,11 +30,7 @@ class StudentDocumentManager:
             self.db.rollback()
             # If document already exists, we can safely ignore this error
             # as the employee already has a document associated
-            statement = select(self.schema).where(
-                self.schema.employee_id == document_data["employee_id"]
-            )
-            result = self.db.execute(statement)
-            return result.scalar_one_or_none()
+            return self.get_document_by_user_account(document_data["user_account"])
 
     def get_document(self, document_id: UUID) -> Optional[StudentDocuments]:
         """
@@ -42,13 +38,39 @@ class StudentDocumentManager:
         """
         return self.db.get(self.schema, document_id)
 
-    def get_documents_by_employee(self, employee_id: UUID) -> List[StudentDocuments]:
+    def get_document_by_user_account(
+        self, user_account: UUID
+    ) -> Optional[StudentDocuments]:
         """
-        Retrieve all documents associated with a specific employee.
+        Retrieve the document associated with a specific user account.
         """
-        statement = select(self.schema).where(self.schema.employee_id == employee_id)
+        statement = select(self.schema).where(self.schema.user_account == user_account)
         result = self.db.execute(statement)
-        return result.scalars().all()
+        return result.scalar_one_or_none()
+
+    def get_document_owned_by(
+        self, document_id: UUID, user_account: UUID
+    ) -> Optional[StudentDocuments]:
+        """
+        Retrieve a document by its UUID if it belongs to the given user account.
+        """
+        statement = select(self.schema).where(
+            self.schema.id == document_id, self.schema.user_account == user_account
+        )
+        result = self.db.execute(statement)
+        return result.scalar_one_or_none()
+
+    def get_document_by_username(self, username: str) -> Optional[StudentDocuments]:
+        """
+        Retrieve the document of the employee with the given username.
+        """
+        statement = (
+            select(self.schema)
+            .join(Employee, Employee.user_account == self.schema.user_account)
+            .where(Employee.username == username)
+        )
+        result = self.db.execute(statement)
+        return result.scalar_one_or_none()
 
     def check_student_documents_uploaded(
         self, employee: Employee, check_ba_degree: bool = False
@@ -64,10 +86,8 @@ class StudentDocumentManager:
             bool: True if all documents are uploaded, False otherwise
         """
 
-        # Get the student documents record using employee_id
-        statement = select(self.schema).where(self.schema.employee_id == employee.id)
-        result = self.db.execute(statement)
-        student_docs = result.scalar_one_or_none()
+        # Get the student documents record using the employee's user_account
+        student_docs = self.get_document_by_user_account(employee.user_account)
 
         # If no document record exists, documents are not uploaded
         if not student_docs:
@@ -75,18 +95,18 @@ class StudentDocumentManager:
 
         # Check if all required document URLs are present and not empty
         required_documents = [
-            student_docs.elstam_url,
-            student_docs.studienbescheinigung_url,
-            student_docs.versicherungsbescheinigung_url,
-            student_docs.sozialversicherungsbogen_url,
-            student_docs.id_photo_url,
+            student_docs.elstam_file,
+            student_docs.studienbescheinigung_file,
+            student_docs.versicherungsbescheinigung_file,
+            student_docs.sozialversicherungsbogen_file,
+            student_docs.id_photo_file,
         ]
 
         if check_ba_degree:
-            required_documents.append(student_docs.ba_degree_url)
+            required_documents.append(student_docs.ba_degree_file)
         # TODO: Use global consts instead of magic string
         if employee.nationality and employee.nationality.lower() != "de":
-            required_documents.append(student_docs.residence_permit_url)
+            required_documents.append(student_docs.residence_permit_file)
 
         # Return True only if all documents have non-empty URLs
         return all(doc_url and doc_url.strip() for doc_url in required_documents)

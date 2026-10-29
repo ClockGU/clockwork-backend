@@ -1,29 +1,38 @@
+from enum import Enum
 from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
 
+from api.db.schema.student_documents import StudentDocuments
+
+UPLOAD_FIELDS = [
+    k.removesuffix("_file") for k in StudentDocuments.model_fields if k.endswith("_file")
+]
+
+DocumentType = Enum("DocumentType", {field: field for field in UPLOAD_FIELDS}, type=str)
+
 
 class StudentDocumentsUpdate(BaseModel):
-    elstam_url: Optional[str] = None  # Accept URLs as strings
-    studienbescheinigung_url: Optional[str] = None  # Accept URLs as strings
-    versicherungsbescheinigung_url: Optional[str] = None  # Accept URLs as strings
-    sozialversicherungsbogen_url: Optional[str] = None  # Accept URLs as strings
-    ba_degree_url: Optional[str] = None  # Accept URLs as strings
-    residence_permit_url: Optional[str] = None
-    id_photo_url: Optional[str] = None
+    elstam_file: Optional[str] = None
+    studienbescheinigung_file: Optional[str] = None
+    versicherungsbescheinigung_file: Optional[str] = None
+    sozialversicherungsbogen_file: Optional[str] = None
+    ba_degree_file: Optional[str] = None
+    residence_permit_file: Optional[str] = None
+    id_photo_file: Optional[str] = None
 
 
 class StudentDocumentsRead(BaseModel):
     id: UUID
-    employee_id: UUID
-    elstam_url: Optional[str] = None
-    studienbescheinigung_url: Optional[str] = None
-    versicherungsbescheinigung_url: Optional[str] = None
-    sozialversicherungsbogen_url: Optional[str] = None
-    ba_degree_url: Optional[str] = None
-    residence_permit_url: Optional[str] = None
-    id_photo_url: Optional[str] = None
+    user_account: UUID
+    elstam_file: Optional[str] = None
+    studienbescheinigung_file: Optional[str] = None
+    versicherungsbescheinigung_file: Optional[str] = None
+    sozialversicherungsbogen_file: Optional[str] = None
+    ba_degree_file: Optional[str] = None
+    residence_permit_file: Optional[str] = None
+    id_photo_file: Optional[str] = None
 
     class Config:
         orm_mode = True
