@@ -48,6 +48,18 @@ class StudentDocumentManager:
         result = self.db.execute(statement)
         return result.scalar_one_or_none()
 
+    def get_document_by_username(self, username: str) -> Optional[StudentDocuments]:
+        """
+        Retrieve the document of the employee with the given username.
+        """
+        statement = (
+            select(self.schema)
+            .join(Employee, Employee.user_account == self.schema.user_account)
+            .where(Employee.username == username)
+        )
+        result = self.db.execute(statement)
+        return result.scalar_one_or_none()
+
     def check_student_documents_uploaded(
         self, employee: Employee, check_ba_degree: bool = False
     ) -> bool:
