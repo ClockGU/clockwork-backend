@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from fastapi import UploadFile
@@ -39,21 +39,24 @@ class StudentDocumentHandler:
             )
 
         # 2. Fetch Documents
-        documents = self.manager.get_documents_by_employee(student_employee.id)
-        if not documents:
+        document = self.manager.get_document_by_user_account(
+            student_employee.user_account
+        )
+        if not document:
             raise self.exc.not_found(
                 "Documents", f"No documents found for student {student_username}"
             )
 
-        # Assuming one document record per employee
-        return documents[0]
+        return document
 
     def create_document(self, employee: Employee) -> StudentDocuments:
         """
-        Create a new document record with just the employee_id.
+        Create a new document record with just the user_account.
         """
         try:
-            document = self.manager.get_or_create_document({"employee_id": employee.id})
+            document = self.manager.get_or_create_document(
+                {"user_account": employee.user_account}
+            )
             return document
         except Exception as e:
             raise self.exc.internal_error("creating the document", e)
@@ -64,17 +67,17 @@ class StudentDocumentHandler:
             raise self.exc.not_found("Document", str(document_id))
         return document
 
-    def get_documents_by_employee(self, employee_id: UUID) -> List[StudentDocuments]:
+    def get_document_by_user_account(self, user_account: UUID) -> StudentDocuments:
         """
-        Retrieve all documents associated with a specific employee.
+        Retrieve the document associated with a specific user account.
         """
-        documents = self.manager.get_documents_by_employee(employee_id)
-        if not documents:
+        document = self.manager.get_document_by_user_account(user_account)
+        if not document:
             raise self.exc.not_found(
                 "Documents",
-                message=f"No documents found for employee with ID {employee_id}",
+                message=f"No documents found for user account {user_account}",
             )
-        return documents
+        return document
 
     def update_document(
         self, document_id: UUID, document_data: StudentDocumentsUpdate
@@ -89,29 +92,26 @@ class StudentDocumentHandler:
 
         return document
 
-    def update_document_by_employee(
-        self, employee_id: UUID, document_data: StudentDocumentsUpdate
+    def update_document_by_user_account(
+        self, user_account: UUID, document_data: StudentDocumentsUpdate
     ) -> StudentDocuments:
         """
-        Update a document by the foreign key of employee_id.
+        Update a document by the foreign key of user_account.
         """
-        # Retrieve the document associated with the employee
-        documents = self.manager.get_documents_by_employee(employee_id)
-        if not documents:
+        # Retrieve the document associated with the user account
+        document = self.manager.get_document_by_user_account(user_account)
+        if not document:
             raise self.exc.not_found(
                 "Document",
-                message=f"No document found for employee with ID {employee_id}",
+                message=f"No document found for user account {user_account}",
             )
-
-        # Assuming there is only one document per employee, update the first document
-        document = documents[0]
 
         # Proceed with the update
         updated_document = self.manager.update_document(document.id, document_data)
         if not updated_document:
             raise self.exc.update_failed(
                 "Document",
-                message=f"Document for employee with ID {employee_id} could not be updated",
+                message=f"Document for user account {user_account} could not be updated",
             )
         return updated_document
 

@@ -196,7 +196,7 @@ def student_employee(db_session):
 @pytest.fixture
 def student_documents(db_session, student_employee):
     docs = StudentDocuments(
-        employee_id=student_employee.id,
+        user_account=student_employee.user_account,
         elstam_url="elstam.pdf",
         studienbescheinigung_url="studien.pdf",
         versicherungsbescheinigung_url="versicherung.pdf",

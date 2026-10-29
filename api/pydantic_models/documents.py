@@ -16,7 +16,7 @@ class StudentDocumentsUpdate(BaseModel):
 
 class StudentDocumentsRead(BaseModel):
     id: UUID
-    employee_id: UUID
+    user_account: UUID
     elstam_url: Optional[str] = None
     studienbescheinigung_url: Optional[str] = None
     versicherungsbescheinigung_url: Optional[str] = None

@@ -1,13 +1,19 @@
 import uuid
 from typing import Optional
 
+from sqlalchemy import Column, ForeignKey, Uuid
 from sqlmodel import Field, Relationship, SQLModel
 
 
 class StudentDocuments(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
-    employee_id: uuid.UUID = Field(
-        foreign_key="employee.id", nullable=False, sa_column_kwargs={"unique": True}
+    user_account: uuid.UUID = Field(
+        sa_column=Column(
+            Uuid,
+            ForeignKey("employee.user_account", onupdate="CASCADE"),
+            unique=True,
+            nullable=False,
+        )
     )
 
     # Document fields
