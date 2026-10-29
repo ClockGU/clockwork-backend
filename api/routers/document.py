@@ -1,11 +1,14 @@
 import os
 from typing import Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
+from api.db.managers.dependencies import get_specified_petition
+from api.db.schema import Petition
 from api.handlers.document_handler import StudentDocumentHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.security import get_current_clerk, get_current_student
@@ -107,13 +110,14 @@ def download_file(
     )
 
 
-@router.get("/clerk/documents-by-username", response_model=StudentDocumentsRead)
-def get_documents_by_student_username(
-    student_username: str = Query(..., description="The username of the student"),
+@router.get("/clerk/petitions/{petition_id}/documents", response_model=StudentDocumentsRead)
+def get_petition_documents(
+    petition_id: UUID,
+    petition: Petition = Depends(get_specified_petition),
     handler: StudentDocumentHandler = Depends(get_document_handler),
     user=Depends(get_current_clerk),  # Secure the endpoint
 ):
     """
-    Retrieve documents by the student's username.
+    Retrieve the student documents for a petition.
     """
-    return handler.get_documents_by_student_username(student_username)
+    return handler.get_documents_for_petition(petition)

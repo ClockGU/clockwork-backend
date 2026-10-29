@@ -5,11 +5,8 @@ from fastapi import UploadFile
 from sqlmodel import Session
 
 from api.db.managers import PetitionManager
-from api.db.managers.emploeyee_manager import (  # Note the typo in filename
-    EmployeeManager,
-)
 from api.db.managers.student_document import StudentDocumentManager
-from api.db.schema import Employee
+from api.db.schema import Employee, Petition
 from api.db.schema.student_documents import StudentDocuments
 from api.handlers.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
@@ -20,33 +17,18 @@ class StudentDocumentHandler:
     def __init__(self, db: Session):
         self.manager = StudentDocumentManager(db)
         self.petition_manager = PetitionManager(db)
-        self.employee_manager = EmployeeManager(db)
         self.exc = ExceptionHandler()
 
-    def get_documents_by_student_username(
-        self, student_username: str
-    ) -> StudentDocuments:
+    def get_documents_for_petition(self, petition: Petition) -> StudentDocuments:
         """
-        Retrieve student documents by the student's username.
+        Retrieve the student documents belonging to a petition's student.
         """
-        # 1. Fetch Student Employee
-        student_employee = self.employee_manager.get_employee_by_username(
-            student_username
-        )
-        if not student_employee:
-            raise self.exc.not_found(
-                "Student Employee", f"Student employee {student_username} not found"
-            )
-
-        # 2. Fetch Documents
-        document = self.manager.get_document_by_user_account(
-            student_employee.user_account
-        )
+        # TODO: Use petition.user_account once it is stored on the petition (#142)
+        document = self.manager.get_document_by_username(petition.student_username)
         if not document:
             raise self.exc.not_found(
-                "Documents", f"No documents found for student {student_username}"
+                "Documents", f"No documents found for petition {petition.id}"
             )
-
         return document
 
     def create_document(self, employee: Employee) -> StudentDocuments:

@@ -12,7 +12,7 @@ import api.security
 from api.db.schema.employee import Employee
 from api.db.schema.student_documents import StudentDocuments
 from api.main import app
-from api.security import UserRole, get_current_student
+from api.security import UserRole, decode_user_jwt, get_current_clerk, get_current_student
 
 
 @pytest.fixture
@@ -22,6 +22,63 @@ def as_student(student_employee):
     }
     yield
     app.dependency_overrides.pop(get_current_student, None)
+
+
+@pytest.fixture
+def as_clerk():
+    app.dependency_overrides[get_current_clerk] = lambda: {"sub": str(uuid.uuid4())}
+    yield
+    app.dependency_overrides.pop(get_current_clerk, None)
+
+
+def test_clerk_gets_documents_for_petition(
+    client, student_documents, petition_student_action, as_clerk
+):
+    response = client.get(f"/clerk/petitions/{petition_student_action.id}/documents")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == str(student_documents.id)
+    assert data["user_account"] == str(student_documents.user_account)
+
+
+def test_non_clerk_cannot_get_documents_for_petition(
+    client, student_documents, petition_student_action
+):
+    app.dependency_overrides[decode_user_jwt] = lambda: {
+        "sub": str(uuid.uuid4()),
+        "user_role": UserRole.STUDENT.value,
+    }
+    try:
+        response = client.get(
+            f"/clerk/petitions/{petition_student_action.id}/documents"
+        )
+    finally:
+        app.dependency_overrides.pop(decode_user_jwt, None)
+
+    assert response.status_code == 403
+
+
+def test_documents_for_unknown_petition_returns_404(client, as_clerk):
+    response = client.get(f"/clerk/petitions/{uuid.uuid4()}/documents")
+
+    assert response.status_code == 404
+
+
+def test_documents_for_petition_without_documents_returns_404(
+    client, student_employee, petition_student_action, as_clerk
+):
+    response = client.get(f"/clerk/petitions/{petition_student_action.id}/documents")
+
+    assert response.status_code == 404
+
+
+def test_documents_by_username_endpoint_is_gone(client, student_documents, as_clerk):
+    response = client.get(
+        "/clerk/documents-by-username", params={"student_username": "teststudent"}
+    )
+
+    assert response.status_code == 404
 
 
 def test_get_documents_returns_callers_document_without_employee_query(
