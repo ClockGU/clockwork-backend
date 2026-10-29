@@ -12,6 +12,8 @@ from api.utils import (
     STUDENT_DOCUMENTS_DIR,
     create_upload_dirs,
     delete_file,
+    delete_prev_emp_file,
+    delete_student_doc_file,
     save_prev_emp_file,
     save_student_doc_file,
     upload_file_path,
@@ -121,6 +123,19 @@ def test_delete_file(upload_dir, doc):
     file_name = save_student_doc_file(doc, "elstam", make_upload("a.pdf"))
     delete_file(STUDENT_DOCUMENTS_DIR, file_name)
     assert not (upload_dir / STUDENT_DOCUMENTS_DIR / file_name).exists()
+
+
+def test_delete_student_doc_file(upload_dir, doc):
+    file_name = save_student_doc_file(doc, "elstam", make_upload("a.pdf"))
+    delete_student_doc_file(file_name)
+    assert not (upload_dir / STUDENT_DOCUMENTS_DIR / file_name).exists()
+
+
+def test_delete_prev_emp_file(upload_dir):
+    prev_emp = SimpleNamespace(id=uuid.uuid4())
+    file_name = save_prev_emp_file(prev_emp, make_upload("proof.pdf"))
+    delete_prev_emp_file(file_name)
+    assert not (upload_dir / PREV_EMPLOYMENTS_DIR / file_name).exists()
 
 
 def test_prev_employment_handler_upload_file(upload_dir):

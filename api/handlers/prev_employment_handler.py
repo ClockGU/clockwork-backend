@@ -12,7 +12,7 @@ from api.pydantic_models.prev_employment import (
     PrevEmploymentCreate,
     PrevEmploymentUpdate,
 )
-from api.utils import PREV_EMPLOYMENTS_DIR, delete_file, save_prev_emp_file
+from api.utils import delete_prev_emp_file, save_prev_emp_file
 
 class PrevEmploymentHandler:
 
@@ -74,7 +74,7 @@ class PrevEmploymentHandler:
         prev_employment = self.manager.get(id=prev_employment_id)
         if prev_employment.proof:
             try:
-                delete_file(PREV_EMPLOYMENTS_DIR, prev_employment.proof)
+                delete_prev_emp_file(prev_employment.proof)
             except FileNotFoundError:
                 raise HTTPException(500, "Error deleting file for prev employment proof")
         self.manager.delete(prev_employment)

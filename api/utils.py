@@ -55,3 +55,11 @@ def delete_file(subdir: str, file_name: str) -> None:
     file_path = upload_file_path(subdir, file_name)
     if file_path.exists():
         file_path.unlink()
+
+
+def delete_student_doc_file(file_name: str) -> None:
+    delete_file(STUDENT_DOCUMENTS_DIR, file_name)
+
+
+def delete_prev_emp_file(file_name: str) -> None:
+    delete_file(PREV_EMPLOYMENTS_DIR, file_name)
