@@ -12,7 +12,7 @@ from api.pydantic_models.prev_employment import (
     PrevEmploymentCreate,
     PrevEmploymentUpdate,
 )
-from api.utils import save_file, delete_file
+from api.utils import PREV_EMPLOYMENTS_DIR, delete_file, save_prev_emp_file
 
 class PrevEmploymentHandler:
 
@@ -66,14 +66,7 @@ class PrevEmploymentHandler:
 
     def upload_file(self, prev_employment_id: uuid.UUID, file: UploadFile) -> PrevEmployment:
         prev_employment = self.manager.get(id=prev_employment_id)
-        if prev_employment.proof:
-            try:
-                delete_file(prev_employment.proof)
-            except FileNotFoundError:
-                raise HTTPException(
-                    500, "Error deleting file for prev employment proof"
-                )
-        file_url = save_file(file)
+        file_url = save_prev_emp_file(prev_employment, file)
         updated_prev_employment = self.manager.update([prev_employment], {"proof": file_url})
         return updated_prev_employment[0]
 
@@ -81,7 +74,7 @@ class PrevEmploymentHandler:
         prev_employment = self.manager.get(id=prev_employment_id)
         if prev_employment.proof:
             try:
-                delete_file(prev_employment.proof)
+                delete_file(PREV_EMPLOYMENTS_DIR, prev_employment.proof)
             except FileNotFoundError:
                 raise HTTPException(500, "Error deleting file for prev employment proof")
         self.manager.delete(prev_employment)

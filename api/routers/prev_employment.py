@@ -19,7 +19,7 @@ from api.pydantic_models.prev_employment import (
     PrevEmploymentUpdate,
 )
 from api.security import get_current_student, get_current_clerk
-from api.utils import upload_file_path
+from api.utils import PREV_EMPLOYMENTS_DIR, upload_file_path
 
 # from api.pydantic_models.prev_employment import PrevEmploymentCreate
 
@@ -77,4 +77,4 @@ def download_prev_employment_proof(
             status_code=404,
             detail=f"Not file found for this entry.",
         )
-    return upload_file_path(prev_employmeent.proof)
+    return upload_file_path(PREV_EMPLOYMENTS_DIR, prev_employmeent.proof)
