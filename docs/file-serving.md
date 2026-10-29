@@ -14,9 +14,8 @@
 `<subdir>` is `student_documents` or `prev_employments`, both under `settings.UPLOAD_DIR`
 (`/app/uploads` in the container).
 
-Note: only endpoints that use `file_response` go through nginx. The previous-employment
-proof download (`/clerk/prev_employments/{id}/download`) currently returns the file directly
-from FastAPI regardless of the flag.
+Endpoints using `file_response`: `GET /documents/{document_id}/{document_type}` and
+`GET /clerk/prev_employments/{prev_employment_id}/download` (the latter since #167).
 
 ## Local development
 
