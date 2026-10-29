@@ -28,7 +28,8 @@ target_metadata = SQLModel.metadata
 # ... etc.
 
 def get_url():
-    return settings.DATABASE_URL
+    # Tests pass their own database via config.attributes
+    return config.attributes.get("database_url", settings.DATABASE_URL)
 
 
 def run_migrations_offline() -> None:
@@ -43,7 +44,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.DATABASE_URL
+    url = get_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -65,7 +66,7 @@ def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
     
-    connectable = create_engine(settings.DATABASE_URL)
+    connectable = create_engine(get_url())
 
     with connectable.connect() as connection:
         context.configure(

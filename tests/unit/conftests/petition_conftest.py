@@ -38,6 +38,8 @@ def orm_petition(base_petition):
         user_account=uuid.uuid4(),
         status=PetitionStatus.APPROVER_ACTION,
         supervisor_mail=None,
+        # mirrors the Petition.student_mail property
+        student_mail=f"{base_petition['student_username']}@uni-frankfurt.de",
         budget_positions=[],
         time_exce_student=None,
         time_exce_course=None,
