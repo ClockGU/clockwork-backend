@@ -9,7 +9,7 @@ from api.db.dependencies import get_db
 from api.handlers.document_handler import StudentDocumentHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.security import get_current_clerk, get_current_student
-from api.utils import save_file, upload_file_path
+from api.utils import STUDENT_DOCUMENTS_DIR, save_student_doc_file, upload_file_path
 
 router = APIRouter()
 
@@ -52,25 +52,31 @@ def update_document(
     # TODO: Make this dynamic to avoid repetition
     file_urls = {}
     if elstam:
-        file_urls["elstam_url"] = save_file(elstam)
+        file_urls["elstam_url"] = save_student_doc_file(document, "elstam", elstam)
     if studienbescheinigung:
-        file_urls["studienbescheinigung_url"] = save_file(
-            studienbescheinigung
+        file_urls["studienbescheinigung_url"] = save_student_doc_file(
+            document, "studienbescheinigung", studienbescheinigung
         )
     if versicherungsbescheinigung:
-        file_urls["versicherungsbescheinigung_url"] = save_file(
-            versicherungsbescheinigung
+        file_urls["versicherungsbescheinigung_url"] = save_student_doc_file(
+            document, "versicherungsbescheinigung", versicherungsbescheinigung
         )
     if sozialversicherungsbogen:
-        file_urls["sozialversicherungsbogen_url"] = save_file(
-            sozialversicherungsbogen
+        file_urls["sozialversicherungsbogen_url"] = save_student_doc_file(
+            document, "sozialversicherungsbogen", sozialversicherungsbogen
         )
     if ba_degree:
-        file_urls["ba_degree_url"] = save_file(ba_degree)
+        file_urls["ba_degree_url"] = save_student_doc_file(
+            document, "ba_degree", ba_degree
+        )
     if residence_permit:
-        file_urls["residence_permit_url"] = save_file(residence_permit)
+        file_urls["residence_permit_url"] = save_student_doc_file(
+            document, "residence_permit", residence_permit
+        )
     if id_photo:
-        file_urls["id_photo_url"] = save_file(id_photo)
+        file_urls["id_photo_url"] = save_student_doc_file(
+            document, "id_photo", id_photo
+        )
 
     document_data = StudentDocumentsUpdate(**file_urls)
 
@@ -89,7 +95,7 @@ def download_file(
     """
     Takes the URL of a file and returns the actual file.
     """
-    upload_path = upload_file_path(file_url)
+    upload_path = upload_file_path(STUDENT_DOCUMENTS_DIR, file_url)
     if not upload_path:
         raise HTTPException(status_code=404, detail="File not found")
 
