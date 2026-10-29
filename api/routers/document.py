@@ -1,20 +1,24 @@
 import inspect
 import os
+from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
-from api.db.managers.dependencies import get_specified_petition
+from api.db.managers.dependencies import (
+    get_document_for_clerk_or_owner,
+    get_specified_petition,
+)
 from api.db.schema import Petition
+from api.db.schema.student_documents import StudentDocuments
 from api.handlers.document_handler import StudentDocumentHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
-from api.pydantic_models.documents import UPLOAD_FIELDS
+from api.pydantic_models.documents import UPLOAD_FIELDS, DocumentType
 from api.security import get_current_clerk, get_current_student
-from api.utils import STUDENT_DOCUMENTS_DIR, save_student_doc_file, upload_file_path
+from api.utils import STUDENT_DOCUMENTS_DIR, file_response, save_student_doc_file
 
 router = APIRouter()
 
@@ -84,25 +88,24 @@ def update_document(
     return handler.update_document(document.id, StudentDocumentsUpdate(**file_names))
 
 
-# TODO: THIS IS A NO-GO. This basically exposes the entire services filesystem to the outside world.
-# Solution: /download-file/{student_document_id}/{document_type} and then check if the student_document_id
-# belongs to the user and if the document_type is valid. Then return the file.
-@router.get("/download-file")
-def download_file(
-    file_url: str = Query(..., description="The URL of the file to download")
+@router.get("/documents/{document_id}/{document_type}")
+def download_document(
+    document_type: DocumentType,
+    document: StudentDocuments = Depends(get_document_for_clerk_or_owner),
+    handler: StudentDocumentHandler = Depends(get_document_handler),
 ):
     """
-    Takes the URL of a file and returns the actual file.
+    Download a file of a document. Only clerks and the owning student have access.
     """
-    upload_path = upload_file_path(STUDENT_DOCUMENTS_DIR, file_url)
-    if not upload_path:
-        raise HTTPException(status_code=404, detail="File not found")
-
-    # Return the file as a response
-    return FileResponse(
-        upload_path,
-        media_type="application/octet-stream",
-        filename=file_url,
+    file_name = getattr(document, f"{document_type.value}_file")
+    if not file_name:
+        raise handler.exc.not_found(
+            "File", message=f"No {document_type.value} file for document {document.id}"
+        )
+    return file_response(
+        STUDENT_DOCUMENTS_DIR,
+        file_name,
+        f"{document_type.value}{Path(file_name).suffix}",
     )
 
 
