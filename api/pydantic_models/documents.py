@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional
 from uuid import UUID
 
@@ -8,6 +9,8 @@ from api.db.schema.student_documents import StudentDocuments
 UPLOAD_FIELDS = [
     k.removesuffix("_file") for k in StudentDocuments.model_fields if k.endswith("_file")
 ]
+
+DocumentType = Enum("DocumentType", {field: field for field in UPLOAD_FIELDS}, type=str)
 
 
 class StudentDocumentsUpdate(BaseModel):

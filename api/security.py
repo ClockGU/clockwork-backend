@@ -3,12 +3,14 @@ import hashlib
 import hmac
 import secrets
 from enum import Enum
+from uuid import UUID
 
 import jwt
 from fastapi import Depends, HTTPException, Request
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
+from api.db.schema.student_documents import StudentDocuments
 from api.env import settings
 from api.handlers.document_handler import StudentDocumentHandler
 from api.handlers.employee_handler import EmployeeHandler
@@ -151,6 +153,24 @@ def get_current_clerk(user: dict = Depends(decode_user_jwt)) -> dict:
     """
     authenticate_clerk(user)
     return user
+
+
+def get_document_for_clerk_or_owner(
+    document_id: UUID,
+    user: dict = Depends(decode_user_jwt),
+    db: Session = Depends(get_db),
+) -> StudentDocuments:
+    """
+    Retrieve the document if the user is a clerk or the student owning it.
+    Raises 404 for non-owners, so the document's existence is not disclosed.
+    """
+    handler = StudentDocumentHandler(db)
+    document = handler.get_document(document_id)
+    if user.get("user_role") != UserRole.CLERK.value and str(
+        document.user_account
+    ) != user.get("sub"):
+        raise handler.exc.not_found("Document", str(document_id))
+    return document
 
 
 # for email signature
