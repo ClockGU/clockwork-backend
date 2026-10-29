@@ -52,29 +52,29 @@ def update_document(
     # TODO: Make this dynamic to avoid repetition
     file_urls = {}
     if elstam:
-        file_urls["elstam_url"] = save_student_doc_file(document, "elstam", elstam)
+        file_urls["elstam_file"] = save_student_doc_file(document, "elstam", elstam)
     if studienbescheinigung:
-        file_urls["studienbescheinigung_url"] = save_student_doc_file(
+        file_urls["studienbescheinigung_file"] = save_student_doc_file(
             document, "studienbescheinigung", studienbescheinigung
         )
     if versicherungsbescheinigung:
-        file_urls["versicherungsbescheinigung_url"] = save_student_doc_file(
+        file_urls["versicherungsbescheinigung_file"] = save_student_doc_file(
             document, "versicherungsbescheinigung", versicherungsbescheinigung
         )
     if sozialversicherungsbogen:
-        file_urls["sozialversicherungsbogen_url"] = save_student_doc_file(
+        file_urls["sozialversicherungsbogen_file"] = save_student_doc_file(
             document, "sozialversicherungsbogen", sozialversicherungsbogen
         )
     if ba_degree:
-        file_urls["ba_degree_url"] = save_student_doc_file(
+        file_urls["ba_degree_file"] = save_student_doc_file(
             document, "ba_degree", ba_degree
         )
     if residence_permit:
-        file_urls["residence_permit_url"] = save_student_doc_file(
+        file_urls["residence_permit_file"] = save_student_doc_file(
             document, "residence_permit", residence_permit
         )
     if id_photo:
-        file_urls["id_photo_url"] = save_student_doc_file(
+        file_urls["id_photo_file"] = save_student_doc_file(
             document, "id_photo", id_photo
         )
 

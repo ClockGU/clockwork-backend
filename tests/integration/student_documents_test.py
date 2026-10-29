@@ -100,3 +100,18 @@ def test_first_login_creates_employee_and_documents(client, db_session, monkeypa
         select(StudentDocuments).where(StudentDocuments.user_account == user_account)
     ).scalar_one()
     assert document.employee.id == employee.id
+
+
+def test_get_documents_returns_file_keys(client, student_documents, as_student):
+    response = client.get("/documents")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["elstam_file"] == "elstam.pdf"
+    assert data["studienbescheinigung_file"] == "studien.pdf"
+    assert data["versicherungsbescheinigung_file"] == "versicherung.pdf"
+    assert data["sozialversicherungsbogen_file"] == "sozialversicherung.pdf"
+    assert data["ba_degree_file"] is None
+    assert data["residence_permit_file"] is None
+    assert data["id_photo_file"] == "id_photo.jpg"
+    assert not [key for key in data if key.endswith("_url")]
