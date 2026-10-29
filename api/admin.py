@@ -135,7 +135,7 @@ class StudentDocumentsAdmin(ModelView, model=StudentDocuments):
 
     column_list = [
         StudentDocuments.id,
-        StudentDocuments.employee_id,
+        StudentDocuments.user_account,
         StudentDocuments.elstam_url,
         StudentDocuments.studienbescheinigung_url,
         StudentDocuments.versicherungsbescheinigung_url,
@@ -143,7 +143,7 @@ class StudentDocumentsAdmin(ModelView, model=StudentDocuments):
     ]
 
     column_searchable_list = [
-        StudentDocuments.employee_id,
+        StudentDocuments.user_account,
     ]
 
 

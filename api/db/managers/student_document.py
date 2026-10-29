@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
@@ -30,11 +30,7 @@ class StudentDocumentManager:
             self.db.rollback()
             # If document already exists, we can safely ignore this error
             # as the employee already has a document associated
-            statement = select(self.schema).where(
-                self.schema.employee_id == document_data["employee_id"]
-            )
-            result = self.db.execute(statement)
-            return result.scalar_one_or_none()
+            return self.get_document_by_user_account(document_data["user_account"])
 
     def get_document(self, document_id: UUID) -> Optional[StudentDocuments]:
         """
@@ -42,13 +38,15 @@ class StudentDocumentManager:
         """
         return self.db.get(self.schema, document_id)
 
-    def get_documents_by_employee(self, employee_id: UUID) -> List[StudentDocuments]:
+    def get_document_by_user_account(
+        self, user_account: UUID
+    ) -> Optional[StudentDocuments]:
         """
-        Retrieve all documents associated with a specific employee.
+        Retrieve the document associated with a specific user account.
         """
-        statement = select(self.schema).where(self.schema.employee_id == employee_id)
+        statement = select(self.schema).where(self.schema.user_account == user_account)
         result = self.db.execute(statement)
-        return result.scalars().all()
+        return result.scalar_one_or_none()
 
     def check_student_documents_uploaded(
         self, employee: Employee, check_ba_degree: bool = False
@@ -64,10 +62,8 @@ class StudentDocumentManager:
             bool: True if all documents are uploaded, False otherwise
         """
 
-        # Get the student documents record using employee_id
-        statement = select(self.schema).where(self.schema.employee_id == employee.id)
-        result = self.db.execute(statement)
-        student_docs = result.scalar_one_or_none()
+        # Get the student documents record using the employee's user_account
+        student_docs = self.get_document_by_user_account(employee.user_account)
 
         # If no document record exists, documents are not uploaded
         if not student_docs:
