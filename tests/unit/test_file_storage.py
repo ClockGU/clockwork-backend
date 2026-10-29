@@ -168,9 +168,10 @@ def test_prev_employment_handler_upload_file(upload_dir):
     ]
 
 
-def test_prev_employment_download_resolves_in_subdir(upload_dir):
+def test_prev_employment_download_resolves_in_subdir(upload_dir, monkeypatch):
     from api.routers.prev_employment import download_prev_employment_proof
 
+    monkeypatch.setattr(settings, "SERVE_FILES_VIA_NGINX", False)
     prev_emp = SimpleNamespace(id=uuid.uuid4(), proof="some_proof.pdf")
-    path = download_prev_employment_proof(prev_emp.id, prev_emp, user={})
-    assert path == upload_dir / PREV_EMPLOYMENTS_DIR / "some_proof.pdf"
+    response = download_prev_employment_proof(prev_emp.id, prev_emp, user={})
+    assert response.path == upload_dir / PREV_EMPLOYMENTS_DIR / "some_proof.pdf"
