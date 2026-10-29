@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 import jwt
 import pytest
@@ -11,8 +12,11 @@ from sqlmodel import select
 import api.security
 from api.db.schema.employee import Employee
 from api.db.schema.student_documents import StudentDocuments
+from api.env import settings
 from api.main import app
+from api.pydantic_models.documents import UPLOAD_FIELDS
 from api.security import UserRole, decode_user_jwt, get_current_clerk, get_current_student
+from api.utils import STUDENT_DOCUMENTS_DIR, create_upload_dirs
 
 
 @pytest.fixture
@@ -172,3 +176,152 @@ def test_get_documents_returns_file_keys(client, student_documents, as_student):
     assert data["residence_permit_file"] is None
     assert data["id_photo_file"] == "id_photo.jpg"
     assert not [key for key in data if key.endswith("_url")]
+
+
+@pytest.fixture
+def upload_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "UPLOAD_DIR", tmp_path)
+    create_upload_dirs()
+    return tmp_path / STUDENT_DOCUMENTS_DIR
+
+
+@pytest.fixture
+def other_student_documents(db_session):
+    employee = Employee(
+        user_account=uuid.uuid4(),
+        username="otherstudent",
+        first_name="Other",
+        last_name="Student",
+        form_of_address="Frau",
+        date_of_birth=date(2000, 1, 1),
+        city_of_birth="Frankfurt",
+        address="Test Street 2",
+        postal_code="60323",
+        married=False,
+        nationality="DE",
+        telephone_number="0123456789",
+        health_insurance="TK",
+        iban="DE89370400440532013000",
+    )
+    db_session.add(employee)
+    db_session.flush()
+    docs = StudentDocuments(user_account=employee.user_account)
+    db_session.add(docs)
+    db_session.flush()
+    return docs
+
+
+def test_owner_patches_single_file(client, student_documents, upload_dir, as_student):
+    response = client.patch(
+        f"/documents/{student_documents.id}",
+        files={"elstam": ("Scan.PDF", b"elstam content")},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["elstam_file"] == f"{student_documents.id}_elstam.pdf"
+    assert data["studienbescheinigung_file"] == "studien.pdf"
+    assert (upload_dir / f"{student_documents.id}_elstam.pdf").read_bytes() == (
+        b"elstam content"
+    )
+
+
+def test_owner_patches_several_files(
+    client, student_documents, upload_dir, as_student
+):
+    response = client.patch(
+        f"/documents/{student_documents.id}",
+        files={
+            "ba_degree": ("degree.pdf", b"degree"),
+            "residence_permit": ("permit.png", b"permit"),
+            "id_photo": ("photo.jpg", b"photo"),
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    doc_id = student_documents.id
+    assert data["ba_degree_file"] == f"{doc_id}_ba_degree.pdf"
+    assert data["residence_permit_file"] == f"{doc_id}_residence_permit.png"
+    assert data["id_photo_file"] == f"{doc_id}_id_photo.jpg"
+    assert (upload_dir / f"{doc_id}_ba_degree.pdf").read_bytes() == b"degree"
+    assert (upload_dir / f"{doc_id}_residence_permit.png").read_bytes() == b"permit"
+    assert (upload_dir / f"{doc_id}_id_photo.jpg").read_bytes() == b"photo"
+
+
+def test_patch_other_students_document_returns_404(
+    client, student_documents, other_student_documents, upload_dir, as_student
+):
+    response = client.patch(
+        f"/documents/{other_student_documents.id}",
+        files={"elstam": ("elstam.pdf", b"elstam")},
+    )
+
+    assert response.status_code == 404
+    assert not list(upload_dir.iterdir())
+
+
+def test_patch_unknown_document_returns_404(
+    client, student_documents, upload_dir, as_student
+):
+    response = client.patch(
+        f"/documents/{uuid.uuid4()}",
+        files={"elstam": ("elstam.pdf", b"elstam")},
+    )
+
+    assert response.status_code == 404
+
+
+def test_patch_without_files_returns_422(
+    client, student_documents, upload_dir, as_student
+):
+    response = client.patch(f"/documents/{student_documents.id}")
+
+    assert response.status_code == 422
+
+
+def test_patch_ignores_unknown_form_field(
+    client, student_documents, upload_dir, as_student
+):
+    response = client.patch(
+        f"/documents/{student_documents.id}",
+        files={
+            "elstam": ("elstam.pdf", b"elstam"),
+            "user_account": ("evil.pdf", b"evil"),
+            "unknown": ("unknown.pdf", b"unknown"),
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user_account"] == str(student_documents.user_account)
+    assert "unknown" not in data
+    assert [p.name for p in upload_dir.iterdir()] == [
+        f"{student_documents.id}_elstam.pdf"
+    ]
+
+
+def test_patch_with_only_unknown_form_field_returns_422(
+    client, student_documents, upload_dir, as_student
+):
+    response = client.patch(
+        f"/documents/{student_documents.id}",
+        files={"unknown": ("unknown.pdf", b"unknown")},
+    )
+
+    assert response.status_code == 422
+
+
+def test_patch_documents_without_id_is_gone(client, student_documents, as_student):
+    response = client.patch("/documents", files={"elstam": ("elstam.pdf", b"x")})
+
+    assert response.status_code == 405
+
+
+def test_patch_document_openapi_lists_each_upload_field(client):
+    schema = client.get("/openapi.json").json()
+    operation = schema["paths"]["/documents/{document_id}"]["patch"]
+    ref = operation["requestBody"]["content"]["multipart/form-data"]["schema"]["$ref"]
+    body = schema["components"]["schemas"][ref.rsplit("/", 1)[-1]]
+
+    assert sorted(body["properties"]) == sorted(UPLOAD_FIELDS)
