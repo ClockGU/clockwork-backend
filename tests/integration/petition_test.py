@@ -159,7 +159,9 @@ async def test_clerk_petition_websocket(
 
             assert response.status_code == 200
         # after_update fires → send_serialized_data_to_clerks pushes updated petition
-        push = json.loads((await ws.s2c.get())["text"])
+        # fail instead of hanging the whole suite if the push never arrives
+        with anyio.fail_after(5):
+            push = json.loads((await ws.s2c.get())["text"])
         assert push["type"] == "updated_petitions"
         assert len(push["data"]) == 1
         assert push["data"][0]["id"] == str(petition_student_action.id)
