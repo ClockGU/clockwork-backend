@@ -25,7 +25,6 @@ class EmployeeValidate(BaseModel):
     prev_emp_duration: Optional[str] = None
     iban: str
 
-
     @model_validator(mode="after")
     def validate_prev_emp_set(cls, values):
         if values.previously_employed and not values.prev_emp_duration:
@@ -43,7 +42,7 @@ class EmployeeUpdate(BaseModel):
     last_name: Optional[str] = None
     user_email: Optional[str] = None
     form_of_address: Optional[str] = None
-    ender: Optional[Gender] = None
+    gender: Optional[Gender] = None
     date_of_birth: Optional[date] = None
     city_of_birth: Optional[str] = None
     address: Optional[str] = None

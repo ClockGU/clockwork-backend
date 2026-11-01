@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 from typing import List, Optional
-from enum import Enum as PyEnum, auto
+from enum import auto, StrEnum
 
 from sqlalchemy import Enum, Column
 from sqlalchemy.orm import relationship
@@ -10,7 +10,12 @@ from sqlmodel import Field, Relationship, SQLModel
 from api.db.schema.student_documents import StudentDocuments
 
 
-class Gender(PyEnum):
+class Gender(StrEnum):
+
+    @staticmethod
+    def _generate_next_value_(name, start, count, last_values):
+        return name
+
     MALE = auto()
     FEMALE = auto()
     OTHER = auto()
