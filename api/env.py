@@ -23,24 +23,11 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "password"
 
-    ALLOWED_HOSTS: Annotated[list[str], NoDecode] = ["*"]
+    ALLOWED_HOSTS: list[str] = []
     ROOT_DIR: Path = Path(__file__).resolve().parent.parent
     UPLOAD_DIR: Path = ROOT_DIR / "uploads"
     # Serve files via nginx X-Accel-Redirect (internal location /protected/) instead of FastAPI
     SERVE_FILES_VIA_NGINX: bool = False
-
-    @field_validator("ALLOWED_HOSTS", mode="before")
-    @classmethod
-    def split_allowed_hosts(cls, v):
-        if v is None:
-            return v
-        if isinstance(v, str):
-            s = v.strip()
-            if s in ("", "*"):
-                return ["*"]
-            # split by comma, trim whitespace, drop empties
-            return [h.strip() for h in s.split(",") if h.strip()]
-        return v
 
     @property
     def signature_secret_key(self) -> bytes:
