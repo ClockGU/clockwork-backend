@@ -1,134 +1,122 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+import inspect
+import os
+from pathlib import Path
 from typing import Optional
 from uuid import UUID
-from sqlmodel import Session
-import os
-import uuid
-from fastapi.responses import FileResponse
 
-from api.handlers.document_handler import StudentDocumentHandler
-from api.handlers.employee_handler import EmployeeHandler
-from api.pydantic_models import StudentDocumentsUpdate, StudentDocumentsRead
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlmodel import Session
+
 from api.db.dependencies import get_db
-from api.security import get_current_student
+from api.db.managers.dependencies import (
+    get_document_for_clerk_or_owner,
+    get_specified_petition,
+)
+from api.db.schema import Petition
+from api.db.schema.student_documents import StudentDocuments
+from api.handlers.document_handler import StudentDocumentHandler
+from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
+from api.pydantic_models.documents import UPLOAD_FIELDS, DocumentType
+from api.security import get_current_clerk, get_current_student
+from api.utils import STUDENT_DOCUMENTS_DIR, file_response, save_student_doc_file
 
 router = APIRouter()
+
 
 # Dependency to get the document handler
 def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandler:
     return StudentDocumentHandler(db)
 
 
-@router.get("/documents/", response_model=StudentDocumentsRead)
+@router.get("/documents", response_model=StudentDocumentsRead)
 def get_document(
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db)),
     user=Depends(get_current_student),  # Secure the endpoint
 ):
     """
-    Retrieve a document by the user's associated employee ID.
+    Retrieve a document by the user's account.
     """
-    # Get the employee associated with the user
-    employee = employee_handler.get_employee_by_user_account(user.get("sub"))
-
-    # Get the document associated with the employee
-    documents = handler.get_documents_by_employee(employee.id)
-
-    return documents[0]
+    return handler.get_document_by_user_account(user.get("sub"))
 
 
+def files_dependency(names: list[str]):
+    """
+    Build a dependency that accepts an optional file upload for each name and returns
+    only the files that were actually sent. Each name still shows up in Swagger.
+    """
 
-@router.patch("/documents/")
+    def dep(**files: Optional[UploadFile]) -> dict[str, UploadFile]:
+        return {k: v for k, v in files.items() if v is not None}
+
+    dep.__signature__ = inspect.Signature(
+        [
+            inspect.Parameter(
+                name,
+                inspect.Parameter.KEYWORD_ONLY,
+                annotation=Optional[UploadFile],
+                default=File(None),
+            )
+            for name in names
+        ]
+    )
+    return dep
+
+
+UploadedFiles = Depends(files_dependency(UPLOAD_FIELDS))
+
+
+@router.patch("/documents/{document_id}", response_model=StudentDocumentsRead)
 def update_document(
-    elstam: Optional[UploadFile] = File(None),
-    studienbescheinigung: Optional[UploadFile] = File(None),
-    versicherungsbescheinigung: Optional[UploadFile] = File(None),
-    sozialversicherungsbogen: Optional[UploadFile] = File(None),
+    document_id: UUID,
+    files: dict[str, UploadFile] = UploadedFiles,
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db)),
     user=Depends(get_current_student),  # Secure the endpoint
 ):
     """
-    Update a document by the user's associated employee ID. Save uploaded files and update their URLs in the database.
+    Update the caller's document. Save uploaded files and store their file names in the database.
     """
-    # Define the root directory as the parent directory of the 'routers' folder
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Go one level up to the 'api' directory
-    upload_dir = os.path.join(root_dir, "uploads")  # Create the uploads folder in the root directory
-    os.makedirs(upload_dir, exist_ok=True)  # Create the folder if it doesn't exist
+    if not files:
+        raise HTTPException(status_code=422, detail="No files uploaded")
 
-    # Get the employee associated with the user
-    employee = employee_handler.get_employee_by_user_account(user.get("sub"))
+    document = handler.get_document_owned_by(document_id, user.get("sub"))
 
-    # Check if the document exists
-    documents = handler.get_documents_by_employee(employee.id)
+    file_names = {
+        f"{name}_file": save_student_doc_file(document, name, file)
+        for name, file in files.items()
+    }
 
-    # Assuming there is only one document per employee
-    document = documents[0]
-
-    # Save files and generate URLs
-    file_urls = {}
-    if elstam:
-        file_urls["elstam_url"] = save_file(elstam, upload_dir)  
-    if studienbescheinigung:
-        file_urls["studienbescheinigung_url"] = save_file(studienbescheinigung, upload_dir)  
-    if versicherungsbescheinigung:
-        file_urls["versicherungsbescheinigung_url"] = save_file(versicherungsbescheinigung, upload_dir)
-    if sozialversicherungsbogen:
-        file_urls["sozialversicherungsbogen_url"] = save_file(sozialversicherungsbogen, upload_dir)
-
-    document_data = StudentDocumentsUpdate(**file_urls)  
-
-    updated_document = handler.update_document(document.id, document_data)
-    
-    return updated_document
+    return handler.update_document(document.id, StudentDocumentsUpdate(**file_names))
 
 
-def save_file(file: UploadFile, upload_dir: str) -> str:
+@router.get("/documents/{document_id}/{document_type}")
+def download_document(
+    document_type: DocumentType,
+    document: StudentDocuments = Depends(get_document_for_clerk_or_owner),
+    handler: StudentDocumentHandler = Depends(get_document_handler),
+):
     """
-    Save the uploaded file to the specified directory and return the file URL.
+    Download a file of a document. Only clerks and the owning student have access.
     """
-    unique_filename = f"{uuid.uuid4()}_{file.filename}"
-    file_path = os.path.join(upload_dir, unique_filename)
-    with open(file_path, "wb") as f:
-        f.write(file.file.read())
-    return file_path
-
-
-@router.get("/download-file/")
-def download_file(file_url: str = Query(..., description="The URL of the file to download")):
-    """
-    Takes the URL of a file and returns the actual file.
-    """
-    # Check if the file exists at the given URL
-    if not os.path.exists(file_url):
-        raise HTTPException(status_code=404, detail="File not found")
-
-    # Return the file as a response
-    return FileResponse(
-        file_url,
-        media_type="application/octet-stream",
-        filename=os.path.basename(file_url)
+    file_name = getattr(document, f"{document_type.value}_file")
+    if not file_name:
+        raise handler.exc.not_found(
+            "File", message=f"No {document_type.value} file for document {document.id}"
+        )
+    return file_response(
+        STUDENT_DOCUMENTS_DIR,
+        file_name,
+        f"{document_type.value}{Path(file_name).suffix}",
     )
 
 
-@router.get("/clerk/documents-by-email/", response_model=StudentDocumentsRead)
-def get_documents_by_email(
-    email: str = Query(..., description="The email of the student"),
+@router.get("/clerk/petitions/{petition_id}/documents", response_model=StudentDocumentsRead)
+def get_petition_documents(
+    petition_id: UUID,
+    petition: Petition = Depends(get_specified_petition),
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    employee_handler: EmployeeHandler = Depends(lambda db=Depends(get_db): EmployeeHandler(db))
+    user=Depends(get_current_clerk),  # Secure the endpoint
 ):
     """
-    Retrieve a document by the student's email.
+    Retrieve the student documents for a petition.
     """
-    # Get the employee associated with the email
-    employee = employee_handler.get_employee_by_email(email)
-    if not employee:
-        raise HTTPException(status_code=404, detail=f"Employee with email {email} not found")
-
-    # Get the documents associated with the employee
-    documents = handler.get_documents_by_employee(employee.id)
-    if not documents:
-        raise HTTPException(status_code=404, detail=f"No documents found for employee with email {email}")
-
-    # Return the first document (assuming one document per employee)
-    return documents[0]
+    return handler.get_documents_for_petition(petition)

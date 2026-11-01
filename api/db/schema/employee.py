@@ -1,18 +1,29 @@
-from typing import List, Optional
-from sqlmodel import SQLModel, Field, Relationship
 import uuid
 from datetime import date
-from api.db.schema.student_documents import StudentDocuments  # Import the related model
-from sqlalchemy.orm import relationship  # Import relationship for cascade behavior
+from typing import List, Optional
+from enum import Enum as PyEnum, auto
+
+from sqlalchemy import Enum, Column
+from sqlalchemy.orm import relationship
+from sqlmodel import Field, Relationship, SQLModel
+
+from api.db.schema.student_documents import StudentDocuments
+
+
+class Gender(PyEnum):
+    MALE = auto()
+    FEMALE = auto()
+    OTHER = auto()
+
 
 class Employee(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
-    user_account: uuid.UUID  # Required field
+    user_account: uuid.UUID = Field(sa_column_kwargs={"unique": True})  # Required field
     username: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     form_of_address: Optional[str] = None
-    gender: Optional[str] = None
+    gender: Optional[Gender] = Field(default=None, sa_column=Column(Enum(Gender), nullable=True))
     date_of_birth: Optional[date] = None
     city_of_birth: Optional[str] = None
     address: Optional[str] = None
@@ -21,18 +32,18 @@ class Employee(SQLModel, table=True):
     nationality: Optional[str] = None
     telephone_number: Optional[str] = None
     health_insurance: Optional[str] = None
-    previously_employed: Optional[bool] = None
+    previously_employed: bool = False
     prev_emp_duration: Optional[str] = None
     iban: Optional[str] = None
-    bic: Optional[str] = None
-    bank_name: Optional[str] = None
 
     # Add the documents relationship
     documents: List[StudentDocuments] = Relationship(
         back_populates="employee",
-        sa_relationship=relationship("StudentDocuments", back_populates="employee", cascade="all, delete-orphan")
+        sa_relationship=relationship(
+            "StudentDocuments", back_populates="employee", cascade="all, delete-orphan"
+        ),
     )
 
     @property
     def user_email(self):
-        return f"{self.username}@stud.uni-frankfurt.de"
+        return f"{self.username}@uni-frankfurt.de"

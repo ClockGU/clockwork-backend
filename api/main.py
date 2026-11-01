@@ -1,23 +1,42 @@
-from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+from pydantic import ValidationError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from fastapi.openapi.utils import get_openapi
-from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from typing import Dict
+from starlette.responses import JSONResponse
 
-from api.db.dependencies import get_db, engine
-from api.security import get_current_supervisor, get_current_student
-from api.routers import router
 from api.admin import setup_admin
+from api.db.dependencies import engine, get_db
 from api.env import settings
+from api.events import register_all_events
+from api.routers import router
+from api.security import get_current_student, get_current_supervisor
+from api.utils import create_upload_dirs
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_upload_dirs()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+# Register event listeners
+register_all_events()
 
 # Add session middleware for admin authentication
 app.add_middleware(
-    SessionMiddleware, 
-    secret_key=str(settings.SIGNATURE_SECRET_KEY.decode() if isinstance(settings.SIGNATURE_SECRET_KEY, bytes) else settings.SIGNATURE_SECRET_KEY)
+    SessionMiddleware,
+    secret_key=str(
+        settings.SIGNATURE_SECRET_KEY.decode()
+        if isinstance(settings.SIGNATURE_SECRET_KEY, bytes)
+        else settings.SIGNATURE_SECRET_KEY
+    ),
 )
 
 # Setup admin panel
@@ -25,7 +44,7 @@ setup_admin(app, engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
+    allow_origins=settings.ALLOWED_HOSTS,  # Allow origins from env
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
@@ -56,7 +75,7 @@ def custom_openapi():
             "type": "http",
             "scheme": "bearer",
             "bearerFormat": "JWT",
-            "description": "Enter JWT token in the 'Authorization' header as 'Bearer <your-token>'"
+            "description": "Enter JWT token in the 'Authorization' header as 'Bearer <your-token>'",
         }
     }
 
@@ -69,19 +88,35 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
 app.openapi = custom_openapi
 
+
+@app.exception_handler(ValidationError)
+async def pydantic_validation_handler(request, exc: ValidationError):
+    messages = []
+    for err in exc.errors():
+        ctx = err.get("ctx") or {}
+        original = ctx.get("error")
+        if isinstance(original, Exception):
+            messages.append(str(original))
+        else:
+            messages.append(err["msg"])
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "\n".join(messages)},
+    )
+
+
 @app.get("/checksupervisor")
-def check_supervisor(
-    current_user: dict = Depends(get_current_supervisor)
-    ):
+def check_supervisor(current_user: dict = Depends(get_current_supervisor)):
     return current_user
 
+
 @app.get("/checkstudent")
-def check_student(
-    current_user: dict = Depends(get_current_student)
-    ):
+def check_student(current_user: dict = Depends(get_current_student)):
     return current_user
+
 
 # routes to check the basic working
 @app.get("/check-db")
@@ -93,8 +128,3 @@ def check_db(db: Session = Depends(get_db)):
     result = db.execute(text(query))
     current_time = result.scalar()
     return {"database_time": current_time}
-
-
-
-
-

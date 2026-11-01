@@ -1,6 +1,8 @@
-from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
 import uuid
+from typing import Optional
+
+from sqlmodel import Field, Relationship, SQLModel
+
 
 class BudgetPosition(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
@@ -10,6 +12,6 @@ class BudgetPosition(SQLModel, table=True):
     budget_position_approved: bool = Field(default=False, nullable=True)
 
     percentage: Optional[float] = Field(default=0, nullable=True)  # Made nullable
-    
+
     # Relationship back to petition
     petition: "Petition" = Relationship(back_populates="budget_positions")

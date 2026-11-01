@@ -1,40 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import StreamingResponse
-from uuid import UUID
-from sqlmodel import Session
 from datetime import date
+from uuid import UUID
 
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
+
+from api.handlers.dependencies import get_employee_handler
 from api.handlers.employee_handler import EmployeeHandler
-from api.pydantic_models.employee import EmployeeUpdate, EmployeeRead
-from api.db.dependencies import get_db
-from api.security import get_current_student,get_current_supervisor  # Import the dependency for student authentication
+from api.pydantic_models.employee import EmployeeRead, EmployeeUpdate
+from api.security import (  # Import the dependency for student authentication
+    get_current_clerk,
+    get_current_student,
+)
 
 router = APIRouter()
 
-
-def get_employee_handler(db: Session = Depends(get_db)) -> EmployeeHandler:
-    return EmployeeHandler(db)
-
-
-@router.patch("/employees/", response_model=EmployeeRead)
-def update_employee_by_user(
-    employee_data: EmployeeUpdate,
-    handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student),  
-):
-    """
-    Update an employee record by the user ID (user_account).
-    """
-    # Use the handler to get the employee by user_account
-    employee = handler.get_employee_by_user_account(user.get("sub"))
-    updated_employee = handler.update_employee(employee.id, employee_data.dict(exclude_unset=True))
-    return updated_employee
-
-
-@router.get("/employees/", response_model=EmployeeRead)
+@router.get("/employees/me", response_model=EmployeeRead)
 def get_employee_by_user(
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student), 
+    user=Depends(get_current_student),
 ):
     """
     Retrieve an employee record by the user ID (user_account).
@@ -43,38 +26,30 @@ def get_employee_by_user(
     return employee
 
 
-@router.delete("/employees/")
-def delete_employee_by_user(
+# Todo: This endpoint and the related handler method revolves around a petition id rather than the actual employee entry
+# Should be refactored to the /petitions endpoints
+@router.get("/employees/{username}", response_model=EmployeeRead)
+def get_employee_by_petition_id(
+    username: str,
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_student),  # Secure the endpoint
+    user=Depends(get_current_clerk),
 ):
     """
-    Delete an employee by the user ID (user_account).
+    Retrieve an employee record by the petition ID.
+    Only accessible by CLERK role.
     """
-    result = handler.delete_employee_by_user_account(user.get("sub"))
-    return result
+    employee = handler.get_employee_by_username(username)
+    return employee
 
-
-@router.get("/employees/student-data-pdf")
-def get_student_data_pdf(
-    petition_id: UUID = Query(..., description="Petition ID"),
+@router.patch("/employees/{employee_id}", response_model=EmployeeRead)
+def update_employee(
+    employee_data: EmployeeUpdate,
+    employee_id: str,
     handler: EmployeeHandler = Depends(get_employee_handler),
-    user=Depends(get_current_supervisor),
+    user=Depends(get_current_student),
 ):
     """
-    Get student data PDF for a given petition ID.
-    Derived the student username from the petition.
+    Update an employee record by the user ID (user_account).
     """
-    # Generate PDF
-    pdf_buffer = handler.get_student_data_pdf(petition_id)
-    
-    # Get employee for filename
-    employee = handler.get_employee_by_petition(petition_id)
-    filename = f"Student_Data_{employee.last_name}_{employee.first_name}_{date.today().strftime('%d-%m-%Y')}.pdf"
-    
-    # Return as streaming response
-    return StreamingResponse(
-        pdf_buffer,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
-    )
+    updated_employee = handler.update_employee(employee_data.dict(exclude_unset=True))
+    return updated_employee

@@ -1,26 +1,44 @@
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
-from sqlmodel import Session
-from fastapi import UploadFile
 
+from fastapi import UploadFile
+from sqlmodel import Session
+
+from api.db.managers import PetitionManager
 from api.db.managers.student_document import StudentDocumentManager
+from api.db.schema import Employee, Petition
 from api.db.schema.student_documents import StudentDocuments
-from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
+from api.handlers.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
+from api.pydantic_models.documents import StudentDocumentsUpdate
 
 
 class StudentDocumentHandler:
     def __init__(self, db: Session):
         self.manager = StudentDocumentManager(db)
+        self.petition_manager = PetitionManager(db)
         self.exc = ExceptionHandler()
 
-    async def create_document(self, employee_id: UUID) -> StudentDocuments:
+    def get_documents_for_petition(self, petition: Petition) -> StudentDocuments:
         """
-        Create a new document record with just the employee_id.
+        Retrieve the student documents belonging to a petition's student.
+        """
+        # TODO: Use petition.user_account once it is stored on the petition (#142)
+        document = self.manager.get_document_by_username(petition.student_username)
+        if not document:
+            raise self.exc.not_found(
+                "Documents", f"No documents found for petition {petition.id}"
+            )
+        return document
+
+    def create_document(self, employee: Employee) -> StudentDocuments:
+        """
+        Create a new document record with just the user_account.
         """
         try:
-            document_data = StudentDocumentsCreate(employee_id=employee_id)
-            document = self.manager.create_document(document_data)  # Pass the correct object
+            document = self.manager.get_or_create_document(
+                {"user_account": employee.user_account}
+            )
             return document
         except Exception as e:
             raise self.exc.internal_error("creating the document", e)
@@ -31,48 +49,64 @@ class StudentDocumentHandler:
             raise self.exc.not_found("Document", str(document_id))
         return document
 
+    def get_document_owned_by(
+        self, document_id: UUID, user_account: UUID
+    ) -> StudentDocuments:
+        """
+        Retrieve a document owned by the given user account. A document that exists
+        but belongs to someone else is reported as not found.
+        """
+        document = self.manager.get_document_owned_by(document_id, user_account)
+        if not document:
+            raise self.exc.not_found("Document", str(document_id))
+        return document
 
-    def get_documents_by_employee(self, employee_id: UUID) -> List[StudentDocuments]:
+    def get_document_by_user_account(self, user_account: UUID) -> StudentDocuments:
         """
-        Retrieve all documents associated with a specific employee.
+        Retrieve the document associated with a specific user account.
         """
-        documents = self.manager.get_documents_by_employee(employee_id)
-        if not documents:
-            raise self.exc.not_found("Documents", message=f"No documents found for employee with ID {employee_id}")
-        return documents
+        document = self.manager.get_document_by_user_account(user_account)
+        if not document:
+            raise self.exc.not_found(
+                "Documents",
+                message=f"No documents found for user account {user_account}",
+            )
+        return document
 
     def update_document(
         self, document_id: UUID, document_data: StudentDocumentsUpdate
     ) -> StudentDocuments:
-        # Check if the document exists
         existing_document = self.manager.get_document(document_id)
         if not existing_document:
             raise self.exc.not_found("Document", str(document_id))
 
-        # Proceed with the update
         document = self.manager.update_document(document_id, document_data)
         if not document:
             raise self.exc.update_failed("Document", str(document_id))
+
         return document
 
-    def update_document_by_employee(
-        self, employee_id: UUID, document_data: StudentDocumentsUpdate
+    def update_document_by_user_account(
+        self, user_account: UUID, document_data: StudentDocumentsUpdate
     ) -> StudentDocuments:
         """
-        Update a document by the foreign key of employee_id.
+        Update a document by the foreign key of user_account.
         """
-        # Retrieve the document associated with the employee
-        documents = self.manager.get_documents_by_employee(employee_id)
-        if not documents:
-            raise self.exc.not_found("Document", message=f"No document found for employee with ID {employee_id}")
-
-        # Assuming there is only one document per employee, update the first document
-        document = documents[0]
+        # Retrieve the document associated with the user account
+        document = self.manager.get_document_by_user_account(user_account)
+        if not document:
+            raise self.exc.not_found(
+                "Document",
+                message=f"No document found for user account {user_account}",
+            )
 
         # Proceed with the update
         updated_document = self.manager.update_document(document.id, document_data)
         if not updated_document:
-            raise self.exc.update_failed("Document", message=f"Document for employee with ID {employee_id} could not be updated")
+            raise self.exc.update_failed(
+                "Document",
+                message=f"Document for user account {user_account} could not be updated",
+            )
         return updated_document
 
     def delete_document(self, document_id: UUID) -> dict:
@@ -86,14 +120,3 @@ class StudentDocumentHandler:
         if not success:
             raise self.exc.delete_failed("Document", str(document_id))
         return {"detail": "Document deleted successfully"}
-
-    async def save_file(self, file: UploadFile) -> str:
-        """
-        Save the uploaded file to a storage system and return the file path or URL.
-        """
-        file_location = f"uploads/{file.filename}"
-        with open(file_location, "wb") as f:
-            f.write(await file.read())
-        return file_location
-
-    

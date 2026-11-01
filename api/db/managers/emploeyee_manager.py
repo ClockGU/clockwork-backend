@@ -1,8 +1,11 @@
 from typing import List, Optional
 from uuid import UUID
+
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from api.db.schema.employee import Employee
+from api.pydantic_models.employee import EmployeeCreate
 
 
 class EmployeeManager:
@@ -10,14 +13,20 @@ class EmployeeManager:
         self.db = db
         self.schema = Employee  # Reference to the Employee model
 
-    def create_employee(self, employee_data: Employee) -> Employee:
+    def create_employee(self, employee_data: EmployeeCreate) -> Employee:
         """
         Create a new employee record.
         """
-        self.db.add(employee_data)
-        self.db.commit()
-        self.db.refresh(employee_data)
-        return employee_data
+        employee_dict = employee_data.model_dump()
+        employee = self.schema.model_validate(employee_dict)
+        try:
+            self.db.add(employee)
+            self.db.commit()
+            self.db.refresh(employee)
+            return employee
+        except IntegrityError:
+            self.db.rollback()
+            return self.get_employee_by_user_account(employee_data.user_account)
 
     def get_employee(self, employee_id: UUID) -> Optional[Employee]:
         """
@@ -49,14 +58,12 @@ class EmployeeManager:
         result = self.db.execute(statement)
         return result.scalars().first()
 
-    def update_employee(self, employee_id: UUID, employee_data: dict) -> Optional[Employee]:
+    def update_employee(
+        self, employee: Employee, employee_data: dict
+    ) -> Optional[Employee]:
         """
         Update an existing employee record.
         """
-        employee = self.db.get(self.schema, employee_id)
-        if not employee:
-            return None
-
         # Update only the provided fields
         for key, value in employee_data.items():
             setattr(employee, key, value)
