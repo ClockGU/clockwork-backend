@@ -3,7 +3,6 @@ from fastapi import APIRouter
 from api.websockets.routers.web_socket import router as web_socket_router
 
 from .document import router as document_student_router
-from .email import router as email_router
 from .employee import router as employee_router
 from .petition_approver import router as petition_approver_router
 from .petition_clerk import router as petition_clerk_router
@@ -31,7 +30,6 @@ router.include_router(document_student_router, tags=["Document Management"], pre
 router.include_router(prev_employment_router, tags=["Pre-Employment"], prefix="")
 
 # Communication
-router.include_router(email_router, tags=["Email & Notifications"], prefix="")
 router.include_router(
     web_socket_router, tags=["WebSocket - Real-time Updates"], prefix=""
 )

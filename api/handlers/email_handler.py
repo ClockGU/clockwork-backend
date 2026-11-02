@@ -5,7 +5,7 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from api.env import settings
 
@@ -86,7 +86,7 @@ logger = logging.getLogger(__name__)
 
 
 class EmailHandler:
-    def __init__(self, petition: Optional["Petition"] = None):
+    def __init__(self, petition: Petition):
         self.petition = petition
         self.server = None
 
@@ -97,7 +97,7 @@ class EmailHandler:
         mail specific values are passed as kwargs and must not shadow it.
         """
         base = {
-            "petition_id": self.petition.id if self.petition else None,
+            "petition_id": self.petition.id,
             "support_mail": settings.SMTP_USER,
             "frontend_url": settings.FRONTEND_URL,
         }
@@ -143,13 +143,13 @@ class EmailHandler:
         everytime but is able to reuse them if in the same conext.
 
         Example usage:
-        Only wrapper methods shall use this context manager such that if sending
-        mail to 3 addresses would look like this:
+        Only the notify_* process-step methods shall use this context manager, such that
+        sending all mails of a step looks like this:
 
-        def send_petition_deletion_mails(self):
+        def notify_petition_deleted(self, ...):
             with self.smtp_session():
-                self.send_email(recipient=address1, subject="...", body="...")
-                self.send_email(recipient=address2, subject="...", body="...")
+                self._mail_petition_deleted_supervisor(...)
+                self._mail_petition_deleted_student(...)
                 ...
 
         """
@@ -220,8 +220,6 @@ class EmailHandler:
                 self._mail_approval_request_approver(budget_position, signature)
 
     def _mail_petition_created_student(self) -> None:
-        if not self.petition.student_mail:
-            return
         self.send_email(
             recipient=self.petition.student_mail,
             subject=PETITION_CREATED_STUDENT_SUBJECT,
