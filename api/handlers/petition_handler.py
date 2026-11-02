@@ -303,7 +303,7 @@ class PetitionHandler:
         Sends email to supervisor and changes status to 'student_revision'.
         """
         email_handler = EmailHandler(petition)
-        self.add_background_task(email_handler.send_student_revision_request_email, message, subject)
+        self.add_background_task(email_handler.notify_student_requested_revision, message, subject)
 
         # Update petition status to student_revision
         petition = self.manager.update_petition_status(

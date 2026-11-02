@@ -197,3 +197,17 @@ STUDENT_REJECTED_APPROVER_BODY_EN = (
     "The student assistant has rejected application {petition_id}.\n\n"
     "The application will not be processed further."
 )
+
+# --- Revision requested by the student ----------------------------------------
+
+# Placeholders: {message}
+STUDENT_REVISION_SUPERVISOR_BODY_DE = (
+    "Die studentische Hilfskraft hat eine Änderung an dem Antrag {petition_id} angefordert:\n\n"
+    "{message}\n\n"
+    "Bitte melden Sie sich an, um die Änderungen vorzunehmen."
+)
+STUDENT_REVISION_SUPERVISOR_BODY_EN = (
+    "The student assistant has requested changes to application {petition_id}:\n\n"
+    "{message}\n\n"
+    "Please log in to make the requested changes."
+)
