@@ -271,3 +271,29 @@ PETITION_COMPLETED_SUPERVISOR_BODY_EN = (
     "In a few days, you will be receiving the employment contract from PersonalServices. Please hand it over "
     "to the student assistant."
 )
+
+# --- Petition deleted by the clerk --------------------------------------------
+
+PETITION_DELETED_SUBJECT = "[ClockWork] Antrag gelöscht / Application deleted"
+
+# Optional reason, appended to the bodies below via {reason_text} / {reason_text_en}. Placeholders: {reason}
+DELETION_REASON_DE = "\n\nBegründung:\n{reason}"
+DELETION_REASON_EN = "\n\nReason:\n{reason}"
+
+# Placeholders: {reason_text}, {reason_text_en}
+PETITION_DELETED_SUPERVISOR_BODY_DE = "Ihr Antrag {petition_id} wurde von PersonalServices gelöscht.{reason_text}"
+PETITION_DELETED_SUPERVISOR_BODY_EN = (
+    "Your application {petition_id} has been deleted by PersonalServices.{reason_text_en}"
+)
+PETITION_DELETED_STUDENT_BODY_DE = (
+    "Ihr Antrag {petition_id} zur Einstellung als studentische Hilfskraft wurde von PersonalServices "
+    "gelöscht.{reason_text}"
+)
+PETITION_DELETED_STUDENT_BODY_EN = (
+    "Your application {petition_id} for employment as a student assistant has been deleted by "
+    "PersonalServices.{reason_text_en}"
+)
+PETITION_DELETED_APPROVER_BODY_DE = "Der Antrag {petition_id} wurde von PersonalServices gelöscht.{reason_text}"
+PETITION_DELETED_APPROVER_BODY_EN = (
+    "The application {petition_id} has been deleted by PersonalServices.{reason_text_en}"
+)

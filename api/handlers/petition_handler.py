@@ -142,9 +142,8 @@ class PetitionHandler:
         if not success:
             raise self.exc.delete_failed("Petition", str(petition.id))
 
-        # Send deletion emails
         email_handler = EmailHandler(petition)
-        self.add_background_task(email_handler.send_clerk_deletion_email, reason, budget_positions)
+        self.add_background_task(email_handler.notify_petition_deleted, reason, budget_positions)
 
         return {"detail": "Petition deleted successfully"}
 

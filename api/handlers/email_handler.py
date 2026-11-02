@@ -42,6 +42,8 @@ from api.handlers.mail_templates import (
     CONTRACT_STUDENT_BODY_DE,
     CONTRACT_STUDENT_BODY_EN,
     CONTRACT_STUDENT_SUBJECT,
+    DELETION_REASON_DE,
+    DELETION_REASON_EN,
     FOOTER_DE,
     FOOTER_EN,
     NO_REVISION_MESSAGE,
@@ -53,6 +55,13 @@ from api.handlers.mail_templates import (
     PETITION_CREATED_STUDENT_BODY_DE,
     PETITION_CREATED_STUDENT_BODY_EN,
     PETITION_CREATED_STUDENT_SUBJECT,
+    PETITION_DELETED_APPROVER_BODY_DE,
+    PETITION_DELETED_APPROVER_BODY_EN,
+    PETITION_DELETED_STUDENT_BODY_DE,
+    PETITION_DELETED_STUDENT_BODY_EN,
+    PETITION_DELETED_SUBJECT,
+    PETITION_DELETED_SUPERVISOR_BODY_DE,
+    PETITION_DELETED_SUPERVISOR_BODY_EN,
     PETITION_UPDATED_APPROVER_BODY_DE,
     PETITION_UPDATED_APPROVER_BODY_EN,
     PETITION_UPDATED_SUBJECT,
@@ -533,50 +542,42 @@ class EmailHandler:
             ),
         )
 
-    def send_clerk_deletion_email(self, reason: str, budget_positions: list) -> None:
-        """Send email when clerk deletes a petition"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
-
+    def notify_petition_deleted(self, reason: str, budget_positions: list[BudgetPosition]) -> None:
+        """
+        Process step: PersonalServices (clerk) deleted the petition, optionally giving a reason.
+        Informs the supervisor, the student and all budget approvers.
+        """
+        reason_texts = {
+            "reason_text": DELETION_REASON_DE.format(reason=reason) if reason else "",
+            "reason_text_en": DELETION_REASON_EN.format(reason=reason) if reason else "",
+        }
         with self.smtp_session():
-            try:
-                reason_text = f"\n\nBegründung:\n{reason}" if reason else ""
-                reason_text_en = f"\n\nReason:\n{reason}" if reason else ""
+            self._mail_petition_deleted_supervisor(reason_texts)
+            self._mail_petition_deleted_student(reason_texts)
+            for budget_position in budget_positions:
+                self._mail_petition_deleted_approver(budget_position, reason_texts)
 
-                # Send email to supervisor
-                if self.petition.supervisor_mail:
-                    self.send_email(
-                        recipient=self.petition.supervisor_mail,
-                        subject="[ClockWork] Antrag gelöscht / Application deleted",
-                        body=f"Ihr Antrag {self.petition.id} wurde von PersonalServices gelöscht.{reason_text}"
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"Your application {self.petition.id} has been deleted by PersonalServices.{reason_text_en}"
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
+    def _mail_petition_deleted_supervisor(self, reason_texts: dict[str, str]) -> None:
+        self.send_email(
+            recipient=self.petition.supervisor_mail,
+            subject=PETITION_DELETED_SUBJECT,
+            body=self._render_body(
+                PETITION_DELETED_SUPERVISOR_BODY_DE, PETITION_DELETED_SUPERVISOR_BODY_EN, **reason_texts
+            ),
+        )
 
-                # Send email to student
-                if self.petition.student_mail:
-                    self.send_email(
-                        recipient=self.petition.student_mail,
-                        subject="[ClockWork] Antrag gelöscht / Application deleted",
-                        body=f"Ihr Antrag {self.petition.id} zur Einstellung als studentische Hilfskraft wurde von PersonalServices gelöscht.{reason_text}"
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"Your application {self.petition.id} for employment as a student assistant has been deleted by PersonalServices.{reason_text_en}"
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
+    def _mail_petition_deleted_student(self, reason_texts: dict[str, str]) -> None:
+        self.send_email(
+            recipient=self.petition.student_mail,
+            subject=PETITION_DELETED_SUBJECT,
+            body=self._render_body(PETITION_DELETED_STUDENT_BODY_DE, PETITION_DELETED_STUDENT_BODY_EN, **reason_texts),
+        )
 
-                # Send email to all budget approvers
-                for budget_position in budget_positions:
-                    self.send_email(
-                        recipient=budget_position.budget_approver,
-                        subject="[ClockWork] Antrag gelöscht / Application deleted",
-                        body=f"Der Antrag {self.petition.id} wurde von PersonalServices gelöscht.{reason_text}"
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"The application {self.petition.id} has been deleted by PersonalServices.{reason_text_en}"
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
-            except Exception as e:
-                print(f"Error sending clerk deletion email: {str(e)}", flush=True)
+    def _mail_petition_deleted_approver(self, budget_position: BudgetPosition, reason_texts: dict[str, str]) -> None:
+        self.send_email(
+            recipient=budget_position.budget_approver,
+            subject=PETITION_DELETED_SUBJECT,
+            body=self._render_body(
+                PETITION_DELETED_APPROVER_BODY_DE, PETITION_DELETED_APPROVER_BODY_EN, **reason_texts
+            ),
+        )
