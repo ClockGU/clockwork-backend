@@ -47,3 +47,57 @@ APPROVAL_REQUEST_APPROVER_BODY_EN = (
     "Please use the link to review the request. You can either approve or reject the request or you can "
     "demand a revision: {approval_url}\n"
 )
+
+# --- Budget approved (all budget positions) -----------------------------------
+
+BUDGET_APPROVED_SUBJECT = "[ClockWork] Kostenstellen freigegeben / Budget approved"
+BUDGET_APPROVED_SUPERVISOR_BODY_DE = (
+    "Ihr Antrag {petition_id} für die Einstellung einer studentischen Hilfskraft wurde von allen "
+    "Kostenstellenverantwortlichen freigegeben.\n"
+)
+BUDGET_APPROVED_SUPERVISOR_BODY_EN = (
+    "Your application {petition_id} for the employment of a new student assistant has been approved by all "
+    "budget approvers.\n"
+)
+BUDGET_APPROVED_APPROVER_BODY_DE = (
+    "Der Antrag {petition_id} für die Einstellung einer studentischen Hilfskraft wurde von allen "
+    "Kostenstellenverantwortlichen freigegeben.\n"
+)
+BUDGET_APPROVED_APPROVER_BODY_EN = (
+    "The application {petition_id} for the employment of a new student assistant has been approved by all "
+    "budget approvers.\n"
+)
+
+# Fast track for students with an approved petition in the same semester. Placeholders: {acceptance_url}
+ACCEPTANCE_LINK_STUDENT_SUBJECT = "[ClockWork] Antrag freigegeben / Application approved"
+ACCEPTANCE_LINK_STUDENT_BODY_DE = (
+    "Ihr Antrag {petition_id} für die Einstellung als studentische Hilfskraft wurde von allen "
+    "Kostenstellenverantwortlichen freigegeben.\n\n"
+    "Bitte bestätigen Sie den Antrag unter folgendem Link:\n{acceptance_url}\n"
+)
+ACCEPTANCE_LINK_STUDENT_BODY_EN = (
+    "Your application {petition_id} for employment as a student assistant has been approved by all "
+    "budget approvers.\n\n"
+    "Please confirm your application at the following link:\n{acceptance_url}\n"
+)
+
+# Placeholders: {dashboard_url}
+UPLOAD_REQUEST_STUDENT_SUBJECT = "[ClockWork] Dokumente hochladen / Upload Documents Required"
+UPLOAD_REQUEST_STUDENT_BODY_DE = (
+    "Für Sie wurde ein Antrag zur Einstellung als studentische Hilfskraft gestellt. Laden Sie dazu die "
+    "notwendigen Unterlagen hoch. Benötigt werden\n\n"
+    "- Selbstauskunft zur Lohnsteuererklärung (ELStAM)\n\n"
+    "- Fragebogen zur Sozialversicherung\n\n"
+    "- aktuelle Studienbescheinigung\n\n"
+    "- Mitgliedsbescheinigung Ihrer Krankenkasse\n\n"
+    "Das Student-Dashboard ist unter folgendem Link erreichbar: {dashboard_url}\n"
+)
+UPLOAD_REQUEST_STUDENT_BODY_EN = (
+    "An application has been filed for your employment as a student assistant. Please upload the required "
+    "documents to complete your petition. You will need to uploade\n\n"
+    "- Self-disclosure form for income tax (ELStAM form)\n\n"
+    "- Social Security questionnaire\n\n"
+    "- current certificate of enrolment\n\n"
+    "- Health insurance membership certificate\n\n"
+    "The student dashboard can be accessed from this link: {dashboard_url}\n"
+)

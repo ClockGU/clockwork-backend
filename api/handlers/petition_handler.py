@@ -87,52 +87,6 @@ class PetitionHandler:
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)
 
-    def _send_approval_emails(self, petition: Petition) -> None:
-        """Send emails when all budget positions are approved"""
-        try:
-            email_handler = EmailHandler(petition)
-
-            budget_positions = self.budget_positions_handler.get_objects()
-
-            # Check if student has uploaded documents before sending email
-            # TODO: fetching the employee here is not ideal. It is a neccessary fix for now as the signiture of
-            #  check_student_documents_uploaded was refactored to require an employee object.
-            employee = self.employee_manager.get_employee_by_username(
-                petition.student_username
-            )
-            has_uploaded_documents = (
-                self.student_document_manager.check_student_documents_uploaded(
-                    employee, check_ba_degree=petition.ba_degree
-                )
-            )
-            # TODO: is_semester_eligible is a built in check that a student may only have one petition going!!! Big issue
-            # TODO: is_semeste_eligible should stand for "Send mail that all data is present" aka no more uploads are required.
-            is_semester_eligible = self._check_student_semester_eligibility(
-                petition.student_username, petition.start_date
-            )
-            # TODO: send_approval_emails sends a mail to student to provide data,
-            #  if he is eligible and has uploaded documents already we send him another mail saying he just needs to approve.
-            # Use the existing send_approval_emails method from EmailHandler
-            self.add_background_task(
-                email_handler.send_approval_emails,
-                budget_positions,
-                has_uploaded_documents,
-                is_semester_eligible
-            )
-            # TODO: Not sure if we should keep this functionality here.
-            # If student is eligible and has documents, send acceptance link
-            if has_uploaded_documents and is_semester_eligible:
-                from api.security import generate_signature
-
-                signature = generate_signature()
-                self.add_background_task(email_handler.send_student_acceptance_link_email, signature)
-            else:
-                # Send email asking student to upload documents
-                self.add_background_task(email_handler.send_student_documents_upload_request_email)
-
-        except Exception as e:
-            print(f"Error sending approval emails: {str(e)}", flush=True)
-
     def _send_revision_request_email(
         self,
         petition: Petition,
@@ -249,12 +203,13 @@ class PetitionHandler:
             )
         return petitions
 
-    def _check_student_semester_eligibility(
+    def _has_approved_petition_in_semester(
         self, student_username: str, start_date: date
     ) -> bool:
         """
-        Check if the student is eligible to have a petition in the given semester.
-        Returns True if eligible (no approved petition in same semester), False otherwise.
+        Check whether the student already has an approved petition in the semester of start_date.
+        If so, all their documents (incl. the enrolment certificate) are known to be valid,
+        which qualifies the student for the acceptance-link fast track.
         """
         try:
             existing_petitions = (
@@ -262,14 +217,10 @@ class PetitionHandler:
                     student_username, start_date
                 )
             )
-
-            # If there are existing approved petitions in the same semester, student is not eligible
             return len(existing_petitions) != 0
 
         except Exception as e:
             raise self.exc.internal_error("checking student semester eligibility", e)
-            # In case of error, allow the petition (fail-open approach)
-            return True
 
     def student_accept_or_reject_petition(
         self, petition: Petition, approved: bool
@@ -457,7 +408,18 @@ class PetitionHandler:
                         petition, PetitionStatus.STUDENT_ACTION
                     )
 
-                    self._send_approval_emails(petition)
+                    try:
+                        has_approved_petition_in_semester = self._has_approved_petition_in_semester(
+                            petition.student_username, petition.start_date
+                        )
+                        email_handler = EmailHandler(petition)
+                        self.add_background_task(
+                            email_handler.notify_budget_approved,
+                            self.budget_positions_handler.get_objects(),
+                            has_approved_petition_in_semester,
+                        )
+                    except Exception as e:
+                        print(f"Error sending approval emails: {str(e)}", flush=True)
 
             elif revision_requested:
                 # Set status to APPROVER_REVISION
