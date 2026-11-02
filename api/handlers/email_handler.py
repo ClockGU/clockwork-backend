@@ -43,6 +43,9 @@ from api.handlers.mail_templates import (
     PETITION_UPDATED_SUBJECT,
     REVISION_REQUESTED_SUBJECT,
     SEPARATOR,
+    STUDENT_ACCEPTED_SUPERVISOR_BODY_DE,
+    STUDENT_ACCEPTED_SUPERVISOR_BODY_EN,
+    STUDENT_ACCEPTED_SUPERVISOR_SUBJECT,
     UPLOAD_REQUEST_STUDENT_BODY_DE,
     UPLOAD_REQUEST_STUDENT_BODY_EN,
     UPLOAD_REQUEST_STUDENT_SUBJECT,
@@ -348,27 +351,20 @@ class EmailHandler:
             ),
         )
 
-    def send_student_acceptance_email(self) -> None:
-        """Send email when student accepts the petition"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
+    def notify_student_accepted(self) -> None:
+        """
+        Process step: the student accepted the petition, which now moves on to PersonalServices.
+        Informs the supervisor.
+        """
         with self.smtp_session():
-            try:
-                # Send email to supervisor
-                if self.petition.supervisor_mail:
-                    self.send_email(
-                        recipient=self.petition.supervisor_mail,
-                        subject="[ClockWork] Student hat zugestimmt / Student accepted",
-                        body=f"Die studentische Hilfskraft hat dem Antrag {self.petition.id} zugestimmt.\n\n"
-                        f"Der Antrag wird nun von PersonalServices bearbeitet."
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"The student assistant has accepted application {self.petition.id}.\n\n"
-                        f"The application will now be processed by PersonalServices."
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
-            except Exception as e:
-                print(f"Error sending student acceptance email: {str(e)}", flush=True)
+            self._mail_student_accepted_supervisor()
+
+    def _mail_student_accepted_supervisor(self) -> None:
+        self.send_email(
+            recipient=self.petition.supervisor_mail,
+            subject=STUDENT_ACCEPTED_SUPERVISOR_SUBJECT,
+            body=self._render_body(STUDENT_ACCEPTED_SUPERVISOR_BODY_DE, STUDENT_ACCEPTED_SUPERVISOR_BODY_EN),
+        )
 
     def send_student_rejection_email(self) -> None:
         """Send email when student rejects the petition"""

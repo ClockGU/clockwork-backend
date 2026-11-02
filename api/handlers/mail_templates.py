@@ -165,3 +165,15 @@ PETITION_UPDATED_APPROVER_BODY_EN = (
     "Application {petition_id} has been updated.\n\n"
     "Please review the changes and provide your approval at the following link:\n{approval_url}\n"
 )
+
+# --- Student accepted the petition --------------------------------------------
+
+STUDENT_ACCEPTED_SUPERVISOR_SUBJECT = "[ClockWork] Student hat zugestimmt / Student accepted"
+STUDENT_ACCEPTED_SUPERVISOR_BODY_DE = (
+    "Die studentische Hilfskraft hat dem Antrag {petition_id} zugestimmt.\n\n"
+    "Der Antrag wird nun von PersonalServices bearbeitet."
+)
+STUDENT_ACCEPTED_SUPERVISOR_BODY_EN = (
+    "The student assistant has accepted application {petition_id}.\n\n"
+    "The application will now be processed by PersonalServices."
+)

@@ -213,9 +213,8 @@ class PetitionHandler:
             petition = self.manager.update_petition_status(
                 petition, PetitionStatus.CLERK_ACTION
             )
-            # Send email to supervisor
             email_handler = EmailHandler(petition)
-            self.add_background_task(email_handler.send_student_acceptance_email)
+            self.add_background_task(email_handler.notify_student_accepted)
         else:
             # Student rejected, notify and then move to clerk_action
             email_handler = EmailHandler(petition)
