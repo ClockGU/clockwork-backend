@@ -16,7 +16,6 @@ from api.db.schema.petition import Petition
 
 class EmailHandler:
     def __init__(self, petition: Optional["Petition"] = None):
-        self.environment = settings.APP_ENV
         self.petition = petition
         self.server = None
 
