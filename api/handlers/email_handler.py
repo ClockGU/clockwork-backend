@@ -38,6 +38,9 @@ from api.handlers.mail_templates import (
     PETITION_CREATED_STUDENT_BODY_DE,
     PETITION_CREATED_STUDENT_BODY_EN,
     PETITION_CREATED_STUDENT_SUBJECT,
+    PETITION_UPDATED_APPROVER_BODY_DE,
+    PETITION_UPDATED_APPROVER_BODY_EN,
+    PETITION_UPDATED_SUBJECT,
     REVISION_REQUESTED_SUBJECT,
     SEPARATOR,
     UPLOAD_REQUEST_STUDENT_BODY_DE,
@@ -68,6 +71,13 @@ class EmailHandler:
         if shadowed:
             raise ValueError(f"Mail kwargs must not override base context: {sorted(shadowed)}")
         return (body_de + FOOTER_DE + SEPARATOR + body_en + FOOTER_EN).format(**base, **kwargs)
+
+    def _approver_url(self, budget_position: BudgetPosition, signature: str) -> str:
+        """Signed link for a budget approver to review the petition for their budget position."""
+        return (
+            f"{settings.FRONTEND_URL}/approver?petition_id={self.petition.id}"
+            f"&signature={signature}&budget_position_id={budget_position.id}"
+        )
 
     def get_or_create_smtp_server(self):
         if self.server is None:
@@ -185,10 +195,6 @@ class EmailHandler:
         )
 
     def _mail_approval_request_approver(self, budget_position: BudgetPosition, signature: str) -> None:
-        approval_url = (
-            f"{settings.FRONTEND_URL}/approver?petition_id={self.petition.id}"
-            f"&signature={signature}&budget_position_id={budget_position.id}"
-        )
         self.send_email(
             recipient=budget_position.budget_approver,
             subject=APPROVAL_REQUEST_APPROVER_SUBJECT,
@@ -196,7 +202,7 @@ class EmailHandler:
                 APPROVAL_REQUEST_APPROVER_BODY_DE,
                 APPROVAL_REQUEST_APPROVER_BODY_EN,
                 budget_position=budget_position.budget_position,
-                approval_url=approval_url,
+                approval_url=self._approver_url(budget_position, signature),
             ),
         )
 
@@ -387,40 +393,29 @@ class EmailHandler:
             except Exception as e:
                 print(f"Error sending student rejection email: {str(e)}", flush=True)
 
-    def send_budget_position_update_emails(self, budget_positions: list) -> None:
-        """Send emails to budget approvers when budget positions are updated"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
+    def notify_petition_updated(self, budget_positions: list[BudgetPosition]) -> None:
+        """
+        Process step: the supervisor updated the petition, which resets all budget approvals.
+        Sends every budget approver a new approval request with a signed link.
+        """
+        # Local import: api.security imports api.handlers, a top-level import would be circular.
+        from api.security import generate_signature
 
+        signature = generate_signature()
         with self.smtp_session():
-            try:
-                # due to circular import this is imported here
-                from api.security import generate_signature
+            for budget_position in budget_positions:
+                self._mail_petition_updated_approver(budget_position, signature)
 
-                signature = generate_signature()
-
-                # Send email to all budget approvers with updated budget positions
-                for budget_position in budget_positions:
-                    approval_url = f"{settings.FRONTEND_URL}/approver?petition_id={self.petition.id}&signature={signature}&budget_position_id={budget_position.id}"
-                    self.send_email(
-                        recipient=budget_position.budget_approver,
-                        subject="[ClockWork] Antrag aktualisiert / Application updated",
-                        body=f"Der Antrag {self.petition.id} wurde aktualisiert.\n\n"
-                        f"Bitte überprüfen Sie die Änderungen und geben Sie Ihre Freigabe unter folgendem Link:\n{approval_url}\n\n"
-                        f"Sie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"Application {self.petition.id} has been updated.\n\n"
-                        f"Please review the changes and provide your approval at the following link:\n{approval_url}\n\n"
-                        f"You are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
-
-                print(
-                    f"Budget position update emails sent for petition {self.petition.id}",
-                    flush=True,
-                )
-
-            except Exception as e:
-                print(f"Error sending budget position update emails: {str(e)}", flush=True)
+    def _mail_petition_updated_approver(self, budget_position: BudgetPosition, signature: str) -> None:
+        self.send_email(
+            recipient=budget_position.budget_approver,
+            subject=PETITION_UPDATED_SUBJECT,
+            body=self._render_body(
+                PETITION_UPDATED_APPROVER_BODY_DE,
+                PETITION_UPDATED_APPROVER_BODY_EN,
+                approval_url=self._approver_url(budget_position, signature),
+            ),
+        )
 
     def send_clerk_approval_email(
         self, budget_positions: list["BudgetPosition"]

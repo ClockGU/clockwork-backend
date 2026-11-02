@@ -5,7 +5,6 @@ from sqlmodel import Session
 
 from api.db.managers.budget_position_manager import BudgetPositionManager
 from api.db.schema import BudgetPosition, Petition
-from api.handlers import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
 from tests.unit.conftests import budget_position
 
@@ -63,16 +62,10 @@ class BudgetPositionsHandler:
     def reset_approval_status(self):
         """
         Reset the approval status of all budget positions associated with the petition to False.
-        Send email notifications to budget positions about the status update.
         """
         budget_positions = self.get_objects()
         for budget_position in budget_positions:
             self.manager.update_budget_position_status(budget_position, False)
-        try:
-            email_handler = EmailHandler(self.get_petition())
-            email_handler.send_budget_position_update_emails(budget_positions)
-        except Exception as e:
-            raise self.exc.internal_error("sending budget position update emails", e)
 
     def get_assigned_budget_position_by_id(
         self, budget_position_id: UUID

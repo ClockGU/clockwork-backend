@@ -445,6 +445,11 @@ class PetitionHandler:
         # If budget_positions were in the update data, they were cleared and re-created so no action is needed.
         if not budget_positions_updated:
             self.budget_positions_handler.reset_approval_status()
+            email_handler = EmailHandler(petition)
+            self.add_background_task(
+                email_handler.notify_petition_updated,
+                self.budget_positions_handler.get_objects(),
+            )
 
         petition = self.manager.update_petition_status(
             petition, PetitionStatus.APPROVER_ACTION
