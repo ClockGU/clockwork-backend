@@ -37,6 +37,8 @@ from api.handlers.mail_templates import (
     CLERK_APPROVED_SUBJECT,
     CLERK_APPROVED_SUPERVISOR_BODY_DE,
     CLERK_APPROVED_SUPERVISOR_BODY_EN,
+    CLERK_REVISION_STUDENT_BODY_DE,
+    CLERK_REVISION_STUDENT_BODY_EN,
     CONTRACT_STUDENT_BODY_DE,
     CONTRACT_STUDENT_BODY_EN,
     CONTRACT_STUDENT_SUBJECT,
@@ -463,35 +465,25 @@ class EmailHandler:
             body=self._render_body(CLERK_APPROVED_APPROVER_BODY_DE, CLERK_APPROVED_APPROVER_BODY_EN),
         )
 
-    def send_clerk_revision_request_email(
-        self, message: str, subject: Optional[str] = None
-    ) -> None:
-        """Send email when clerk requests revision from student"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
-
+    def notify_clerk_requested_revision(self, message: str, subject: Optional[str] = None) -> None:
+        """
+        Process step: PersonalServices (clerk) requested a revision of the student's data / documents.
+        Informs the student.
+        """
+        subject = subject or REVISION_REQUESTED_SUBJECT
         with self.smtp_session():
-            try:
-                email_subject = (
-                    subject
-                    if subject
-                    else "[ClockWork] Änderungen angefordert / Changes requested"
-                )
-                self.send_email(
-                    recipient=self.petition.student_mail,
-                    subject=email_subject,
-                    body=f"PersonalServices hat eine Anpassung Ihrer Angaben / Unterlagen angefordert:\n\n"
-                    f"{message}\n\n"
-                    f"Bitte melden Sie sich an, um Ihre Angaben zu prüfen und zu ergänzen."
-                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                    f"\n\n--------------\n\n"
-                    f"PersonalServices has requested a revision of your data / documents:\n\n"
-                    f"{message}\n\n"
-                    f"Please log in to review and amend your personal information or documents."
-                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                )
-            except Exception as e:
-                print(f"Error sending clerk revision request email: {str(e)}", flush=True)
+            self._mail_clerk_revision_student(message, subject)
+
+    def _mail_clerk_revision_student(self, message: str, subject: str) -> None:
+        self.send_email(
+            recipient=self.petition.student_mail,
+            subject=subject,
+            body=self._render_body(
+                CLERK_REVISION_STUDENT_BODY_DE,
+                CLERK_REVISION_STUDENT_BODY_EN,
+                message=message,
+            ),
+        )
 
     def send_petition_completion_emails(self) -> None:
         """Send emails when petition is completed by clerk"""

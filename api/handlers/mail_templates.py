@@ -235,3 +235,17 @@ CLERK_APPROVED_SUPERVISOR_BODY_EN = (
 )
 CLERK_APPROVED_APPROVER_BODY_DE = "Der Antrag {petition_id} wurde von PersonalServices freigegeben."
 CLERK_APPROVED_APPROVER_BODY_EN = "The application {petition_id} has been approved by PersonalServices."
+
+# --- Revision requested by the clerk ------------------------------------------
+
+# Placeholders: {message}
+CLERK_REVISION_STUDENT_BODY_DE = (
+    "PersonalServices hat eine Anpassung Ihrer Angaben / Unterlagen angefordert:\n\n"
+    "{message}\n\n"
+    "Bitte melden Sie sich an, um Ihre Angaben zu prüfen und zu ergänzen."
+)
+CLERK_REVISION_STUDENT_BODY_EN = (
+    "PersonalServices has requested a revision of your data / documents:\n\n"
+    "{message}\n\n"
+    "Please log in to review and amend your personal information or documents."
+)

@@ -261,9 +261,8 @@ class PetitionHandler:
     def request_revision_from_student(
         self, petition: Petition, message: str, subject: Optional[str] = None
     ) -> Petition:
-        # Send email to student
         email_handler = EmailHandler(petition)
-        self.add_background_task(email_handler.send_clerk_revision_request_email, message, subject)
+        self.add_background_task(email_handler.notify_clerk_requested_revision, message, subject)
 
         # Change status to clerk_revision
         petition = self.manager.update_petition_status(
