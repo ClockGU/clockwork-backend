@@ -1,3 +1,4 @@
+import logging
 import smtplib
 from contextlib import contextmanager
 from email import encoders
@@ -12,6 +13,8 @@ from api.env import settings
 
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.petition import Petition
+
+logger = logging.getLogger(__name__)
 
 
 class EmailHandler:
@@ -60,7 +63,16 @@ class EmailHandler:
 
         """
         try:
-            yield self.get_or_create_smtp_server()
+            server = self.get_or_create_smtp_server()
+        except Exception:
+            logger.exception(
+                "Could not connect to SMTP server %s:%s",
+                settings.SMTP_SERVER,
+                settings.SMTP_PORT,
+            )
+            raise
+        try:
+            yield server
         finally:
             if self.server is not None:
                 self._close_server()
@@ -98,10 +110,9 @@ class EmailHandler:
 
         try:
             self.server.sendmail(msg["From"], recipient, msg.as_string())
-            print(f"Email sent to {recipient}", flush=True)
-        except Exception as e:
-            # TODO: Add logging rather than print statements
-            print(f"Failed to send email: {e}", flush=True)
+            logger.info("Mail sent to %s: %s", recipient, subject)
+        except Exception:
+            logger.exception("Failed to send mail to %s: %s", recipient, subject)
 
     def send_budget_pos_mail(self, budget_position: BudgetPosition, petition_url:str):
         with self.smtp_session():
