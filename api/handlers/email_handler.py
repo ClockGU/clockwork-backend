@@ -27,6 +27,11 @@ from api.handlers.mail_templates import (
     BUDGET_APPROVED_SUBJECT,
     BUDGET_APPROVED_SUPERVISOR_BODY_DE,
     BUDGET_APPROVED_SUPERVISOR_BODY_EN,
+    BUDGET_REJECTED_APPROVER_BODY_DE,
+    BUDGET_REJECTED_APPROVER_BODY_EN,
+    BUDGET_REJECTED_SUBJECT,
+    BUDGET_REJECTED_SUPERVISOR_BODY_DE,
+    BUDGET_REJECTED_SUPERVISOR_BODY_EN,
     FOOTER_DE,
     FOOTER_EN,
     NO_REVISION_MESSAGE,
@@ -302,42 +307,40 @@ class EmailHandler:
             ),
         )
 
-    def send_rejection_email(
-        self,
-        rejected_budget_position: BudgetPosition,
-        budget_positions: list[BudgetPosition],
+    def notify_budget_rejected(
+        self, rejected_budget_position: BudgetPosition, budget_positions: list[BudgetPosition]
     ) -> None:
-        """Send email when a budget position is rejected"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
+        """
+        Process step: a budget approver rejected their budget position, which rejects the petition.
+        Informs the supervisor and all budget approvers (including the rejecting one).
+        """
+        rejecting_approver = rejected_budget_position.budget_approver
         with self.smtp_session():
-            try:
-                # Send email to supervisor
-                if self.petition.supervisor_mail:
-                    self.send_email(
-                        recipient=self.petition.supervisor_mail,
-                        subject="[ClockWork] Antrag abgelehnt / Application rejected",
-                        body=f"Ihr Antrag {self.petition.id} wurde von dem Kostenstellenverantwortlichen {rejected_budget_position.budget_approver} abgelehnt."
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"Your application {self.petition.id} has been rejected by the budget approver {rejected_budget_position.budget_approver}."
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
+            self._mail_budget_rejected_supervisor(rejecting_approver)
+            for budget_position in budget_positions:
+                self._mail_budget_rejected_approver(budget_position, rejecting_approver)
 
-                # Send email to all budget approvers (approved or not)
-                for budget_position in budget_positions:
-                    self.send_email(
-                        recipient=budget_position.budget_approver,
-                        subject="[ClockWork] Antrag abgelehnt / Application rejected",
-                        body=f"Der Antrag {self.petition.id} wurde von dem Kostenstellenverantwortlichen {rejected_budget_position.budget_approver} abgelehnt."
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"The application {self.petition.id} has been rejected by the budget approver {rejected_budget_position.budget_approver}."
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
+    def _mail_budget_rejected_supervisor(self, rejecting_approver: str) -> None:
+        self.send_email(
+            recipient=self.petition.supervisor_mail,
+            subject=BUDGET_REJECTED_SUBJECT,
+            body=self._render_body(
+                BUDGET_REJECTED_SUPERVISOR_BODY_DE,
+                BUDGET_REJECTED_SUPERVISOR_BODY_EN,
+                rejecting_approver=rejecting_approver,
+            ),
+        )
 
-            except Exception as e:
-                print(f"Error sending rejection email: {str(e)}", flush=True)
+    def _mail_budget_rejected_approver(self, budget_position: BudgetPosition, rejecting_approver: str) -> None:
+        self.send_email(
+            recipient=budget_position.budget_approver,
+            subject=BUDGET_REJECTED_SUBJECT,
+            body=self._render_body(
+                BUDGET_REJECTED_APPROVER_BODY_DE,
+                BUDGET_REJECTED_APPROVER_BODY_EN,
+                rejecting_approver=rejecting_approver,
+            ),
+        )
 
     def send_student_acceptance_email(self) -> None:
         """Send email when student accepts the petition"""

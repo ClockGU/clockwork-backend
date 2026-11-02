@@ -87,21 +87,6 @@ class PetitionHandler:
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)
 
-    def _send_rejection_email(
-        self, petition: Petition, rejected_budget_position
-    ) -> None:
-        """Send email when a budget position is rejected"""
-        try:
-            email_handler = EmailHandler(petition)
-            budget_positions = self.budget_positions_handler.get_objects()
-
-            self.add_background_task(email_handler.send_rejection_email,
-                rejected_budget_position, budget_positions)
-
-
-        except Exception as e:
-            self.exc.not_found(f"Error sending rejection email: {str(e)}")
-
     # Method currently not used but possibly needed soon.
     def list_petitions(self, offset: int = 0, limit: int = 100) -> List[Petition]:
         petitions = self.manager.get_petitions(offset=offset, limit=limit)
@@ -417,8 +402,12 @@ class PetitionHandler:
             # TODO: This branch is an effective DELETE on the petition. This should be handled by a DELETE endpoint not this patch.
             elif not budget_position_approved and not revision_requested:
 
-                # Send rejection email
-                self._send_rejection_email(petition, updated_budget_position)
+                email_handler = EmailHandler(petition)
+                self.add_background_task(
+                    email_handler.notify_budget_rejected,
+                    updated_budget_position,
+                    self.budget_positions_handler.get_objects(),
+                )
 
                 self.manager.delete_petition(petition)
                 return {"detail": "Petition rejected and deleted successfully"}

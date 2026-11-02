@@ -133,3 +133,21 @@ APPROVER_REVISION_APPROVER_BODY_EN = (
     "{message}\n\n"
     "You will be notified once the changes have been made.\n"
 )
+
+# --- Budget position rejected -------------------------------------------------
+
+BUDGET_REJECTED_SUBJECT = "[ClockWork] Antrag abgelehnt / Application rejected"
+
+# Placeholders: {rejecting_approver}
+BUDGET_REJECTED_SUPERVISOR_BODY_DE = (
+    "Ihr Antrag {petition_id} wurde von dem Kostenstellenverantwortlichen {rejecting_approver} abgelehnt."
+)
+BUDGET_REJECTED_SUPERVISOR_BODY_EN = (
+    "Your application {petition_id} has been rejected by the budget approver {rejecting_approver}."
+)
+BUDGET_REJECTED_APPROVER_BODY_DE = (
+    "Der Antrag {petition_id} wurde von dem Kostenstellenverantwortlichen {rejecting_approver} abgelehnt."
+)
+BUDGET_REJECTED_APPROVER_BODY_EN = (
+    "The application {petition_id} has been rejected by the budget approver {rejecting_approver}."
+)
