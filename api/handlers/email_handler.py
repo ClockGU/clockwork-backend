@@ -134,10 +134,10 @@ class EmailHandler:
                         recipient=self.petition.supervisor_mail,
                         subject="[ClockWork] Kostenstellen freigegeben / Budget approved",
                         body=f"Ihr Antrag {self.petition.id} für die Einstellung einer studentischen Hilfskraft wurde von allen Kostenstellenverantwortlichen freigegeben."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
                         f"\n\n--------------\n\n"
                         f"Your application {self.petition.id} for the employment of a new student assistant has been approved by all budget approvers."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n",
                     )
 
                 # Send email to all budget approvers notifying them that petition is fully approved
@@ -146,10 +146,10 @@ class EmailHandler:
                         recipient=budget_position.budget_approver,
                         subject="[ClockWork] Kostenstellen freigegeben / Budget approved",
                         body=f"Der Antrag {self.petition.id} für die Einstellung einer studentischen Hilfskraft wurde von allen Kostenstellenverantwortlichen freigegeben."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
                         f"\n\n--------------\n\n"
                         f"The application {self.petition.id} for the employment of a new student assistant has been approved by all budget approvers."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n",
                     )
 
                 if has_uploaded_documents and is_semester_eligible:
@@ -165,11 +165,11 @@ class EmailHandler:
                         subject="[ClockWork] Antrag freigegeben / Application approved",
                         body=f"Ihr Antrag {self.petition.id} für die Einstellung als studentische Hilfskraft wurde von allen Kostenstellenverantwortlichen freigegeben.\n\n"
                         f"Bitte bestätigen Sie den Antrag unter folgendem Link:\n{petition_url}\n\n"
-                        f"Sie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"Sie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"Your application {self.petition.id} for employment as a student assistant has been approved by all budget approvers.\n\n"
                         f"Please confirm your application at the following link:\n{petition_url}\n\n"
-                        f"You are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"You are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
 
             except Exception as e:
@@ -185,10 +185,10 @@ class EmailHandler:
                     recipient=self.petition.student_mail,
                     subject="[ClockWork] Neuer Antrag erstellt / New application created",
                     body=f"Ihr Antrag {self.petition.id} für die Einstellung als studentische Hilfskraft wurde von Ihrem Vorgesetzten erstellt und wird nun von den Kostenstellenverantwortlichen geprüft.\n\n"
-                    f"Sie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}.\n"
+                    f"Sie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}.\n"
                     f"\n\n--------------\n\n"
                     f"Your application {self.petition.id} for employment as a student assistant has been created by your supervisor and is now pending review by the budget approvers.\n\n"
-                    f"You are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}.\n",
+                    f"You are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}.\n",
                 )
 
     def send_revision_request_email(
@@ -219,12 +219,12 @@ class EmailHandler:
                         body=f"Der Kostenstellenverantwortliche {requesting_budget_position.budget_approver} hat eine Änderung an Ihrem Antrag {self.petition.id} angefordert:\n\n"
                         f"{revision_message}\n\n"
                         f"Bitte melden Sie sich an, um die Änderungen vorzunehmen."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"The budget approver {requesting_budget_position.budget_approver} has requested changes to your application {self.petition.id}:\n\n"
                         f"{revision_message}\n\n"
                         f"Please log in to make the requested changes."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
 
                 # Send email to all other budget approvers
@@ -239,12 +239,12 @@ class EmailHandler:
                             body=f"Der Kostenstellenverantwortliche {requesting_budget_position.budget_approver} hat eine Änderung an dem Antrag {self.petition.id} angefordert:\n\n"
                             f"{revision_message}\n\n"
                             f"Sie werden benachrichtigt, sobald die Änderungen vorgenommen wurden."
-                            f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                            f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                             f"\n\n--------------\n\n"
                             f"The budget approver {requesting_budget_position.budget_approver} has requested changes to application {self.petition.id}:\n\n"
                             f"{revision_message}\n\n"
                             f"You will be notified once the changes have been made."
-                            f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                            f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                         )
 
             except Exception as e:
@@ -266,10 +266,10 @@ class EmailHandler:
                         recipient=self.petition.supervisor_mail,
                         subject="[ClockWork] Antrag abgelehnt / Application rejected",
                         body=f"Ihr Antrag {self.petition.id} wurde von dem Kostenstellenverantwortlichen {rejected_budget_position.budget_approver} abgelehnt."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"Your application {self.petition.id} has been rejected by the budget approver {rejected_budget_position.budget_approver}."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
 
                 # Send email to all budget approvers (approved or not)
@@ -278,10 +278,10 @@ class EmailHandler:
                         recipient=budget_position.budget_approver,
                         subject="[ClockWork] Antrag abgelehnt / Application rejected",
                         body=f"Der Antrag {self.petition.id} wurde von dem Kostenstellenverantwortlichen {rejected_budget_position.budget_approver} abgelehnt."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"The application {self.petition.id} has been rejected by the budget approver {rejected_budget_position.budget_approver}."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
 
             except Exception as e:
@@ -300,11 +300,11 @@ class EmailHandler:
                         subject="[ClockWork] Student hat zugestimmt / Student accepted",
                         body=f"Die studentische Hilfskraft hat dem Antrag {self.petition.id} zugestimmt.\n\n"
                         f"Der Antrag wird nun von PersonalServices bearbeitet."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"The student assistant has accepted application {self.petition.id}.\n\n"
                         f"The application will now be processed by PersonalServices."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
             except Exception as e:
                 print(f"Error sending student acceptance email: {str(e)}", flush=True)
@@ -323,11 +323,11 @@ class EmailHandler:
                         subject="[ClockWork] Student hat abgelehnt / Student rejected",
                         body=f"Die studentische Hilfskraft hat den Antrag {self.petition.id} abgelehnt.\n\n"
                         f"Bitte setzen Sie sich mit der studentischen Hilfskraft in Verbindung."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"The student assistant has rejected application {self.petition.id}.\n\n"
                         f"Please contact the student assistant."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
             except Exception as e:
                 print(f"Error sending student rejection email: {str(e)}", flush=True)
@@ -352,11 +352,11 @@ class EmailHandler:
                         subject="[ClockWork] Antrag aktualisiert / Application updated",
                         body=f"Der Antrag {self.petition.id} wurde aktualisiert.\n\n"
                         f"Bitte überprüfen Sie die Änderungen und geben Sie Ihre Freigabe unter folgendem Link:\n{approval_url}\n\n"
-                        f"Sie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"Sie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"Application {self.petition.id} has been updated.\n\n"
                         f"Please review the changes and provide your approval at the following link:\n{approval_url}\n\n"
-                        f"You are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"You are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
 
                 print(
@@ -381,11 +381,11 @@ class EmailHandler:
                         subject="[ClockWork] Neuer Antragstatus / Application status update",
                         body=f"Der Antrag {self.petition.id} wurde von PersonalServices freigegeben.\n\n"
                         f"Bitte melden Sie sich an, um den Antragsstatus zu überprüfen."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"Your application {self.petition.id} has been approved by PersonalServices.\n\n"
                         f"Please log in and review the application's status."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
 
                 for budget_position in budget_positions:
@@ -393,10 +393,10 @@ class EmailHandler:
                         recipient=budget_position.budget_approver,
                         subject="[ClockWork] Neuer Antragstatus / Application status update",
                         body=f"Der Antrag {self.petition.id} wurde von PersonalServices freigegeben."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"The application {self.petition.id} has been approved by PersonalServices."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
             except Exception as e:
                 print(f"Error sending clerk approval email: {str(e)}", flush=True)
@@ -412,11 +412,11 @@ class EmailHandler:
                     subject="[ClockWork] Arbeitsvertrag / Employment contract",
                     body=f"Anbei finden Sie Ihren Arbeitsvertrag für den Antrag {self.petition.id}.\n\n"
                     f"Bitte drucken Sie den Vertrag aus, unterschreiben Sie ihn und reichen Sie ihn bei PersonalServices ein."
-                    f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                     f"\n\n--------------\n\n"
                     f"Please find attached your employment contract for application {self.petition.id}.\n\n"
                     f"Please print the contract, sign it and submit it to PersonalServices."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     attachment_bytes=contract_pdf_buffer.getvalue(),
                     attachment_filename=f"contract_{self.petition.id}.pdf",
                 )
@@ -446,12 +446,12 @@ class EmailHandler:
                     body=f"PersonalServices hat eine Anpassung Ihrer Angaben / Unterlagen angefordert:\n\n"
                     f"{message}\n\n"
                     f"Bitte melden Sie sich an, um Ihre Angaben zu prüfen und zu ergänzen."
-                    f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                     f"\n\n--------------\n\n"
                     f"PersonalServices has requested a revision of your data / documents:\n\n"
                     f"{message}\n\n"
                     f"Please log in to review and amend your personal information or documents."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                 )
             except Exception as e:
                 print(f"Error sending clerk revision request email: {str(e)}", flush=True)
@@ -469,11 +469,11 @@ class EmailHandler:
                     subject="[ClockWork] Einstellung abgeschlossen / Employment process completed",
                     body=f"Ihre Einstellung (Antrag {self.petition.id}) ist abgeschlossen.\n\n"
                     f"Willkommen als Beschäftigte*r der Goethe-Universität!"
-                    f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                     f"\n\n--------------\n\n"
                     f"Your employment (application ID {self.petition.id}) has been completed.\n\n"
                     f" Welcome as employee of Goethe University!"
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                 )
 
                 self.send_email(
@@ -481,11 +481,11 @@ class EmailHandler:
                     subject="[ClockWork] Einstellung abgeschlossen / Employment process completed",
                     body=f"Der Antrag {self.petition.id} auf Einstellung einer studentischen Hilfskraft ist abgeschlossen.\n\n"
                     f"\nSie erhalten demnächst den unterschriebenen Arbeitsvertrag von PersonalServices. Bitte geben Sie diesen an die studentische Hilfskraft weiter."
-                    f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                     f"\n\n--------------\n\n"
                     f"Application {self.petition.id} for the employment of a student assistant has been completed.\n\n"
                     f"In a few days, you will be receiving the employment contract from PersonalServices. Please hand it over to the student assistant."
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                 )
             except Exception as e:
                 print(f"Error sending petition completion emails: {str(e)}", flush=True)
@@ -511,12 +511,12 @@ class EmailHandler:
                         body=f"Die studentische Hilfskraft hat eine Änderung an dem Antrag {self.petition.id} angefordert:\n\n"
                         f"{text}\n\n"
                         f"Bitte melden Sie sich an, um die Änderungen vorzunehmen."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"The student assistant has requested changes to application {self.petition.id}:\n\n"
                         f"{text}\n\n"
                         f"Please log in to make the requested changes."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
             except Exception as e:
                 print(f"Error sending student revision request email: {str(e)}", flush=True)
@@ -536,11 +536,11 @@ class EmailHandler:
                         subject="[ClockWork] Student hat abgelehnt / Student rejected",
                         body=f"Die studentische Hilfskraft hat den Antrag {self.petition.id} abgelehnt.\n\n"
                         f"Der Antrag wird nicht weiter bearbeitet."
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"The student assistant has rejected application {self.petition.id}.\n\n"
                         f"The application will not be processed further."
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
             except Exception as e:
                 print(
@@ -565,7 +565,7 @@ class EmailHandler:
                     f"- aktuelle Studienbescheinigung\n\n"
                     f"- Mitgliedsbescheinigung Ihrer Krankenkasse\n\n"
                     f"Das Student-Dashboard ist unter folgendem Link erreichbar: {dashboard_url}\n\n"
-                    f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
+                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n \n"
                     f"\n\n--------------\n\n"
                     f"An application has been filed for your employment as a student assistant. Please upload the required documents to complete your petition. You will need to uploade\n\n"
                     f"- Self-disclosure form for income tax (ELStAM form)\n\n"
@@ -573,7 +573,7 @@ class EmailHandler:
                     f"- current certificate of enrolment\n\n"
                     f"- Health insurance membership certificate\n\n"
                     f"The student dashboard can be accessed from this link: {dashboard_url}\n\n"
-                    f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n",
+                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n \n",
                 )
             except Exception as e:
                 print(
@@ -621,10 +621,10 @@ class EmailHandler:
                         recipient=self.petition.supervisor_mail,
                         subject="[ClockWork] Antrag gelöscht / Application deleted",
                         body=f"Ihr Antrag {self.petition.id} wurde von PersonalServices gelöscht.{reason_text}"
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"Your application {self.petition.id} has been deleted by PersonalServices.{reason_text_en}"
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
 
                 # Send email to student
@@ -633,10 +633,10 @@ class EmailHandler:
                         recipient=self.petition.student_mail,
                         subject="[ClockWork] Antrag gelöscht / Application deleted",
                         body=f"Ihr Antrag {self.petition.id} zur Einstellung als studentische Hilfskraft wurde von PersonalServices gelöscht.{reason_text}"
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"Your application {self.petition.id} for employment as a student assistant has been deleted by PersonalServices.{reason_text_en}"
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
 
                 # Send email to all budget approvers
@@ -645,10 +645,10 @@ class EmailHandler:
                         recipient=budget_position.budget_approver,
                         subject="[ClockWork] Antrag gelöscht / Application deleted",
                         body=f"Der Antrag {self.petition.id} wurde von PersonalServices gelöscht.{reason_text}"
-                        f"\nSie bekommen diese Mail im Rahmen des Testbetriebs der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
+                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
                         f"\n\n--------------\n\n"
                         f"The application {self.petition.id} has been deleted by PersonalServices.{reason_text_en}"
-                        f"\nYou are receiving this email as part of the testing phase of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
+                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
                     )
             except Exception as e:
                 print(f"Error sending clerk deletion email: {str(e)}", flush=True)
