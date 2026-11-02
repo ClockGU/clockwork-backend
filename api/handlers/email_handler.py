@@ -46,6 +46,11 @@ from api.handlers.mail_templates import (
     STUDENT_ACCEPTED_SUPERVISOR_BODY_DE,
     STUDENT_ACCEPTED_SUPERVISOR_BODY_EN,
     STUDENT_ACCEPTED_SUPERVISOR_SUBJECT,
+    STUDENT_REJECTED_APPROVER_BODY_DE,
+    STUDENT_REJECTED_APPROVER_BODY_EN,
+    STUDENT_REJECTED_SUBJECT,
+    STUDENT_REJECTED_SUPERVISOR_BODY_DE,
+    STUDENT_REJECTED_SUPERVISOR_BODY_EN,
     UPLOAD_REQUEST_STUDENT_BODY_DE,
     UPLOAD_REQUEST_STUDENT_BODY_EN,
     UPLOAD_REQUEST_STUDENT_SUBJECT,
@@ -366,28 +371,29 @@ class EmailHandler:
             body=self._render_body(STUDENT_ACCEPTED_SUPERVISOR_BODY_DE, STUDENT_ACCEPTED_SUPERVISOR_BODY_EN),
         )
 
-    def send_student_rejection_email(self) -> None:
-        """Send email when student rejects the petition"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
-
+    def notify_student_rejected(self, budget_positions: list[BudgetPosition]) -> None:
+        """
+        Process step: the student rejected the petition, which is then deleted.
+        Informs the supervisor and all budget approvers.
+        """
         with self.smtp_session():
-            try:
-                # Send email to supervisor
-                if self.petition.supervisor_mail:
-                    self.send_email(
-                        recipient=self.petition.supervisor_mail,
-                        subject="[ClockWork] Student hat abgelehnt / Student rejected",
-                        body=f"Die studentische Hilfskraft hat den Antrag {self.petition.id} abgelehnt.\n\n"
-                        f"Bitte setzen Sie sich mit der studentischen Hilfskraft in Verbindung."
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"The student assistant has rejected application {self.petition.id}.\n\n"
-                        f"Please contact the student assistant."
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
-            except Exception as e:
-                print(f"Error sending student rejection email: {str(e)}", flush=True)
+            self._mail_student_rejected_supervisor()
+            for budget_position in budget_positions:
+                self._mail_student_rejected_approver(budget_position)
+
+    def _mail_student_rejected_supervisor(self) -> None:
+        self.send_email(
+            recipient=self.petition.supervisor_mail,
+            subject=STUDENT_REJECTED_SUBJECT,
+            body=self._render_body(STUDENT_REJECTED_SUPERVISOR_BODY_DE, STUDENT_REJECTED_SUPERVISOR_BODY_EN),
+        )
+
+    def _mail_student_rejected_approver(self, budget_position: BudgetPosition) -> None:
+        self.send_email(
+            recipient=budget_position.budget_approver,
+            subject=STUDENT_REJECTED_SUBJECT,
+            body=self._render_body(STUDENT_REJECTED_APPROVER_BODY_DE, STUDENT_REJECTED_APPROVER_BODY_EN),
+        )
 
     def notify_petition_updated(self, budget_positions: list[BudgetPosition]) -> None:
         """
@@ -566,33 +572,6 @@ class EmailHandler:
                     )
             except Exception as e:
                 print(f"Error sending student revision request email: {str(e)}", flush=True)
-
-    def send_student_rejection_to_budget_approvers_email(
-        self, budget_positions: list
-    ) -> None:
-        """Send email to budget approvers when student rejects petition"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
-
-        with self.smtp_session():
-            try:
-                for budget_position in budget_positions:
-                    self.send_email(
-                        recipient=budget_position.budget_approver,
-                        subject="[ClockWork] Student hat abgelehnt / Student rejected",
-                        body=f"Die studentische Hilfskraft hat den Antrag {self.petition.id} abgelehnt.\n\n"
-                        f"Der Antrag wird nicht weiter bearbeitet."
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"The student assistant has rejected application {self.petition.id}.\n\n"
-                        f"The application will not be processed further."
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
-            except Exception as e:
-                print(
-                    f"Error sending student rejection to budget approvers email: {str(e)}",
-                    flush=True,
-                )
 
     def send_clerk_deletion_email(self, reason: str, budget_positions: list) -> None:
         """Send email when clerk deletes a petition"""

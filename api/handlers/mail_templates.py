@@ -177,3 +177,23 @@ STUDENT_ACCEPTED_SUPERVISOR_BODY_EN = (
     "The student assistant has accepted application {petition_id}.\n\n"
     "The application will now be processed by PersonalServices."
 )
+
+# --- Student rejected the petition --------------------------------------------
+
+STUDENT_REJECTED_SUBJECT = "[ClockWork] Student hat abgelehnt / Student rejected"
+STUDENT_REJECTED_SUPERVISOR_BODY_DE = (
+    "Die studentische Hilfskraft hat den Antrag {petition_id} abgelehnt.\n\n"
+    "Bitte setzen Sie sich mit der studentischen Hilfskraft in Verbindung."
+)
+STUDENT_REJECTED_SUPERVISOR_BODY_EN = (
+    "The student assistant has rejected application {petition_id}.\n\n"
+    "Please contact the student assistant."
+)
+STUDENT_REJECTED_APPROVER_BODY_DE = (
+    "Die studentische Hilfskraft hat den Antrag {petition_id} abgelehnt.\n\n"
+    "Der Antrag wird nicht weiter bearbeitet."
+)
+STUDENT_REJECTED_APPROVER_BODY_EN = (
+    "The student assistant has rejected application {petition_id}.\n\n"
+    "The application will not be processed further."
+)
