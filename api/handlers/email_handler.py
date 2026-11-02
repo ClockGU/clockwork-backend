@@ -21,7 +21,7 @@ class EmailHandler:
 
     def get_or_create_smtp_server(self):
         if self.server is None:
-            self.server = self._setup_smtp_server()
+            self._setup_smtp_server()
         return self.server
 
     def _setup_smtp_server(self):
@@ -35,7 +35,7 @@ class EmailHandler:
             server.starttls()
         if smtp_user and smtp_password:  # Only login if credentials are provided
             server.login(smtp_user, smtp_password)
-        return server
+        self.server = server
 
     def _close_server(self):
         self.server.quit()
