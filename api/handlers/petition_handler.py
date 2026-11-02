@@ -273,9 +273,8 @@ class PetitionHandler:
     def complete_petition_as_clerk(self) -> Petition:
 
         petition = self.get_object()
-        # Send completion emails
         email_handler = EmailHandler(petition)
-        self.add_background_task(email_handler.send_petition_completion_emails)
+        self.add_background_task(email_handler.notify_petition_completed)
 
         # Update petition status to completed
         petition = self.manager.update_petition_status(

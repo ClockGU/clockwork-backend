@@ -45,6 +45,11 @@ from api.handlers.mail_templates import (
     FOOTER_DE,
     FOOTER_EN,
     NO_REVISION_MESSAGE,
+    PETITION_COMPLETED_STUDENT_BODY_DE,
+    PETITION_COMPLETED_STUDENT_BODY_EN,
+    PETITION_COMPLETED_SUBJECT,
+    PETITION_COMPLETED_SUPERVISOR_BODY_DE,
+    PETITION_COMPLETED_SUPERVISOR_BODY_EN,
     PETITION_CREATED_STUDENT_BODY_DE,
     PETITION_CREATED_STUDENT_BODY_EN,
     PETITION_CREATED_STUDENT_SUBJECT,
@@ -485,39 +490,28 @@ class EmailHandler:
             ),
         )
 
-    def send_petition_completion_emails(self) -> None:
-        """Send emails when petition is completed by clerk"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
-
+    def notify_petition_completed(self) -> None:
+        """
+        Process step: PersonalServices (clerk) completed the employment process.
+        Informs the student and the supervisor.
+        """
         with self.smtp_session():
-            try:
-                # Send email to student
-                self.send_email(
-                    recipient=self.petition.student_mail,
-                    subject="[ClockWork] Einstellung abgeschlossen / Employment process completed",
-                    body=f"Ihre Einstellung (Antrag {self.petition.id}) ist abgeschlossen.\n\n"
-                    f"Willkommen als Beschäftigte*r der Goethe-Universität!"
-                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                    f"\n\n--------------\n\n"
-                    f"Your employment (application ID {self.petition.id}) has been completed.\n\n"
-                    f" Welcome as employee of Goethe University!"
-                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                )
+            self._mail_petition_completed_student()
+            self._mail_petition_completed_supervisor()
 
-                self.send_email(
-                    recipient=self.petition.supervisor_mail,
-                    subject="[ClockWork] Einstellung abgeschlossen / Employment process completed",
-                    body=f"Der Antrag {self.petition.id} auf Einstellung einer studentischen Hilfskraft ist abgeschlossen.\n\n"
-                    f"\nSie erhalten demnächst den unterschriebenen Arbeitsvertrag von PersonalServices. Bitte geben Sie diesen an die studentische Hilfskraft weiter."
-                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                    f"\n\n--------------\n\n"
-                    f"Application {self.petition.id} for the employment of a student assistant has been completed.\n\n"
-                    f"In a few days, you will be receiving the employment contract from PersonalServices. Please hand it over to the student assistant."
-                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                )
-            except Exception as e:
-                print(f"Error sending petition completion emails: {str(e)}", flush=True)
+    def _mail_petition_completed_student(self) -> None:
+        self.send_email(
+            recipient=self.petition.student_mail,
+            subject=PETITION_COMPLETED_SUBJECT,
+            body=self._render_body(PETITION_COMPLETED_STUDENT_BODY_DE, PETITION_COMPLETED_STUDENT_BODY_EN),
+        )
+
+    def _mail_petition_completed_supervisor(self) -> None:
+        self.send_email(
+            recipient=self.petition.supervisor_mail,
+            subject=PETITION_COMPLETED_SUBJECT,
+            body=self._render_body(PETITION_COMPLETED_SUPERVISOR_BODY_DE, PETITION_COMPLETED_SUPERVISOR_BODY_EN),
+        )
 
     def notify_student_requested_revision(self, message: str, subject: Optional[str] = None) -> None:
         """
