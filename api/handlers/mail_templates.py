@@ -101,3 +101,35 @@ UPLOAD_REQUEST_STUDENT_BODY_EN = (
     "- Health insurance membership certificate\n\n"
     "The student dashboard can be accessed from this link: {dashboard_url}\n"
 )
+
+# --- Revision requested (shared default subject) ------------------------------
+
+REVISION_REQUESTED_SUBJECT = "[ClockWork] Änderungen angefordert / Changes requested"
+
+# --- Revision requested by a budget approver ----------------------------------
+
+NO_REVISION_MESSAGE = "No specific message provided."
+
+# Placeholders: {requesting_approver}, {message}
+APPROVER_REVISION_SUPERVISOR_BODY_DE = (
+    "Der Kostenstellenverantwortliche {requesting_approver} hat eine Änderung an Ihrem Antrag {petition_id} "
+    "angefordert:\n\n"
+    "{message}\n\n"
+    "Bitte melden Sie sich an, um die Änderungen vorzunehmen.\n"
+)
+APPROVER_REVISION_SUPERVISOR_BODY_EN = (
+    "The budget approver {requesting_approver} has requested changes to your application {petition_id}:\n\n"
+    "{message}\n\n"
+    "Please log in to make the requested changes.\n"
+)
+APPROVER_REVISION_APPROVER_BODY_DE = (
+    "Der Kostenstellenverantwortliche {requesting_approver} hat eine Änderung an dem Antrag {petition_id} "
+    "angefordert:\n\n"
+    "{message}\n\n"
+    "Sie werden benachrichtigt, sobald die Änderungen vorgenommen wurden.\n"
+)
+APPROVER_REVISION_APPROVER_BODY_EN = (
+    "The budget approver {requesting_approver} has requested changes to application {petition_id}:\n\n"
+    "{message}\n\n"
+    "You will be notified once the changes have been made.\n"
+)

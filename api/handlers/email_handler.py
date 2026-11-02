@@ -18,6 +18,10 @@ from api.handlers.mail_templates import (
     APPROVAL_REQUEST_APPROVER_BODY_DE,
     APPROVAL_REQUEST_APPROVER_BODY_EN,
     APPROVAL_REQUEST_APPROVER_SUBJECT,
+    APPROVER_REVISION_APPROVER_BODY_DE,
+    APPROVER_REVISION_APPROVER_BODY_EN,
+    APPROVER_REVISION_SUPERVISOR_BODY_DE,
+    APPROVER_REVISION_SUPERVISOR_BODY_EN,
     BUDGET_APPROVED_APPROVER_BODY_DE,
     BUDGET_APPROVED_APPROVER_BODY_EN,
     BUDGET_APPROVED_SUBJECT,
@@ -25,9 +29,11 @@ from api.handlers.mail_templates import (
     BUDGET_APPROVED_SUPERVISOR_BODY_EN,
     FOOTER_DE,
     FOOTER_EN,
+    NO_REVISION_MESSAGE,
     PETITION_CREATED_STUDENT_BODY_DE,
     PETITION_CREATED_STUDENT_BODY_EN,
     PETITION_CREATED_STUDENT_SUBJECT,
+    REVISION_REQUESTED_SUBJECT,
     SEPARATOR,
     UPLOAD_REQUEST_STUDENT_BODY_DE,
     UPLOAD_REQUEST_STUDENT_BODY_EN,
@@ -250,64 +256,51 @@ class EmailHandler:
             ),
         )
 
-    def send_revision_request_email(
+    def notify_revision_requested_by_approver(
         self,
-        requesting_budget_position: "BudgetPosition",
-        budget_positions: list,
+        requesting_budget_position: BudgetPosition,
+        budget_positions: list[BudgetPosition],
         message: Optional[str] = None,
         subject: Optional[str] = None,
     ) -> None:
-        """Send email when a budget approver requests revision"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
-
+        """
+        Process step: a budget approver requested a revision of the petition.
+        Informs the supervisor (who has to make the changes) and all other budget approvers.
+        """
+        message = message or NO_REVISION_MESSAGE
+        subject = subject or REVISION_REQUESTED_SUBJECT
+        requesting_approver = requesting_budget_position.budget_approver
         with self.smtp_session():
-            try:
-                revision_message = message if message else "No specific message provided."
-                email_subject = (
-                    subject
-                    if subject
-                    else "[ClockWork] Änderungen angefordert / Changes requested"
-                )
+            self._mail_approver_revision_supervisor(requesting_approver, message, subject)
+            for budget_position in budget_positions:
+                if budget_position.budget_approver != requesting_approver:
+                    self._mail_approver_revision_approver(budget_position, requesting_approver, message, subject)
 
-                # Send email to supervisor
-                if self.petition.supervisor_mail:
-                    self.send_email(
-                        recipient=self.petition.supervisor_mail,
-                        subject=email_subject,
-                        body=f"Der Kostenstellenverantwortliche {requesting_budget_position.budget_approver} hat eine Änderung an Ihrem Antrag {self.petition.id} angefordert:\n\n"
-                        f"{revision_message}\n\n"
-                        f"Bitte melden Sie sich an, um die Änderungen vorzunehmen."
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"The budget approver {requesting_budget_position.budget_approver} has requested changes to your application {self.petition.id}:\n\n"
-                        f"{revision_message}\n\n"
-                        f"Please log in to make the requested changes."
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
+    def _mail_approver_revision_supervisor(self, requesting_approver: str, message: str, subject: str) -> None:
+        self.send_email(
+            recipient=self.petition.supervisor_mail,
+            subject=subject,
+            body=self._render_body(
+                APPROVER_REVISION_SUPERVISOR_BODY_DE,
+                APPROVER_REVISION_SUPERVISOR_BODY_EN,
+                requesting_approver=requesting_approver,
+                message=message,
+            ),
+        )
 
-                # Send email to all other budget approvers
-                for budget_position in budget_positions:
-                    if (
-                        budget_position.budget_approver
-                        != requesting_budget_position.budget_approver
-                    ):
-                        self.send_email(
-                            recipient=budget_position.budget_approver,
-                            subject=email_subject,
-                            body=f"Der Kostenstellenverantwortliche {requesting_budget_position.budget_approver} hat eine Änderung an dem Antrag {self.petition.id} angefordert:\n\n"
-                            f"{revision_message}\n\n"
-                            f"Sie werden benachrichtigt, sobald die Änderungen vorgenommen wurden."
-                            f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                            f"\n\n--------------\n\n"
-                            f"The budget approver {requesting_budget_position.budget_approver} has requested changes to application {self.petition.id}:\n\n"
-                            f"{revision_message}\n\n"
-                            f"You will be notified once the changes have been made."
-                            f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                        )
-
-            except Exception as e:
-                print(f"Error sending revision request email: {str(e)}", flush=True)
+    def _mail_approver_revision_approver(
+        self, budget_position: BudgetPosition, requesting_approver: str, message: str, subject: str
+    ) -> None:
+        self.send_email(
+            recipient=budget_position.budget_approver,
+            subject=subject,
+            body=self._render_body(
+                APPROVER_REVISION_APPROVER_BODY_DE,
+                APPROVER_REVISION_APPROVER_BODY_EN,
+                requesting_approver=requesting_approver,
+                message=message,
+            ),
+        )
 
     def send_rejection_email(
         self,

@@ -87,28 +87,6 @@ class PetitionHandler:
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)
 
-    def _send_revision_request_email(
-        self,
-        petition: Petition,
-        requesting_budget_position,
-        message: Optional[str] = None,
-        subject: Optional[str] = None,
-    ) -> None:
-        """Send email when a budget approver requests revision"""
-        try:
-            email_handler = EmailHandler(petition)
-            budget_positions = self.budget_positions_handler.get_objects()
-            self.add_background_task(
-                email_handler.send_revision_request_email,
-                requesting_budget_position,
-                budget_positions,
-                message,
-                subject
-            )
-
-        except Exception as e:
-            self.exc.not_found(f"Error sending revision request email: {str(e)}")
-
     def _send_rejection_email(
         self, petition: Petition, rejected_budget_position
     ) -> None:
@@ -427,8 +405,13 @@ class PetitionHandler:
                     petition, PetitionStatus.APPROVER_REVISION
                 )
 
-                self._send_revision_request_email(
-                    petition, updated_budget_position, message, subject
+                email_handler = EmailHandler(petition)
+                self.add_background_task(
+                    email_handler.notify_revision_requested_by_approver,
+                    updated_budget_position,
+                    self.budget_positions_handler.get_objects(),
+                    message,
+                    subject,
                 )
 
             # TODO: This branch is an effective DELETE on the petition. This should be handled by a DELETE endpoint not this patch.
