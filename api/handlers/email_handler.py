@@ -32,6 +32,14 @@ from api.handlers.mail_templates import (
     BUDGET_REJECTED_SUBJECT,
     BUDGET_REJECTED_SUPERVISOR_BODY_DE,
     BUDGET_REJECTED_SUPERVISOR_BODY_EN,
+    CLERK_APPROVED_APPROVER_BODY_DE,
+    CLERK_APPROVED_APPROVER_BODY_EN,
+    CLERK_APPROVED_SUBJECT,
+    CLERK_APPROVED_SUPERVISOR_BODY_DE,
+    CLERK_APPROVED_SUPERVISOR_BODY_EN,
+    CONTRACT_STUDENT_BODY_DE,
+    CONTRACT_STUDENT_BODY_EN,
+    CONTRACT_STUDENT_SUBJECT,
     FOOTER_DE,
     FOOTER_EN,
     NO_REVISION_MESSAGE,
@@ -421,64 +429,39 @@ class EmailHandler:
             ),
         )
 
-    def send_clerk_approval_email(
-        self, budget_positions: list["BudgetPosition"]
-    ) -> None:
-        """Send email when clerk approves or rejects petition"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
+    def notify_clerk_approved(self, contract_pdf_buffer, budget_positions: list[BudgetPosition]) -> None:
+        """
+        Process step: PersonalServices (clerk) approved the petition.
+        Sends the student the employment contract PDF and informs the supervisor and all budget approvers.
+        """
         with self.smtp_session():
-            try:
-                if self.petition.supervisor_mail:
-                    self.send_email(
-                        recipient=self.petition.supervisor_mail,
-                        subject="[ClockWork] Neuer Antragstatus / Application status update",
-                        body=f"Der Antrag {self.petition.id} wurde von PersonalServices freigegeben.\n\n"
-                        f"Bitte melden Sie sich an, um den Antragsstatus zu überprüfen."
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"Your application {self.petition.id} has been approved by PersonalServices.\n\n"
-                        f"Please log in and review the application's status."
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
+            self._mail_contract_student(contract_pdf_buffer)
+            self._mail_clerk_approved_supervisor()
+            for budget_position in budget_positions:
+                self._mail_clerk_approved_approver(budget_position)
 
-                for budget_position in budget_positions:
-                    self.send_email(
-                        recipient=budget_position.budget_approver,
-                        subject="[ClockWork] Neuer Antragstatus / Application status update",
-                        body=f"Der Antrag {self.petition.id} wurde von PersonalServices freigegeben."
-                        f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                        f"\n\n--------------\n\n"
-                        f"The application {self.petition.id} has been approved by PersonalServices."
-                        f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    )
-            except Exception as e:
-                print(f"Error sending clerk approval email: {str(e)}", flush=True)
+    def _mail_contract_student(self, contract_pdf_buffer) -> None:
+        self.send_email(
+            recipient=self.petition.student_mail,
+            subject=CONTRACT_STUDENT_SUBJECT,
+            body=self._render_body(CONTRACT_STUDENT_BODY_DE, CONTRACT_STUDENT_BODY_EN),
+            attachment_bytes=contract_pdf_buffer.getvalue(),
+            attachment_filename=f"contract_{self.petition.id}.pdf",
+        )
 
-    def send_contract_pdf_email(self, contract_pdf_buffer) -> None:
-        """Send contract PDF to employee and student"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
-        with self.smtp_session():
-            try:
-                self.send_email(
-                    recipient=self.petition.student_mail,
-                    subject="[ClockWork] Arbeitsvertrag / Employment contract",
-                    body=f"Anbei finden Sie Ihren Arbeitsvertrag für den Antrag {self.petition.id}.\n\n"
-                    f"Bitte drucken Sie den Vertrag aus, unterschreiben Sie ihn und reichen Sie ihn bei PersonalServices ein."
-                    f"\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}. \n"
-                    f"\n\n--------------\n\n"
-                    f"Please find attached your employment contract for application {self.petition.id}.\n\n"
-                    f"Please print the contract, sign it and submit it to PersonalServices."
-                    f"\nYou are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}. \n",
-                    attachment_bytes=contract_pdf_buffer.getvalue(),
-                    attachment_filename=f"contract_{self.petition.id}.pdf",
-                )
+    def _mail_clerk_approved_supervisor(self) -> None:
+        self.send_email(
+            recipient=self.petition.supervisor_mail,
+            subject=CLERK_APPROVED_SUBJECT,
+            body=self._render_body(CLERK_APPROVED_SUPERVISOR_BODY_DE, CLERK_APPROVED_SUPERVISOR_BODY_EN),
+        )
 
-                print(f"Contract PDF sent for petition {self.petition.id}", flush=True)
-
-            except Exception as e:
-                print(f"Error sending contract PDF: {str(e)}", flush=True)
+    def _mail_clerk_approved_approver(self, budget_position: BudgetPosition) -> None:
+        self.send_email(
+            recipient=budget_position.budget_approver,
+            subject=CLERK_APPROVED_SUBJECT,
+            body=self._render_body(CLERK_APPROVED_APPROVER_BODY_DE, CLERK_APPROVED_APPROVER_BODY_EN),
+        )
 
     def send_clerk_revision_request_email(
         self, message: str, subject: Optional[str] = None

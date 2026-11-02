@@ -211,3 +211,27 @@ STUDENT_REVISION_SUPERVISOR_BODY_EN = (
     "{message}\n\n"
     "Please log in to make the requested changes."
 )
+
+# --- Clerk approved the petition ----------------------------------------------
+
+CONTRACT_STUDENT_SUBJECT = "[ClockWork] Arbeitsvertrag / Employment contract"
+CONTRACT_STUDENT_BODY_DE = (
+    "Anbei finden Sie Ihren Arbeitsvertrag für den Antrag {petition_id}.\n\n"
+    "Bitte drucken Sie den Vertrag aus, unterschreiben Sie ihn und reichen Sie ihn bei PersonalServices ein."
+)
+CONTRACT_STUDENT_BODY_EN = (
+    "Please find attached your employment contract for application {petition_id}.\n\n"
+    "Please print the contract, sign it and submit it to PersonalServices."
+)
+
+CLERK_APPROVED_SUBJECT = "[ClockWork] Neuer Antragstatus / Application status update"
+CLERK_APPROVED_SUPERVISOR_BODY_DE = (
+    "Der Antrag {petition_id} wurde von PersonalServices freigegeben.\n\n"
+    "Bitte melden Sie sich an, um den Antragsstatus zu überprüfen."
+)
+CLERK_APPROVED_SUPERVISOR_BODY_EN = (
+    "Your application {petition_id} has been approved by PersonalServices.\n\n"
+    "Please log in and review the application's status."
+)
+CLERK_APPROVED_APPROVER_BODY_DE = "Der Antrag {petition_id} wurde von PersonalServices freigegeben."
+CLERK_APPROVED_APPROVER_BODY_EN = "The application {petition_id} has been approved by PersonalServices."

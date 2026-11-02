@@ -246,8 +246,7 @@ class PetitionHandler:
         try:
 
             email_handler = EmailHandler(petition)
-            self.add_background_task(email_handler.send_contract_pdf_email, contract_pdf_buffer)
-            self.add_background_task(email_handler.send_clerk_approval_email, budget_positions)
+            self.add_background_task(email_handler.notify_clerk_approved, contract_pdf_buffer, budget_positions)
 
         except Exception as e:
             raise self.exc.internal_error("sending contract PDF", e)
