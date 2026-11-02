@@ -13,6 +13,7 @@ from api.env import settings
 
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.petition import Petition
+from api.handlers.mail_templates import FOOTER_DE, FOOTER_EN, SEPARATOR
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,22 @@ class EmailHandler:
     def __init__(self, petition: Optional["Petition"] = None):
         self.petition = petition
         self.server = None
+
+    def _render_body(self, body_de: str, body_en: str, **kwargs) -> str:
+        """
+        Assemble a bilingual mail body (German part, footer, separator, English part, footer)
+        and fill its placeholders. The base context is available to every template;
+        mail specific values are passed as kwargs and must not shadow it.
+        """
+        base = {
+            "petition_id": self.petition.id if self.petition else None,
+            "support_mail": settings.SMTP_USER,
+            "frontend_url": settings.FRONTEND_URL,
+        }
+        shadowed = base.keys() & kwargs.keys()
+        if shadowed:
+            raise ValueError(f"Mail kwargs must not override base context: {sorted(shadowed)}")
+        return (body_de + FOOTER_DE + SEPARATOR + body_en + FOOTER_EN).format(**base, **kwargs)
 
     def get_or_create_smtp_server(self):
         if self.server is None:
