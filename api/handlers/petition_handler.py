@@ -77,13 +77,12 @@ class PetitionHandler:
             if not petition:
                 raise self.exc.created_failed("Petition")
 
-            # Send notification email to student
-            email_handler = EmailHandler(petition)
-            self.add_background_task(email_handler.send_petition_creation_student_email)
-
             petition = self.manager.update_petition_status(
                 petition, PetitionStatus.APPROVER_ACTION
             )
+
+            email_handler = EmailHandler(petition)
+            self.add_background_task(email_handler.notify_petition_created, petition.budget_positions)
             return petition
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)

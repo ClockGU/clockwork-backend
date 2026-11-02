@@ -13,7 +13,17 @@ from api.env import settings
 
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.petition import Petition
-from api.handlers.mail_templates import FOOTER_DE, FOOTER_EN, SEPARATOR
+from api.handlers.mail_templates import (
+    APPROVAL_REQUEST_APPROVER_BODY_DE,
+    APPROVAL_REQUEST_APPROVER_BODY_EN,
+    APPROVAL_REQUEST_APPROVER_SUBJECT,
+    FOOTER_DE,
+    FOOTER_EN,
+    PETITION_CREATED_STUDENT_BODY_DE,
+    PETITION_CREATED_STUDENT_BODY_EN,
+    PETITION_CREATED_STUDENT_SUBJECT,
+    SEPARATOR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -131,18 +141,44 @@ class EmailHandler:
         except Exception:
             logger.exception("Failed to send mail to %s: %s", recipient, subject)
 
-    def send_budget_pos_mail(self, budget_position: BudgetPosition, petition_url:str):
-        with self.smtp_session():
-            self.send_email(
-                recipient=budget_position.budget_approver,
-                subject="[ClockWork] Neuer Antrag (Einstellung stud. Hilfskraft) / New approval request (new student assistant)",
-                body=f"Sie haben einen Antrag  für die Einstellung einer studentischen Hilfskraft auf die Kostenstelle {budget_position.budget_position} erhalten und müssen diesen freigeben.\n\n"
-                f"Mit diesem Link gelangen Sie zum Antrag und können diesen genehmigen, ablehnen oder eine Änderung anfordern: {petition_url}"
-                f"\n\n--------------\n\n"
-                f"You received an approval request for the employment of a new student assistant on the budget position {budget_position.budget_position}.\n\n"
-                f"Please use the link to review the request. You can either approve or reject the request or you can demand a revision: {petition_url}",
-            )
+    def notify_petition_created(self, budget_positions: list[BudgetPosition]) -> None:
+        """
+        Process step: the supervisor created a petition.
+        Informs the student and sends every budget approver an approval request with a signed link.
+        """
+        # Local import: api.security imports api.handlers, a top-level import would be circular.
+        from api.security import generate_signature
 
+        signature = generate_signature()
+        with self.smtp_session():
+            self._mail_petition_created_student()
+            for budget_position in budget_positions:
+                self._mail_approval_request_approver(budget_position, signature)
+
+    def _mail_petition_created_student(self) -> None:
+        if not self.petition.student_mail:
+            return
+        self.send_email(
+            recipient=self.petition.student_mail,
+            subject=PETITION_CREATED_STUDENT_SUBJECT,
+            body=self._render_body(PETITION_CREATED_STUDENT_BODY_DE, PETITION_CREATED_STUDENT_BODY_EN),
+        )
+
+    def _mail_approval_request_approver(self, budget_position: BudgetPosition, signature: str) -> None:
+        approval_url = (
+            f"{settings.FRONTEND_URL}/approver?petition_id={self.petition.id}"
+            f"&signature={signature}&budget_position_id={budget_position.id}"
+        )
+        self.send_email(
+            recipient=budget_position.budget_approver,
+            subject=APPROVAL_REQUEST_APPROVER_SUBJECT,
+            body=self._render_body(
+                APPROVAL_REQUEST_APPROVER_BODY_DE,
+                APPROVAL_REQUEST_APPROVER_BODY_EN,
+                budget_position=budget_position.budget_position,
+                approval_url=approval_url,
+            ),
+        )
 
     def send_approval_emails(
         self,
@@ -201,22 +237,6 @@ class EmailHandler:
 
             except Exception as e:
                 print(f"Error sending approval emails: {str(e)}", flush=True)
-
-    def send_petition_creation_student_email(self) -> None:
-        """Send email to student when their petition is initially created by the supervisor"""
-        if not self.petition:
-            raise ValueError("Petition is required for this email operation")
-        with self.smtp_session():
-            if self.petition.student_mail:
-                self.send_email(
-                    recipient=self.petition.student_mail,
-                    subject="[ClockWork] Neuer Antrag erstellt / New application created",
-                    body=f"Ihr Antrag {self.petition.id} für die Einstellung als studentische Hilfskraft wurde von Ihrem Vorgesetzten erstellt und wird nun von den Kostenstellenverantwortlichen geprüft.\n\n"
-                    f"Sie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software Clockwork. Bei Fragen oder Problemen wenden Sie sich bitte an {settings.SMTP_USER}.\n"
-                    f"\n\n--------------\n\n"
-                    f"Your application {self.petition.id} for employment as a student assistant has been created by your supervisor and is now pending review by the budget approvers.\n\n"
-                    f"You are receiving this email as part of student employment process of the software, Clockwork. If you have any questions or encounter any problems, please email {settings.SMTP_USER}.\n",
-                )
 
     def send_revision_request_email(
         self,
