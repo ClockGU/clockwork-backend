@@ -3,14 +3,13 @@ from json import JSONEncoder
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends
 
-from api.env import settings
-from api.handlers import EmailHandler, PetitionHandler
+from api.handlers import PetitionHandler
 from api.handlers.dependencies import get_petition_handler
 from api.pydantic_models import PetitionCreate, PetitionRead, PetitionSupervisorUpdate
 from api.pydantic_models.dependencies import get_supervisor_petition_update_model
-from api.security import generate_signature, get_current_supervisor
+from api.security import get_current_supervisor
 
 
 # Custom JSON encoder to handle UUIDs and dates
@@ -31,26 +30,12 @@ router = APIRouter()
 @router.post("/supervisor/petitions", response_model=PetitionRead)
 async def create_petition(
     petition: PetitionCreate,
-    background_tasks: BackgroundTasks,
     handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
 ):
     petition.user_account = user.get("sub")
     petition.supervisor_mail = user.get("email")
-    created_petition = handler.create_petition(petition)
-
-    email_handler = EmailHandler()
-    signature = generate_signature()
-
-    # Send email to all budget approvers with specific budget position ID
-    for budget_position in created_petition.budget_positions:
-        # Include budget position ID as third query parameter
-        petition_url = f"{settings.FRONTEND_URL}/approver?petition_id={created_petition.id}&signature={signature}&budget_position_id={budget_position.id}"
-        print(f"Budget Position URL: {petition_url}", flush=True)
-
-        background_tasks.add_task(email_handler.send_budget_pos_mail, budget_position, petition_url)
-
-    return created_petition
+    return handler.create_petition(petition)
 
 
 @router.get("/supervisor/petitions", response_model=List[PetitionRead])
