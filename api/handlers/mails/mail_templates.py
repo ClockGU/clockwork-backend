@@ -74,14 +74,14 @@ BUDGET_APPROVED_APPROVER_BODY_EN = (
 # Fast track for students with an approved petition in the same semester. Placeholders: {acceptance_url}
 ACCEPTANCE_LINK_STUDENT_SUBJECT = "[ClockWork] Antrag freigegeben / Application approved"
 ACCEPTANCE_LINK_STUDENT_BODY_DE = (
-    "Ihr Antrag (Id: {petition_id}) für die Einstellung als studentische Hilfskraft wurde von allen "
+    "Der Antrag (Id: {petition_id}) für Ihre Einstellung als studentische Hilfskraft wurde von allen "
     "Kostenstellenverantwortlichen freigegeben.\n\n"
-    "Bitte bestätigen Sie den Antrag unter folgendem Link:\n{acceptance_url}\n"
+    "Unter folgendem Link können Sie den Antrag annehmen oder ablehnen:\n{acceptance_url}\n"
 )
 ACCEPTANCE_LINK_STUDENT_BODY_EN = (
-    "Your application (Id: {petition_id}) for employment as a student assistant has been approved by all "
+    "The hiring petition (Id: {petition_id}) for your employment as a student assistant has been approved by all "
     "budget approvers.\n\n"
-    "Please confirm your application at the following link:\n{acceptance_url}\n"
+    "Please accept or decline the hiring petition at the following link:\n{acceptance_url}\n"
 )
 
 # Placeholders: {dashboard_url}
