@@ -11,7 +11,7 @@ from api.env import settings
 
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.petition import Petition
-from api.handlers.mail_templates import *
+from api.handlers.mails.mail_templates import *
 
 logger = logging.getLogger(__name__)
 

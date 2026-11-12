@@ -8,18 +8,16 @@ from sqlmodel import Session
 
 from api.consts import PetitionStatus
 from api.db.managers import PetitionManager
-from api.db.managers.budget_position_manager import BudgetPositionManager
 from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.managers.student_document import StudentDocumentManager
 from api.db.schema.petition import Petition
 from api.handlers.budget_position_handler import BudgetPositionsHandler
-from api.handlers.email_handler import EmailHandler
+from api.handlers.mails.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
 from api.pdf.contract import create_contract_pdf
 from api.pydantic_models import EmployeeRead, PetitionCreate, PetitionRead
 from api.pydantic_models.employee import EmployeeValidate
 from api.pydantic_models.petition_update import (
-    PetitionSupervisorUpdate,
     PetitionUpdateModel,
 )
 
