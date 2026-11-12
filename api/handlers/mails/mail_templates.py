@@ -145,20 +145,24 @@ APPROVER_REVISION_APPROVER_BODY_EN = (
 
 # --- Budget position rejected -------------------------------------------------
 
-BUDGET_REJECTED_SUBJECT = "[ClockWork] Antrag abgelehnt / Application rejected"
+BUDGET_REJECTED_SUBJECT = "[ClockWork] Antrag abgelehnt / Petiton rejected"
 
 # Placeholders: {rejecting_approver}
 BUDGET_REJECTED_SUPERVISOR_BODY_DE = (
-    "Ihr Antrag (Id: {petition_id}) wurde von dem Kostenstellenverantwortlichen {rejecting_approver} abgelehnt."
+    "Ihr Antrag (Id: {petition_id}) wurde von dem*der Kostenstellenverantwortlichen (E-Mail: rejecting_approver)"
+    "endgültig abgelehnt und dadurch gelöscht."
 )
 BUDGET_REJECTED_SUPERVISOR_BODY_EN = (
-    "Your application (Id: {petition_id}) has been rejected by the budget approver {rejecting_approver}."
+    "Your petition (Id: {petition_id}) has been rejected by the budget approver (E-Mail: rejecting_approver)"
+    "and has consequently been deleted."
 )
 BUDGET_REJECTED_APPROVER_BODY_DE = (
-    "Der Antrag (Id: {petition_id}) wurde von dem Kostenstellenverantwortlichen {rejecting_approver} abgelehnt."
+    "Der Antrag (Id: {petition_id}) wurde von einer*einem anderen Kostenstellenverantwortlichen (E-Mail: rejecting_approver)"
+    "endgültig abgelehnt und dadurch gelöscht."
 )
 BUDGET_REJECTED_APPROVER_BODY_EN = (
-    "The application (Id: {petition_id}) has been rejected by the budget approver {rejecting_approver}."
+    "The petition (Id: {petition_id}) has been rejected by the budget approver (E-Mail: rejecting_approver)"
+    "and has consequently been deleted."
 )
 
 # --- Petition updated by the supervisor ---------------------------------------
