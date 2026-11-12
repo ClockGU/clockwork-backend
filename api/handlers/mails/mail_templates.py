@@ -217,14 +217,14 @@ STUDENT_REJECTED_APPROVER_BODY_EN = (
 
 # Placeholders: {message}
 STUDENT_REVISION_SUPERVISOR_BODY_DE = (
-    "Die studentische Hilfskraft hat eine Änderung an dem Antrag (Id: {petition_id}) angefordert:\n\n"
+    "Der*Die Studierende hat eine Änderung an dem Antrag (Id: {petition_id}) angefordert:\n\n"
     "{message}\n\n"
-    "Bitte melden Sie sich an, um die Änderungen vorzunehmen."
+    "Bitte melden Sie sich an, um die Änderungen vorzunehmen oder nehmen Sie Kontakt zu dem*der Studierenden auf."
 )
 STUDENT_REVISION_SUPERVISOR_BODY_EN = (
-    "The student assistant has requested changes to application (Id: {petition_id}):\n\n"
+    "The student has requested changes to the petition (Id: {petition_id}):\n\n"
     "{message}\n\n"
-    "Please log in to make the requested changes."
+    "Please log in to make the requested changes or contact the student."
 )
 
 # --- Clerk approved the petition ----------------------------------------------

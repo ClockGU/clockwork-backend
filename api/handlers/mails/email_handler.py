@@ -459,7 +459,7 @@ class EmailHandler:
         subject = subject or REVISION_REQUESTED_SUBJECT
         with self.smtp_session():
             self._mail_student_revision_supervisor(message, subject)
-
+    # TODO: Provide Student mail to Body templates to make contacting the student easier for supervisors
     def _mail_student_revision_supervisor(self, message: str, subject: str) -> None:
         self.send_email(
             recipient=self.petition.supervisor_mail,
