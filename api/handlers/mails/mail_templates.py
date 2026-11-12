@@ -85,24 +85,28 @@ ACCEPTANCE_LINK_STUDENT_BODY_EN = (
 )
 
 # Placeholders: {dashboard_url}
-UPLOAD_REQUEST_STUDENT_SUBJECT = "[ClockWork] Dokumente hochladen / Upload Documents Required"
+UPLOAD_REQUEST_STUDENT_SUBJECT = "[ClockWork] Dokumente hochladen / Upload Documents"
 UPLOAD_REQUEST_STUDENT_BODY_DE = (
-    "Für Sie wurde ein Antrag zur Einstellung als studentische Hilfskraft gestellt. Laden Sie dazu die "
-    "notwendigen Unterlagen hoch. Benötigt werden\n\n"
+    "Der Antrag (Id: {petition_id}) für Ihre Einstellung als studentische Hilfskraft wurde von allen "
+    "Kostenstellenverantwortlichen freigegeben.\n\n"
+    "Füllen Sie nun alle nötigen persönlichen Daten aus und laden die notwendigen Unterlagen hoch."
+    " Benötigt werden\n\n"
     "- Selbstauskunft zur Lohnsteuererklärung (ELStAM)\n\n"
     "- Fragebogen zur Sozialversicherung\n\n"
     "- aktuelle Studienbescheinigung\n\n"
     "- Mitgliedsbescheinigung Ihrer Krankenkasse\n\n"
-    "Das Student-Dashboard ist unter folgendem Link erreichbar: {dashboard_url}\n"
+    "Das Dashboard ist unter folgendem Link erreichbar: {dashboard_url}\n"
 )
 UPLOAD_REQUEST_STUDENT_BODY_EN = (
-    "An application has been filed for your employment as a student assistant. Please upload the required "
-    "documents to complete your petition. You will need to uploade\n\n"
+    "The hiring petition (Id: {petition_id}) for your employment as a student assistant has been approved by all "
+    "budget approvers.\n\n"
+    "Please fill out all required personal data and upload all required files.\n\n"
+    "Required files are:"
     "- Self-disclosure form for income tax (ELStAM form)\n\n"
     "- Social Security questionnaire\n\n"
     "- current certificate of enrolment\n\n"
     "- Health insurance membership certificate\n\n"
-    "The student dashboard can be accessed from this link: {dashboard_url}\n"
+    "The dashboard can be accessed from this link: {dashboard_url}\n"
 )
 
 # --- Revision requested (shared default subject) ------------------------------
