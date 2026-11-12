@@ -23,7 +23,7 @@ FOOTER_EN = (
 
 PETITION_CREATED_STUDENT_SUBJECT = "[ClockWork] Neuer Antrag erstellt / New hiring petition created"
 PETITION_CREATED_STUDENT_BODY_DE = (
-    "Es wurde ein Antrag auf Einstellung (Id: {petition_id}) als studentische Hilfskraft üfr Sie gestellt."
+    "Es wurde ein Antrag auf Einstellung (Id: {petition_id}) als studentische Hilfskraft für Sie gestellt."
     "Der Antrag wird nun von den Kostenstellenverantwortlichen geprüft."
     "Nach dieser Prüfung werden Sie über weitere Schritte informiert.\n"
 )
