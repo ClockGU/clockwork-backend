@@ -167,7 +167,7 @@ BUDGET_REJECTED_APPROVER_BODY_EN = (
 
 # --- Petition updated by the supervisor ---------------------------------------
 
-PETITION_UPDATED_SUBJECT = "[ClockWork] Antrag aktualisiert / Application updated"
+PETITION_UPDATED_SUBJECT = "[ClockWork] Antrag aktualisiert / Petition updated"
 
 # Placeholders: {approval_url}
 PETITION_UPDATED_APPROVER_BODY_DE = (
@@ -175,8 +175,8 @@ PETITION_UPDATED_APPROVER_BODY_DE = (
     "Bitte überprüfen Sie die Änderungen und geben Sie Ihre Freigabe unter folgendem Link:\n{approval_url}\n"
 )
 PETITION_UPDATED_APPROVER_BODY_EN = (
-    "Application (Id: {petition_id}) has been updated.\n\n"
-    "Please review the changes and provide your approval at the following link:\n{approval_url}\n"
+    "The petition (Id: {petition_id}) has been updated.\n\n"
+    "Please review the changes and approve them at the following link:\n{approval_url}\n"
 )
 
 # --- Student accepted the petition --------------------------------------------
