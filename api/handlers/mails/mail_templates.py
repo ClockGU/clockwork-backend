@@ -53,7 +53,7 @@ APPROVAL_REQUEST_APPROVER_BODY_EN = (
 
 # --- Budget approved (all budget positions) -----------------------------------
 
-BUDGET_APPROVED_SUBJECT = "[ClockWork] Kostenstellen freigegeben / Budget approved"
+BUDGET_APPROVED_SUBJECT = "[ClockWork] Kostenstelle(n) freigegeben / Budget approver(s) approved"
 BUDGET_APPROVED_SUPERVISOR_BODY_DE = (
     "Ihr Antrag (Id: {petition_id}) für die Einstellung einer studentischen Hilfskraft wurde von allen "
     "Kostenstellenverantwortlichen freigegeben.\n"
