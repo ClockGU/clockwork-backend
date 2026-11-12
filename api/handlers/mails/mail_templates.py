@@ -35,19 +35,20 @@ PETITION_CREATED_STUDENT_BODY_EN = (
 
 # Placeholders: {budget_position}, {approval_url}
 APPROVAL_REQUEST_APPROVER_SUBJECT = (
-    "[ClockWork] Neuer Antrag (Einstellung stud. Hilfskraft) / New approval request (new student assistant)"
+    "[ClockWork] Neue Antragsgenehmigung / New approval request"
 )
 APPROVAL_REQUEST_APPROVER_BODY_DE = (
-    "Sie haben einen Antrag  für die Einstellung einer studentischen Hilfskraft auf die Kostenstelle "
+    "Sie haben einen neuen Antrag für die Einstellung einer studentischen Hilfskraft auf die Kostenstelle "
     "{budget_position} erhalten und müssen diesen freigeben.\n\n"
     "Mit diesem Link gelangen Sie zum Antrag und können diesen genehmigen, ablehnen oder eine Änderung "
-    "anfordern: {approval_url}\n"
+    "anfordern: {approval_url}"
+    "Der Link ist ohne Passwortauthentifizierung zugänglich und somit vertraulich zu behandeln.\n"
 )
 APPROVAL_REQUEST_APPROVER_BODY_EN = (
     "You received an approval request for the employment of a new student assistant on the budget position "
     "{budget_position}.\n\n"
-    "Please use the link to review the request. You can either approve or reject the request or you can "
-    "demand a revision: {approval_url}\n"
+    "The the submitted hiring petition is accessible via this link where you can either approve or reject the petition or "
+    "request changes: {approval_url}\n"
 )
 
 # --- Budget approved (all budget positions) -----------------------------------
