@@ -11,7 +11,7 @@ from api.env import settings
 
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.petition import Petition
-from api.handlers.mail_templates import *
+from api.handlers.mails.mail_templates import *
 
 logger = logging.getLogger(__name__)
 
@@ -342,7 +342,7 @@ class EmailHandler:
             subject=STUDENT_REJECTED_SUBJECT,
             body=self._render_body(STUDENT_REJECTED_SUPERVISOR_BODY_DE, STUDENT_REJECTED_SUPERVISOR_BODY_EN),
         )
-
+    # TODO: For usability purpose the budget approvers should get the information how much budget they allocated here that is freed by the rejection
     def _mail_student_rejected_approver(self, budget_position: BudgetPosition) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
@@ -459,7 +459,7 @@ class EmailHandler:
         subject = subject or REVISION_REQUESTED_SUBJECT
         with self.smtp_session():
             self._mail_student_revision_supervisor(message, subject)
-
+    # TODO: Provide Student mail to Body templates to make contacting the student easier for supervisors
     def _mail_student_revision_supervisor(self, message: str, subject: str) -> None:
         self.send_email(
             recipient=self.petition.supervisor_mail,
