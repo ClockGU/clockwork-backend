@@ -21,14 +21,16 @@ FOOTER_EN = (
 
 # --- Petition created ---------------------------------------------------------
 
-PETITION_CREATED_STUDENT_SUBJECT = "[ClockWork] Neuer Antrag erstellt / New application created"
+PETITION_CREATED_STUDENT_SUBJECT = "[ClockWork] Neuer Antrag erstellt / New hiring petition created"
 PETITION_CREATED_STUDENT_BODY_DE = (
-    "Ihr Antrag {petition_id} für die Einstellung als studentische Hilfskraft wurde von Ihrem Vorgesetzten "
-    "erstellt und wird nun von den Kostenstellenverantwortlichen geprüft.\n"
+    "Es wurde ein Antrag auf Einstellung (Id:{petition_id}) als studentische Hilfskraft üfr Sie gestellt."
+    "Der Antrag wird nun von den Kostenstellenverantwortlichen geprüft."
+    "Nach dieser Prüfung werden Sie über weitere Schritte informiert.\n"
 )
 PETITION_CREATED_STUDENT_BODY_EN = (
-    "Your application {petition_id} for employment as a student assistant has been created by your supervisor "
-    "and is now pending review by the budget approvers.\n"
+    "A hiring petition (Id:{petition_id}) for employment as student assistant has been submitted for you."
+    "The petition is currently reviewed by the budget approvers."
+    "You will be informed about further steps after successful approval by the budget approvers \n"
 )
 
 # Placeholders: {budget_position}, {approval_url}
