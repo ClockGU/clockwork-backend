@@ -119,26 +119,28 @@ NO_REVISION_MESSAGE = "No specific message provided."
 
 # Placeholders: {requesting_approver}, {message}
 APPROVER_REVISION_SUPERVISOR_BODY_DE = (
-    "Der Kostenstellenverantwortliche {requesting_approver} hat eine Änderung an Ihrem Antrag (Id: {petition_id}) "
+    "Ein*e Kostenstellenverantwortliche*r (E-Mail: {requesting_approver}) hat eine Änderung an Ihrem Antrag (Id: {petition_id}) "
     "angefordert:\n\n"
     "{message}\n\n"
-    "Bitte melden Sie sich an, um die Änderungen vorzunehmen.\n"
+    "Bitte melden Sie sich an um Änderungen an dem Antrag vorzunehmen oder diesen zu löschen.\n"
 )
 APPROVER_REVISION_SUPERVISOR_BODY_EN = (
-    "The budget approver {requesting_approver} has requested changes to your application (Id: {petition_id}):\n\n"
+    "A budget approver (E-Mail: {requesting_approver}) has requested changes to your application (Id: {petition_id}):\n\n"
     "{message}\n\n"
-    "Please log in to make the requested changes.\n"
+    "Please log in to make changes to the petition or to delete it.\n"
 )
 APPROVER_REVISION_APPROVER_BODY_DE = (
-    "Der Kostenstellenverantwortliche {requesting_approver} hat eine Änderung an dem Antrag (Id: {petition_id}) "
+    "Ein*e Kostenstellenverantwortliche*r (E-Mail: {requesting_approver}) hat eine Änderung an dem Antrag (Id: {petition_id}) "
     "angefordert:\n\n"
     "{message}\n\n"
-    "Sie werden benachrichtigt, sobald die Änderungen vorgenommen wurden.\n"
+    "Sie werden benachrichtigt, sobald die Änderungen vorgenommen wurden und der Antrag erneut eingereicht wird."
+    "Sofern Sie den Antrag noch nicht genehmigt haben ist der Link den Sie erhalten haben hiermit ungültig.\n"
 )
 APPROVER_REVISION_APPROVER_BODY_EN = (
-    "The budget approver {requesting_approver} has requested changes to application (Id: {petition_id}):\n\n"
+    "A budget approver (E-Mail: {requesting_approver}) has requested changes to application (Id: {petition_id}):\n\n"
     "{message}\n\n"
-    "You will be notified once the changes have been made.\n"
+    "You will be notified once the changes have been made and the petition is re-submitted."
+    "In case you have not yet approved the petition the link you received is hereby invalid.\n"
 )
 
 # --- Budget position rejected -------------------------------------------------
