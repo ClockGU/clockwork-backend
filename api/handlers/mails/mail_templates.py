@@ -232,11 +232,27 @@ STUDENT_REVISION_SUPERVISOR_BODY_EN = (
 CONTRACT_STUDENT_SUBJECT = "[ClockWork] Arbeitsvertrag / Employment contract"
 CONTRACT_STUDENT_BODY_DE = (
     "Anbei finden Sie Ihren Arbeitsvertrag für den Antrag (Id: {petition_id}).\n\n"
-    "Bitte drucken Sie den Vertrag aus, unterschreiben Sie ihn und reichen Sie ihn bei PersonalServices ein."
+    "Bitte drucken Sie den Vertrag ZWEIFACH aus, unterschreiben Sie BEIDE EXEMPLARE und reichen Sie ihn bei PersonalServices ein."
+    "Sie können die unterschriebenen Verträge per Hauspost versenden. Hierzu legen Sie BEIDE UNTERSCHRIEBENEN EXEMPLARE"
+    "in eine Briefumschlag, verschließen diesen und beschriften ihn mit:"
+    "HR-PS Team-Hilfskräfte"
+    "Theodor-W.-Adorno-Platz 1"
+    "60323 Frankfurt am Main \n"
+    "Den so beschrifteten Briefumschlag können Sie bei jedem*jeder Pförtner*in der Universität mit den Worten"
+    "'Zur Versendung per Hauspost bitte.' abgeben.\n\n"
+    "Andernfalls: Können Sie den Brief auch entsprechend frankieren und auf dem regulären Postweg versenden."
 )
 CONTRACT_STUDENT_BODY_EN = (
     "Please find attached your employment contract for application (Id: {petition_id}).\n\n"
-    "Please print the contract, sign it and submit it to PersonalServices."
+    "Please print the contract TWICE, sign BOTH EXEMPLARS and submit it to PersonalServices."
+    "You can send the signed contracts via the house post system. In order to so, place BOTH SIGNED EXEMPLARS"
+    "in a envelop, close it and label it with the following address:"
+    "HR-PS Team-Hilfskräfte"
+    "Theodor-W.-Adorno-Platz 1"
+    "60323 Frankfurt am Main \n"
+    "The labeled envelop can then be handed over to any porter at the university with the word 'For sending via house post please'"
+    "(It may be advisable to use the German phrase above in cases of communication issues).\n\n"
+    "Otherwise: Apply a sufficient post-stamps to the envelop and send it via regular post."
 )
 
 CLERK_APPROVED_SUBJECT = "[ClockWork] Neuer Antragstatus / Application status update"
