@@ -193,22 +193,24 @@ STUDENT_ACCEPTED_SUPERVISOR_BODY_EN = (
 
 # --- Student rejected the petition --------------------------------------------
 
-STUDENT_REJECTED_SUBJECT = "[ClockWork] Student hat abgelehnt / Student rejected"
+STUDENT_REJECTED_SUBJECT = "[ClockWork] Studierende*r hat abgelehnt / Student rejected"
 STUDENT_REJECTED_SUPERVISOR_BODY_DE = (
-    "Die studentische Hilfskraft hat den Antrag (Id: {petition_id}) abgelehnt.\n\n"
-    "Bitte setzen Sie sich mit der studentischen Hilfskraft in Verbindung."
+    "Der*Die Studierende hat den Antrag (Id: {petition_id}) abgelehnt."
+    "Der Antrag wurde dadurch gelöscht.\n\n"
+    "Bitte setzen Sie sich mit dem*der Studierenden in Verbindung falls Klärungsbedarf besteht."
 )
 STUDENT_REJECTED_SUPERVISOR_BODY_EN = (
-    "The student assistant has rejected application (Id: {petition_id}).\n\n"
-    "Please contact the student assistant."
+    "The student has rejected the petition (Id: {petition_id})."
+    "The petition was deleted by this action.\n\n"
+    "Please contact the student assistant if clarification is needed."
 )
 STUDENT_REJECTED_APPROVER_BODY_DE = (
-    "Die studentische Hilfskraft hat den Antrag (Id: {petition_id}) abgelehnt.\n\n"
-    "Der Antrag wird nicht weiter bearbeitet."
+    "Der*Die Studierende hat den Antrag (Id: {petition_id}) abgelehnt.\n\n"
+    "Der Antrag wird dadurch gelöscht und nicht weiter bearbeitet."
 )
 STUDENT_REJECTED_APPROVER_BODY_EN = (
-    "The student assistant has rejected application (Id: {petition_id}).\n\n"
-    "The application will not be processed further."
+    "The student assistant has rejected the petition (Id: {petition_id}).\n\n"
+    "The application was thereby deleted and will not be processed further."
 )
 
 # --- Revision requested by the student ----------------------------------------

@@ -342,7 +342,7 @@ class EmailHandler:
             subject=STUDENT_REJECTED_SUBJECT,
             body=self._render_body(STUDENT_REJECTED_SUPERVISOR_BODY_DE, STUDENT_REJECTED_SUPERVISOR_BODY_EN),
         )
-
+    # TODO: For usability purpose the budget approvers should get the information how much budget they allocated here that is freed by the rejection
     def _mail_student_rejected_approver(self, budget_position: BudgetPosition) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
