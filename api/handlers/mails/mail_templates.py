@@ -181,14 +181,14 @@ PETITION_UPDATED_APPROVER_BODY_EN = (
 
 # --- Student accepted the petition --------------------------------------------
 
-STUDENT_ACCEPTED_SUPERVISOR_SUBJECT = "[ClockWork] Student hat zugestimmt / Student accepted"
+STUDENT_ACCEPTED_SUPERVISOR_SUBJECT = "[ClockWork] Studierende*r hat zugestimmt / Student accepted"
 STUDENT_ACCEPTED_SUPERVISOR_BODY_DE = (
-    "Die studentische Hilfskraft hat dem Antrag (Id: {petition_id}) zugestimmt.\n\n"
-    "Der Antrag wird nun von PersonalServices bearbeitet."
+    "Der*Die Studierende hat dem Antrag (Id: {petition_id}) zugestimmt.\n\n"
+    "Der Antrag wird nun von Team-Hilfskräfte (HR-PS) bearbeitet."
 )
 STUDENT_ACCEPTED_SUPERVISOR_BODY_EN = (
-    "The student assistant has accepted application (Id: {petition_id}).\n\n"
-    "The application will now be processed by PersonalServices."
+    "The student has accepted application (Id: {petition_id}).\n\n"
+    "The application will now be processed by the Team-Hilfskräfte (HR-PS)."
 )
 
 # --- Student rejected the petition --------------------------------------------
