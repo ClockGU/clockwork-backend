@@ -299,13 +299,9 @@ PETITION_COMPLETED_STUDENT_BODY_EN = (
 )
 PETITION_COMPLETED_SUPERVISOR_BODY_DE = (
     "Der Antrag (Id: {petition_id}) auf Einstellung einer studentischen Hilfskraft ist abgeschlossen.\n\n"
-    "\nSie erhalten demnächst den unterschriebenen Arbeitsvertrag von PersonalServices. Bitte geben Sie diesen "
-    "an die studentische Hilfskraft weiter."
 )
 PETITION_COMPLETED_SUPERVISOR_BODY_EN = (
-    "Application (Id: {petition_id}) for the employment of a student assistant has been completed.\n\n"
-    "In a few days, you will be receiving the employment contract from PersonalServices. Please hand it over "
-    "to the student assistant."
+    "Petition (Id: {petition_id}) for the employment of a student assistant has been completed.\n\n"
 )
 
 # --- Petition deleted by the clerk --------------------------------------------
