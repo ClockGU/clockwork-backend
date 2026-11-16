@@ -49,7 +49,7 @@ APPROVAL_REQUEST_APPROVER_BODY_EN = (
     "{budget_position}.\n\n"
     "The the submitted hiring petition is accessible via this link where you can either approve or reject the petition or\n"
     "request changes: {approval_url}\n\n"
-
+    "The Link is accessible without any authentication and thereby confidential.\n"
 )
 
 # --- Budget approved (all budget positions) -----------------------------------
