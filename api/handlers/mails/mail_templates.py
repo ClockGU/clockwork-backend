@@ -291,11 +291,11 @@ CLERK_REVISION_STUDENT_BODY_EN = (
 PETITION_COMPLETED_SUBJECT = "[ClockWork] Einstellung abgeschlossen / Employment process completed"
 PETITION_COMPLETED_STUDENT_BODY_DE = (
     "Ihre Einstellung (Antrag (Id: {petition_id})) ist abgeschlossen.\n\n"
-    "Willkommen als Beschäftigte*r der Goethe-Universität!"
+    "Willkommen als studentische Hilfskraft an der Goethe-Universität!"
 )
 PETITION_COMPLETED_STUDENT_BODY_EN = (
     "Your employment (application ID (Id: {petition_id})) has been completed.\n\n"
-    " Welcome as employee of Goethe University!"
+    "Welcome as student assistant of the Goethe University!"
 )
 PETITION_COMPLETED_SUPERVISOR_BODY_DE = (
     "Der Antrag (Id: {petition_id}) auf Einstellung einer studentischen Hilfskraft ist abgeschlossen.\n\n"
