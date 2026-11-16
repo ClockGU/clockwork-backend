@@ -258,11 +258,16 @@ CONTRACT_STUDENT_BODY_EN = (
 CLERK_APPROVED_SUBJECT = "[ClockWork] Neuer Antragstatus / Application status update"
 CLERK_APPROVED_SUPERVISOR_BODY_DE = (
     "Der Antrag (Id: {petition_id}) wurde von PersonalServices freigegeben.\n\n"
-    "Bitte melden Sie sich an, um den Antragsstatus zu überprüfen."
+    "Der*Die Studierende hat die Vertragsunterlagen erhalten und muss diese nun"
+    "unterschrieben beim Team-Hilfskräfte einreichen."
+    " Sie werden benachrichtigt sobald das Team-Hilfskräfte die Vertragsdokumente erhalten"
+    "und bearbeitet hat."
 )
 CLERK_APPROVED_SUPERVISOR_BODY_EN = (
     "Your application (Id: {petition_id}) has been approved by PersonalServices.\n\n"
-    "Please log in and review the application's status."
+    "The student recieved the contract documents and has to submit them to the Team-Hilfskräfte"
+    "signed. You will be notified as soon as the Team-Hilfskräfte has recieved  and"
+    "processed the contract documents."
 )
 CLERK_APPROVED_APPROVER_BODY_DE = "Der Antrag (Id: {petition_id}) wurde von PersonalServices freigegeben."
 CLERK_APPROVED_APPROVER_BODY_EN = "The application (Id: {petition_id}) has been approved by PersonalServices."
