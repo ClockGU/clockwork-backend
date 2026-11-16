@@ -10,7 +10,7 @@ Any other placeholder must be passed by the sending method.
 SEPARATOR = "\n\n--------------\n\n"
 
 FOOTER_DE = (
-    "\nSie bekommen diese Mail im Rahmen des SHK-Einstellungsprozesses der Software ClockWork. "
+    "\nSie erhalten diese Mail im Rahmen des SHK-Einstellungsprozesses der Software ClockWork. "
     "Bei Fragen oder Problemen wenden Sie sich bitte an {support_mail}.\n"
 )
 
