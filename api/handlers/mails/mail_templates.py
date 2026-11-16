@@ -244,15 +244,15 @@ CONTRACT_STUDENT_BODY_DE = (
 )
 CONTRACT_STUDENT_BODY_EN = (
     "Please find attached your employment contract for application (Id: {petition_id}).\n\n"
-    "Please print the contract TWICE, sign BOTH EXEMPLARS and submit it to PersonalServices."
-    "You can send the signed contracts via the house post system. In order to so, place BOTH SIGNED EXEMPLARS"
-    "in a envelop, close it and label it with the following address:"
+    "Print the contract TWICE, sign BOTH EXEMPLARS and submit it to PersonalServices."
+    "You can send the signed contracts via the house post system. In order to do so place BOTH SIGNED EXEMPLARS"
+    "in an envelop, close it and label it with the following address:"
     "HR-PS Team-Hilfskräfte"
     "Theodor-W.-Adorno-Platz 1"
     "60323 Frankfurt am Main \n"
-    "The labeled envelop can then be handed over to any porter at the university with the word 'For sending via house post please'"
+    "The labeled envelop can then be handed over to any porter at the university with the phrase 'For sending via house post please'"
     "(It may be advisable to use the German phrase above in cases of communication issues).\n\n"
-    "Otherwise: Apply a sufficient post-stamps to the envelop and send it via regular post."
+    "Otherwise: Apply sufficient post-stamps to the envelop and send it via regular post."
 )
 
 CLERK_APPROVED_SUBJECT = "[ClockWork] Neuer Antragstatus / Application status update"
