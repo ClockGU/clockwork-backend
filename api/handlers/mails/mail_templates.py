@@ -314,24 +314,27 @@ DELETION_REASON_EN = "Reason:\n{reason}"
 
 # Placeholders: {reason_text}, {reason_text_en}
 PETITION_DELETED_SUPERVISOR_BODY_DE = (
-    "Ihr Antrag (Id: {petition_id}) wurde von PersonalServices abgelehnt.\n\n"
+    "Ihr Antrag (Id: {petition_id}) auf Einstellung einer studentischen Hilfskraft wurde von PersonalServices abgelehnt.\n\n"
     "{reason_text}"
     "Der Antrag wurde durch die Ablehnung gelöscht. Bitte treten Sie mit den Prozessbeteiligten"
     "in Kontakt um Unstimmigkeiten zu klären."
     )
 PETITION_DELETED_SUPERVISOR_BODY_EN = (
-    "Your hiring petition (Id: {petition_id}) has been deleted by PersonalServices.\n\n"
+    "Your hiring petition (Id: {petition_id}) has been declined by PersonalServices.\n\n"
     "{reason_text_en}"
     "The petition was consequently deleted. Please contact everyone involved in the process to clear out any"
     "discrepancies."
 )
 PETITION_DELETED_STUDENT_BODY_DE = (
-    "Ihr Antrag (Id: {petition_id}) zur Einstellung als studentische Hilfskraft wurde von PersonalServices "
-    "gelöscht.{reason_text}"
+    "Ihr Antrag (Id: {petition_id}) zur Einstellung als studentische Hilfskraft wurde von PersonalServices abgelehnt.\n\n"
+    "{reason_text}"
+    "Der Antrag wurde durch die Ablehnung gelöscht. Die Antragsteller*in wird vermutlich mit Ihnen in Kontakt treten"
+    "um Unstimmigkeiten zu klären."
 )
 PETITION_DELETED_STUDENT_BODY_EN = (
-    "Your application (Id: {petition_id}) for employment as a student assistant has been deleted by "
-    "PersonalServices.{reason_text_en}"
+    "Your hiring petition (Id: {petition_id}) has been declined by PersonalServices.\n\n"
+    "{reason_text_en}"
+    "The petition was consequently deleted. The petitioner will probably contact you soon to clear out any discrepancies."
 )
 PETITION_DELETED_APPROVER_BODY_DE = "Der Antrag (Id: {petition_id}) wurde von PersonalServices gelöscht.{reason_text}"
 PETITION_DELETED_APPROVER_BODY_EN = (
