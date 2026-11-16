@@ -309,13 +309,21 @@ PETITION_COMPLETED_SUPERVISOR_BODY_EN = (
 PETITION_DELETED_SUBJECT = "[ClockWork] Antrag gelöscht / Application deleted"
 
 # Optional reason, appended to the bodies below via {reason_text} / {reason_text_en}. Placeholders: {reason}
-DELETION_REASON_DE = "\n\nBegründung:\n{reason}"
-DELETION_REASON_EN = "\n\nReason:\n{reason}"
+DELETION_REASON_DE = "Begründung:\n{reason}"
+DELETION_REASON_EN = "Reason:\n{reason}"
 
 # Placeholders: {reason_text}, {reason_text_en}
-PETITION_DELETED_SUPERVISOR_BODY_DE = "Ihr Antrag (Id: {petition_id}) wurde von PersonalServices gelöscht.{reason_text}"
+PETITION_DELETED_SUPERVISOR_BODY_DE = (
+    "Ihr Antrag (Id: {petition_id}) wurde von PersonalServices abgelehnt.\n\n"
+    "{reason_text}"
+    "Der Antrag wurde durch die Ablehnung gelöscht. Bitte treten Sie mit den Prozessbeteiligten"
+    "in Kontakt um Unstimmigkeiten zu klären."
+    )
 PETITION_DELETED_SUPERVISOR_BODY_EN = (
-    "Your application (Id: {petition_id}) has been deleted by PersonalServices.{reason_text_en}"
+    "Your hiring petition (Id: {petition_id}) has been deleted by PersonalServices.\n\n"
+    "{reason_text_en}"
+    "The petition was consequently deleted. Please contact everyone involved in the process to clear out any"
+    "discrepancies."
 )
 PETITION_DELETED_STUDENT_BODY_DE = (
     "Ihr Antrag (Id: {petition_id}) zur Einstellung als studentische Hilfskraft wurde von PersonalServices "
