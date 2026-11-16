@@ -146,7 +146,7 @@ APPROVER_REVISION_APPROVER_BODY_EN = (
 
 # --- Budget position rejected -------------------------------------------------
 
-BUDGET_REJECTED_SUBJECT = "[ClockWork] Antrag abgelehnt / Petiton rejected"
+BUDGET_REJECTED_SUBJECT = "[ClockWork] Antrag abgelehnt / Petition rejected"
 
 # Placeholders: {rejecting_approver}
 BUDGET_REJECTED_SUPERVISOR_BODY_DE = (
@@ -258,7 +258,7 @@ CONTRACT_STUDENT_BODY_EN = (
     "Otherwise: Apply sufficient post-stamps to the envelop and send it via regular post.\n"
 )
 
-CLERK_APPROVED_SUBJECT = "[ClockWork] Neuer Antragstatus / Application status update"
+CLERK_APPROVED_SUBJECT = "[ClockWork] Neuer Antragsstatus / Application status update"
 CLERK_APPROVED_SUPERVISOR_BODY_DE = (
     "Der Antrag (Id: {petition_id}) wurde von PersonalServices freigegeben.\n\n"
     "Der*Die Studierende hat die Vertragsunterlagen erhalten und muss diese nun\n"
@@ -268,8 +268,8 @@ CLERK_APPROVED_SUPERVISOR_BODY_DE = (
 )
 CLERK_APPROVED_SUPERVISOR_BODY_EN = (
     "Your application (Id: {petition_id}) has been approved by PersonalServices.\n\n"
-    "The student recieved the contract documents and has to submit them to the Team-Hilfskräfte\n"
-    "signed. You will be notified as soon as the Team-Hilfskräfte has recieved and\n"
+    "The student received the contract documents and has to submit them to the Team-Hilfskräfte\n"
+    "signed. You will be notified as soon as the Team-Hilfskräfte has received and\n"
     "processed the contract documents.\n"
 )
 CLERK_APPROVED_APPROVER_BODY_DE = "Der Antrag (Id: {petition_id}) wurde von PersonalServices freigegeben."
