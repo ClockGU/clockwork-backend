@@ -281,9 +281,11 @@ class EmailHandler:
     ) -> None:
         """
         Process step: a budget approver rejected their budget position, which rejects the petition.
-        Informs the supervisor and all budget approvers (including the rejecting one).
+        Informs the supervisor and all budget approvers excluding the rejecting_budget_position
+        as they initiated the action.
         """
         rejecting_approver = rejected_budget_position.budget_approver
+        budget_positions.remove(rejected_budget_position)
         with self.smtp_session():
             self._mail_budget_rejected_supervisor(rejecting_approver)
             for budget_position in budget_positions:
