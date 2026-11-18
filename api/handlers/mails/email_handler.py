@@ -277,7 +277,7 @@ class EmailHandler:
         )
 
     def notify_budget_rejected(
-        self, rejected_budget_position: BudgetPosition, budget_positions: list[BudgetPosition]
+        self, rejected_budget_position: BudgetPosition
     ) -> None:
         """
         Process step: a budget approver rejected their budget position, which rejects the petition.
@@ -285,10 +285,11 @@ class EmailHandler:
         as they initiated the action.
         """
         rejecting_approver = rejected_budget_position.budget_approver
-        budget_positions.remove(rejected_budget_position)
         with self.smtp_session():
             self._mail_budget_rejected_supervisor(rejecting_approver)
-            for budget_position in budget_positions:
+            for budget_position in self.petition.budget_positions:
+                if budget_position == rejected_budget_position:
+                    continue
                 self._mail_budget_rejected_approver(budget_position, rejecting_approver)
 
     def _mail_budget_rejected_supervisor(self, rejecting_approver: str) -> None:
@@ -310,6 +311,8 @@ class EmailHandler:
                 BUDGET_REJECTED_APPROVER_BODY_DE,
                 BUDGET_REJECTED_APPROVER_BODY_EN,
                 rejecting_approver=rejecting_approver,
+                hours=self.petition.minutes/60,
+                percentage=budget_position.percentage
             ),
         )
 

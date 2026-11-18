@@ -392,8 +392,7 @@ class PetitionHandler:
                 email_handler = EmailHandler(petition)
                 self.add_background_task(
                     email_handler.notify_budget_rejected,
-                    updated_budget_position,
-                    self.budget_positions_handler.get_objects(),
+                    updated_budget_position
                 )
 
                 self.manager.delete_petition(petition)
