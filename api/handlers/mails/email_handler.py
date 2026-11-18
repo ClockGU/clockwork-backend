@@ -331,15 +331,15 @@ class EmailHandler:
             body=self._render_body(STUDENT_ACCEPTED_SUPERVISOR_BODY_DE, STUDENT_ACCEPTED_SUPERVISOR_BODY_EN),
         )
 
-    def notify_student_rejected(self, petition: Petition) -> None:
+    def notify_student_rejected(self) -> None:
         """
         Process step: the student rejected the petition, which is then deleted.
         Informs the supervisor and all budget approvers.
         """
         with self.smtp_session():
             self._mail_student_rejected_supervisor()
-            for budget_position in petition.budget_positions:
-                self._mail_student_rejected_approver(budget_position, petition)
+            for budget_position in self.petition.budget_positions:
+                self._mail_student_rejected_approver(budget_position)
 
     def _mail_student_rejected_supervisor(self) -> None:
         self.send_email(
@@ -347,12 +347,16 @@ class EmailHandler:
             subject=STUDENT_REJECTED_SUBJECT,
             body=self._render_body(STUDENT_REJECTED_SUPERVISOR_BODY_DE, STUDENT_REJECTED_SUPERVISOR_BODY_EN),
         )
-    # TODO: For usability purpose the budget approvers should get the information how much budget they allocated here that is freed by the rejection
-    def _mail_student_rejected_approver(self, budget_position: BudgetPosition, petition: Petition) -> None:
+    def _mail_student_rejected_approver(self, budget_position: BudgetPosition) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
             subject=STUDENT_REJECTED_SUBJECT,
-            body=self._render_body(STUDENT_REJECTED_APPROVER_BODY_DE, STUDENT_REJECTED_APPROVER_BODY_EN, hours=petition.minutes/60, percentage=budget_position.percentage),
+            body=self._render_body(
+                STUDENT_REJECTED_APPROVER_BODY_DE,
+                STUDENT_REJECTED_APPROVER_BODY_EN,
+                hours=self.petition.minutes/60,
+                percentage=budget_position.percentage
+            ),
         )
 
     def notify_petition_updated(self, budget_positions: list[BudgetPosition]) -> None:
