@@ -209,11 +209,15 @@ STUDENT_REJECTED_SUPERVISOR_BODY_EN = (
 )
 STUDENT_REJECTED_APPROVER_BODY_DE = (
     "Der*Die Studierende hat den Antrag (Id: {petition_id}) abgelehnt.\n\n"
-    "Der Antrag wird dadurch gelöscht und nicht weiter bearbeitet."
+    "Der Antrag wird dadurch gelöscht und nicht weiter bearbeitet.\n"
+    "Sie hatten für diesen Antrag ursprünglich eine Finanzierung von {hours}h zu {percentage}% zugesagt.\n"
+    "Dieses Budget ist nun wieder \"frei\".\n"
 )
 STUDENT_REJECTED_APPROVER_BODY_EN = (
     "The student assistant has rejected the petition (Id: {petition_id}).\n\n"
-    "The application was thereby deleted and will not be processed further."
+    "The application was thereby deleted and will not be processed further.\n"
+    "You approved a budget of {hours}h for {percentage}% for this hiring petition.\n"
+    "This budget is now \"freed\" again.\n"
 )
 
 # --- Revision requested by the student ----------------------------------------

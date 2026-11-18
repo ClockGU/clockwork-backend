@@ -215,7 +215,7 @@ class PetitionHandler:
         else:
             # Student rejected, notify and then move to clerk_action
             email_handler = EmailHandler(petition)
-            self.add_background_task(email_handler.notify_student_rejected, petition.budget_positions)
+            self.add_background_task(email_handler.notify_student_rejected, petition)
             return self.delete_petition()
 
         return petition
