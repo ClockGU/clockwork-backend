@@ -169,7 +169,7 @@ BUDGET_REJECTED_APPROVER_BODY_DE = (
     "Falls Sie den Antrag bereits zu gestimmt haben:\n"
     "Sie hatten für diesen Antrag ursprünglich eine Finanzierung von {hours}h zu {percentage}%\n"
     "für den Zeitraum {start} - {end} zugesagt.\n"
-    "Dieses Budget ist nun wieder \"frei\".\n"
+    'Dieses Budget ist nun wieder "frei".\n'
 )
 BUDGET_REJECTED_APPROVER_BODY_EN = (
     "The petition (Id: {petition_id}) has been rejected by the budget approver\n"
@@ -177,7 +177,7 @@ BUDGET_REJECTED_APPROVER_BODY_EN = (
     "In case you already approved this petition:\n"
     "You approved a budget of {hours}h for {percentage}% for the duration of\n"
     "{start} - {end} for this hiring petition.\n"
-    "This budget is now \"freed\" again.\n"
+    'This budget is now "freed" again.\n'
 )
 
 # --- Petition updated by the supervisor ---------------------------------------
@@ -228,14 +228,14 @@ STUDENT_REJECTED_APPROVER_BODY_DE = (
     "Der Antrag wird dadurch gelöscht und nicht weiter bearbeitet.\n"
     "Sie hatten für diesen Antrag ursprünglich eine Finanzierung von {hours}h zu {percentage}%\n"
     "für den Zeitraum {start} - {end} zugesagt.\n"
-    "Dieses Budget ist nun wieder \"frei\".\n"
+    'Dieses Budget ist nun wieder "frei".\n'
 )
 STUDENT_REJECTED_APPROVER_BODY_EN = (
     "The student assistant has rejected the petition (Id: {petition_id}).\n\n"
     "The application was thereby deleted and will not be processed further.\n"
     "You approved a budget of {hours}h for {percentage}% for the duration of\n"
     "{start} - {end} for this hiring petition.\n"
-    "This budget is now \"freed\" again.\n"
+    'This budget is now "freed" again.\n'
 )
 
 # --- Revision requested by the student ----------------------------------------
