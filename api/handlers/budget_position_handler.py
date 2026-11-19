@@ -89,6 +89,7 @@ class BudgetPositionsHandler:
     def check_all_budget_positions_approved(self, petition_id: Optional[UUID]) -> bool:
         if self.get_objects():
             return all(
-                budget_position.budget_position_approved for budget_position in self.get_objects()
+                budget_position.budget_position_approved
+                for budget_position in self.get_objects()
             )
         return self.manager.check_all_budget_positions_approved(petition_id)

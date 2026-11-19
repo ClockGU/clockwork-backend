@@ -46,7 +46,9 @@ def student_accept_or_reject_petition(
     API for students to accept or reject their petition.
     Only allowed if petition status is 'student_action'.
     """
-    approval_data = PetitionStudentUpdate.model_validate(body,context={"existing": petition})
+    approval_data = PetitionStudentUpdate.model_validate(
+        body, context={"existing": petition}
+    )
     updated_petition = handler.student_accept_or_reject_petition(
         petition=petition, approved=approval_data.approved
     )
@@ -72,7 +74,9 @@ def request_revision_from_supervisor(
     """
     # Fix for now as the Status vaildation implemented in the petition_validator models
     # assumes proper "petition" models and not additional fields only.
-    revision_data = StudenRevisionRequest.model_validate(body,context={"existing": petition})
+    revision_data = StudenRevisionRequest.model_validate(
+        body, context={"existing": petition}
+    )
     updated_petition = handler.request_revision_from_supervisor(
         petition, revision_data.message, revision_data.subject
     )

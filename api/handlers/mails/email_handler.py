@@ -7,10 +7,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional
 
-from api.env import settings
-
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.petition import Petition
+from api.env import settings
 from api.handlers.mails.mail_templates import *
 
 logger = logging.getLogger(__name__)
@@ -34,8 +33,12 @@ class EmailHandler:
         }
         shadowed = base.keys() & kwargs.keys()
         if shadowed:
-            raise ValueError(f"Mail kwargs must not override base context: {sorted(shadowed)}")
-        return (body_de + FOOTER_DE + SEPARATOR + body_en + FOOTER_EN).format(**base, **kwargs)
+            raise ValueError(
+                f"Mail kwargs must not override base context: {sorted(shadowed)}"
+            )
+        return (body_de + FOOTER_DE + SEPARATOR + body_en + FOOTER_EN).format(
+            **base, **kwargs
+        )
 
     def _approver_url(self, budget_position: BudgetPosition, signature: str) -> str:
         """Signed link for a budget approver to review the petition for their budget position."""
@@ -109,7 +112,6 @@ class EmailHandler:
     ):
         smtp_user = settings.SMTP_USER
 
-
         # If there is an attachment, create a multipart message
         if attachment_bytes and attachment_filename:
             msg = MIMEMultipart()
@@ -154,10 +156,14 @@ class EmailHandler:
         self.send_email(
             recipient=self.petition.student_mail,
             subject=PETITION_CREATED_STUDENT_SUBJECT,
-            body=self._render_body(PETITION_CREATED_STUDENT_BODY_DE, PETITION_CREATED_STUDENT_BODY_EN),
+            body=self._render_body(
+                PETITION_CREATED_STUDENT_BODY_DE, PETITION_CREATED_STUDENT_BODY_EN
+            ),
         )
 
-    def _mail_approval_request_approver(self, budget_position: BudgetPosition, signature: str) -> None:
+    def _mail_approval_request_approver(
+        self, budget_position: BudgetPosition, signature: str
+    ) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
             subject=APPROVAL_REQUEST_APPROVER_SUBJECT,
@@ -170,7 +176,9 @@ class EmailHandler:
         )
 
     def notify_budget_approved(
-        self, budget_positions: list[BudgetPosition], has_approved_petition_in_semester: bool
+        self,
+        budget_positions: list[BudgetPosition],
+        has_approved_petition_in_semester: bool,
     ) -> None:
         """
         Process step: all budget positions of the petition are approved.
@@ -194,20 +202,22 @@ class EmailHandler:
         self.send_email(
             recipient=self.petition.supervisor_mail,
             subject=BUDGET_APPROVED_SUBJECT,
-            body=self._render_body(BUDGET_APPROVED_SUPERVISOR_BODY_DE, BUDGET_APPROVED_SUPERVISOR_BODY_EN),
+            body=self._render_body(
+                BUDGET_APPROVED_SUPERVISOR_BODY_DE, BUDGET_APPROVED_SUPERVISOR_BODY_EN
+            ),
         )
 
     def _mail_budget_approved_approver(self, budget_position: BudgetPosition) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
             subject=BUDGET_APPROVED_SUBJECT,
-            body=self._render_body(BUDGET_APPROVED_APPROVER_BODY_DE, BUDGET_APPROVED_APPROVER_BODY_EN),
+            body=self._render_body(
+                BUDGET_APPROVED_APPROVER_BODY_DE, BUDGET_APPROVED_APPROVER_BODY_EN
+            ),
         )
 
     def _mail_acceptance_link_student(self, signature: str) -> None:
-        acceptance_url = (
-            f"{settings.FRONTEND_URL}/student/accept?petition_id={self.petition.id}&signature={signature}"
-        )
+        acceptance_url = f"{settings.FRONTEND_URL}/student/accept?petition_id={self.petition.id}&signature={signature}"
         self.send_email(
             recipient=self.petition.student_mail,
             subject=ACCEPTANCE_LINK_STUDENT_SUBJECT,
@@ -245,12 +255,18 @@ class EmailHandler:
         subject = subject or REVISION_REQUESTED_SUBJECT
         requesting_approver = requesting_budget_position.budget_approver
         with self.smtp_session():
-            self._mail_approver_revision_supervisor(requesting_approver, message, subject)
+            self._mail_approver_revision_supervisor(
+                requesting_approver, message, subject
+            )
             for budget_position in budget_positions:
                 if budget_position.budget_approver != requesting_approver:
-                    self._mail_approver_revision_approver(budget_position, requesting_approver, message, subject)
+                    self._mail_approver_revision_approver(
+                        budget_position, requesting_approver, message, subject
+                    )
 
-    def _mail_approver_revision_supervisor(self, requesting_approver: str, message: str, subject: str) -> None:
+    def _mail_approver_revision_supervisor(
+        self, requesting_approver: str, message: str, subject: str
+    ) -> None:
         self.send_email(
             recipient=self.petition.supervisor_mail,
             subject=subject,
@@ -263,7 +279,11 @@ class EmailHandler:
         )
 
     def _mail_approver_revision_approver(
-        self, budget_position: BudgetPosition, requesting_approver: str, message: str, subject: str
+        self,
+        budget_position: BudgetPosition,
+        requesting_approver: str,
+        message: str,
+        subject: str,
     ) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
@@ -276,9 +296,7 @@ class EmailHandler:
             ),
         )
 
-    def notify_budget_rejected(
-        self, rejected_budget_position: BudgetPosition
-    ) -> None:
+    def notify_budget_rejected(self, rejected_budget_position: BudgetPosition) -> None:
         """
         Process step: a budget approver rejected their budget position, which rejects the petition.
         Informs the supervisor and all budget approvers excluding the rejecting_budget_position
@@ -303,7 +321,9 @@ class EmailHandler:
             ),
         )
 
-    def _mail_budget_rejected_approver(self, budget_position: BudgetPosition, rejecting_approver: str) -> None:
+    def _mail_budget_rejected_approver(
+        self, budget_position: BudgetPosition, rejecting_approver: str
+    ) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
             subject=BUDGET_REJECTED_SUBJECT,
@@ -311,8 +331,8 @@ class EmailHandler:
                 BUDGET_REJECTED_APPROVER_BODY_DE,
                 BUDGET_REJECTED_APPROVER_BODY_EN,
                 rejecting_approver=rejecting_approver,
-                hours=self.petition.minutes/60,
-                percentage=budget_position.percentage
+                hours=self.petition.minutes / 60,
+                percentage=budget_position.percentage,
             ),
         )
 
@@ -328,7 +348,9 @@ class EmailHandler:
         self.send_email(
             recipient=self.petition.supervisor_mail,
             subject=STUDENT_ACCEPTED_SUPERVISOR_SUBJECT,
-            body=self._render_body(STUDENT_ACCEPTED_SUPERVISOR_BODY_DE, STUDENT_ACCEPTED_SUPERVISOR_BODY_EN),
+            body=self._render_body(
+                STUDENT_ACCEPTED_SUPERVISOR_BODY_DE, STUDENT_ACCEPTED_SUPERVISOR_BODY_EN
+            ),
         )
 
     def notify_student_rejected(self) -> None:
@@ -345,8 +367,11 @@ class EmailHandler:
         self.send_email(
             recipient=self.petition.supervisor_mail,
             subject=STUDENT_REJECTED_SUBJECT,
-            body=self._render_body(STUDENT_REJECTED_SUPERVISOR_BODY_DE, STUDENT_REJECTED_SUPERVISOR_BODY_EN),
+            body=self._render_body(
+                STUDENT_REJECTED_SUPERVISOR_BODY_DE, STUDENT_REJECTED_SUPERVISOR_BODY_EN
+            ),
         )
+
     def _mail_student_rejected_approver(self, budget_position: BudgetPosition) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
@@ -354,8 +379,8 @@ class EmailHandler:
             body=self._render_body(
                 STUDENT_REJECTED_APPROVER_BODY_DE,
                 STUDENT_REJECTED_APPROVER_BODY_EN,
-                hours=self.petition.minutes/60,
-                percentage=budget_position.percentage
+                hours=self.petition.minutes / 60,
+                percentage=budget_position.percentage,
             ),
         )
 
@@ -372,7 +397,9 @@ class EmailHandler:
             for budget_position in budget_positions:
                 self._mail_petition_updated_approver(budget_position, signature)
 
-    def _mail_petition_updated_approver(self, budget_position: BudgetPosition, signature: str) -> None:
+    def _mail_petition_updated_approver(
+        self, budget_position: BudgetPosition, signature: str
+    ) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
             subject=PETITION_UPDATED_SUBJECT,
@@ -383,7 +410,9 @@ class EmailHandler:
             ),
         )
 
-    def notify_clerk_approved(self, contract_pdf_buffer, budget_positions: list[BudgetPosition]) -> None:
+    def notify_clerk_approved(
+        self, contract_pdf_buffer, budget_positions: list[BudgetPosition]
+    ) -> None:
         """
         Process step: PersonalServices (clerk) approved the petition.
         Sends the student the employment contract PDF and informs the supervisor and all budget approvers.
@@ -407,17 +436,23 @@ class EmailHandler:
         self.send_email(
             recipient=self.petition.supervisor_mail,
             subject=CLERK_APPROVED_SUBJECT,
-            body=self._render_body(CLERK_APPROVED_SUPERVISOR_BODY_DE, CLERK_APPROVED_SUPERVISOR_BODY_EN),
+            body=self._render_body(
+                CLERK_APPROVED_SUPERVISOR_BODY_DE, CLERK_APPROVED_SUPERVISOR_BODY_EN
+            ),
         )
 
     def _mail_clerk_approved_approver(self, budget_position: BudgetPosition) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
             subject=CLERK_APPROVED_SUBJECT,
-            body=self._render_body(CLERK_APPROVED_APPROVER_BODY_DE, CLERK_APPROVED_APPROVER_BODY_EN),
+            body=self._render_body(
+                CLERK_APPROVED_APPROVER_BODY_DE, CLERK_APPROVED_APPROVER_BODY_EN
+            ),
         )
 
-    def notify_clerk_requested_revision(self, message: str, subject: Optional[str] = None) -> None:
+    def notify_clerk_requested_revision(
+        self, message: str, subject: Optional[str] = None
+    ) -> None:
         """
         Process step: PersonalServices (clerk) requested a revision of the student's data / documents.
         Informs the student.
@@ -450,17 +485,24 @@ class EmailHandler:
         self.send_email(
             recipient=self.petition.student_mail,
             subject=PETITION_COMPLETED_SUBJECT,
-            body=self._render_body(PETITION_COMPLETED_STUDENT_BODY_DE, PETITION_COMPLETED_STUDENT_BODY_EN),
+            body=self._render_body(
+                PETITION_COMPLETED_STUDENT_BODY_DE, PETITION_COMPLETED_STUDENT_BODY_EN
+            ),
         )
 
     def _mail_petition_completed_supervisor(self) -> None:
         self.send_email(
             recipient=self.petition.supervisor_mail,
             subject=PETITION_COMPLETED_SUBJECT,
-            body=self._render_body(PETITION_COMPLETED_SUPERVISOR_BODY_DE, PETITION_COMPLETED_SUPERVISOR_BODY_EN),
+            body=self._render_body(
+                PETITION_COMPLETED_SUPERVISOR_BODY_DE,
+                PETITION_COMPLETED_SUPERVISOR_BODY_EN,
+            ),
         )
 
-    def notify_student_requested_revision(self, message: str, subject: Optional[str] = None) -> None:
+    def notify_student_requested_revision(
+        self, message: str, subject: Optional[str] = None
+    ) -> None:
         """
         Process step: the student requested a revision of the petition from the supervisor.
         Informs the supervisor, who has to make the changes.
@@ -468,6 +510,7 @@ class EmailHandler:
         subject = subject or REVISION_REQUESTED_SUBJECT
         with self.smtp_session():
             self._mail_student_revision_supervisor(message, subject)
+
     # TODO: Provide Student mail to Body templates to make contacting the student easier for supervisors
     def _mail_student_revision_supervisor(self, message: str, subject: str) -> None:
         self.send_email(
@@ -480,14 +523,18 @@ class EmailHandler:
             ),
         )
 
-    def notify_petition_deleted(self, reason: str, budget_positions: list[BudgetPosition]) -> None:
+    def notify_petition_deleted(
+        self, reason: str, budget_positions: list[BudgetPosition]
+    ) -> None:
         """
         Process step: PersonalServices (clerk) deleted the petition, optionally giving a reason.
         Informs the supervisor, the student and all budget approvers.
         """
         reason_texts = {
             "reason_text": DELETION_REASON_DE.format(reason=reason) if reason else "",
-            "reason_text_en": DELETION_REASON_EN.format(reason=reason) if reason else "",
+            "reason_text_en": (
+                DELETION_REASON_EN.format(reason=reason) if reason else ""
+            ),
         }
         with self.smtp_session():
             self._mail_petition_deleted_supervisor(reason_texts)
@@ -500,7 +547,9 @@ class EmailHandler:
             recipient=self.petition.supervisor_mail,
             subject=PETITION_DELETED_SUBJECT,
             body=self._render_body(
-                PETITION_DELETED_SUPERVISOR_BODY_DE, PETITION_DELETED_SUPERVISOR_BODY_EN, **reason_texts
+                PETITION_DELETED_SUPERVISOR_BODY_DE,
+                PETITION_DELETED_SUPERVISOR_BODY_EN,
+                **reason_texts,
             ),
         )
 
@@ -508,14 +557,22 @@ class EmailHandler:
         self.send_email(
             recipient=self.petition.student_mail,
             subject=PETITION_DELETED_SUBJECT,
-            body=self._render_body(PETITION_DELETED_STUDENT_BODY_DE, PETITION_DELETED_STUDENT_BODY_EN, **reason_texts),
+            body=self._render_body(
+                PETITION_DELETED_STUDENT_BODY_DE,
+                PETITION_DELETED_STUDENT_BODY_EN,
+                **reason_texts,
+            ),
         )
 
-    def _mail_petition_deleted_approver(self, budget_position: BudgetPosition, reason_texts: dict[str, str]) -> None:
+    def _mail_petition_deleted_approver(
+        self, budget_position: BudgetPosition, reason_texts: dict[str, str]
+    ) -> None:
         self.send_email(
             recipient=budget_position.budget_approver,
             subject=PETITION_DELETED_SUBJECT,
             body=self._render_body(
-                PETITION_DELETED_APPROVER_BODY_DE, PETITION_DELETED_APPROVER_BODY_EN, **reason_texts
+                PETITION_DELETED_APPROVER_BODY_DE,
+                PETITION_DELETED_APPROVER_BODY_EN,
+                **reason_texts,
             ),
         )

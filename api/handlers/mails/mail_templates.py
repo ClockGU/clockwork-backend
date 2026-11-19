@@ -21,7 +21,9 @@ FOOTER_EN = (
 
 # --- Petition created ---------------------------------------------------------
 
-PETITION_CREATED_STUDENT_SUBJECT = "[ClockWork] Neuer Antrag erstellt / New hiring petition created"
+PETITION_CREATED_STUDENT_SUBJECT = (
+    "[ClockWork] Neuer Antrag erstellt / New hiring petition created"
+)
 PETITION_CREATED_STUDENT_BODY_DE = (
     "Es wurde ein Antrag auf Einstellung (Id: {petition_id}) als studentische Hilfskraft für Sie gestellt.\n"
     "Der Antrag wird nun von den Kostenstellenverantwortlichen geprüft.\n"
@@ -54,7 +56,9 @@ APPROVAL_REQUEST_APPROVER_BODY_EN = (
 
 # --- Budget approved (all budget positions) -----------------------------------
 
-BUDGET_APPROVED_SUBJECT = "[ClockWork] Kostenstelle(n) freigegeben / Budget approver(s) approved"
+BUDGET_APPROVED_SUBJECT = (
+    "[ClockWork] Kostenstelle(n) freigegeben / Budget approver(s) approved"
+)
 BUDGET_APPROVED_SUPERVISOR_BODY_DE = (
     "Ihr Antrag (Id: {petition_id}) für die Einstellung einer studentischen Hilfskraft wurde von allen"
     "Kostenstellenverantwortlichen freigegeben.\n"
@@ -73,7 +77,9 @@ BUDGET_APPROVED_APPROVER_BODY_EN = (
 )
 
 # Fast track for students with an approved petition in the same semester. Placeholders: {acceptance_url}
-ACCEPTANCE_LINK_STUDENT_SUBJECT = "[ClockWork] Antrag freigegeben / Application approved"
+ACCEPTANCE_LINK_STUDENT_SUBJECT = (
+    "[ClockWork] Antrag freigegeben / Application approved"
+)
 ACCEPTANCE_LINK_STUDENT_BODY_DE = (
     "Der Antrag (Id: {petition_id}) für Ihre Einstellung als studentische Hilfskraft wurde von allen\n"
     "Kostenstellenverantwortlichen freigegeben.\n\n"
@@ -190,7 +196,9 @@ PETITION_UPDATED_APPROVER_BODY_EN = (
 
 # --- Student accepted the petition --------------------------------------------
 
-STUDENT_ACCEPTED_SUPERVISOR_SUBJECT = "[ClockWork] Studierende*r hat zugestimmt / Student accepted"
+STUDENT_ACCEPTED_SUPERVISOR_SUBJECT = (
+    "[ClockWork] Studierende*r hat zugestimmt / Student accepted"
+)
 STUDENT_ACCEPTED_SUPERVISOR_BODY_DE = (
     "Der*Die Studierende hat dem Antrag (Id: {petition_id}) zugestimmt.\n\n"
     "Der Antrag wird nun von Team-Hilfskräfte (HR-PS) bearbeitet."
@@ -217,13 +225,13 @@ STUDENT_REJECTED_APPROVER_BODY_DE = (
     "Der*Die Studierende hat den Antrag (Id: {petition_id}) abgelehnt.\n\n"
     "Der Antrag wird dadurch gelöscht und nicht weiter bearbeitet.\n"
     "Sie hatten für diesen Antrag ursprünglich eine Finanzierung von {hours}h zu {percentage}% zugesagt.\n"
-    "Dieses Budget ist nun wieder \"frei\".\n"
+    'Dieses Budget ist nun wieder "frei".\n'
 )
 STUDENT_REJECTED_APPROVER_BODY_EN = (
     "The student assistant has rejected the petition (Id: {petition_id}).\n\n"
     "The application was thereby deleted and will not be processed further.\n"
     "You approved a budget of {hours}h for {percentage}% for this hiring petition.\n"
-    "This budget is now \"freed\" again.\n"
+    'This budget is now "freed" again.\n'
 )
 
 # --- Revision requested by the student ----------------------------------------
@@ -282,8 +290,12 @@ CLERK_APPROVED_SUPERVISOR_BODY_EN = (
     "signed. You will be notified as soon as the Team-Hilfskräfte has received and\n"
     "processed the contract documents.\n"
 )
-CLERK_APPROVED_APPROVER_BODY_DE = "Der Antrag (Id: {petition_id}) wurde von PersonalServices freigegeben."
-CLERK_APPROVED_APPROVER_BODY_EN = "The application (Id: {petition_id}) has been approved by PersonalServices."
+CLERK_APPROVED_APPROVER_BODY_DE = (
+    "Der Antrag (Id: {petition_id}) wurde von PersonalServices freigegeben."
+)
+CLERK_APPROVED_APPROVER_BODY_EN = (
+    "The application (Id: {petition_id}) has been approved by PersonalServices."
+)
 
 # --- Revision requested by the clerk ------------------------------------------
 
@@ -301,7 +313,9 @@ CLERK_REVISION_STUDENT_BODY_EN = (
 
 # --- Petition completed by the clerk ------------------------------------------
 
-PETITION_COMPLETED_SUBJECT = "[ClockWork] Einstellung abgeschlossen / Employment process completed"
+PETITION_COMPLETED_SUBJECT = (
+    "[ClockWork] Einstellung abgeschlossen / Employment process completed"
+)
 PETITION_COMPLETED_STUDENT_BODY_DE = (
     "Ihre Einstellung (Antrag (Id: {petition_id})) ist abgeschlossen.\n\n"
     "Willkommen als studentische Hilfskraft an der Goethe-Universität!\n"
@@ -310,12 +324,8 @@ PETITION_COMPLETED_STUDENT_BODY_EN = (
     "Your employment (application ID (Id: {petition_id})) has been completed.\n\n"
     "Welcome as student assistant of the Goethe University!\n"
 )
-PETITION_COMPLETED_SUPERVISOR_BODY_DE = (
-    "Der Antrag (Id: {petition_id}) auf Einstellung einer studentischen Hilfskraft ist abgeschlossen.\n\n"
-)
-PETITION_COMPLETED_SUPERVISOR_BODY_EN = (
-    "Petition (Id: {petition_id}) for the employment of a student assistant has been completed.\n\n"
-)
+PETITION_COMPLETED_SUPERVISOR_BODY_DE = "Der Antrag (Id: {petition_id}) auf Einstellung einer studentischen Hilfskraft ist abgeschlossen.\n\n"
+PETITION_COMPLETED_SUPERVISOR_BODY_EN = "Petition (Id: {petition_id}) for the employment of a student assistant has been completed.\n\n"
 
 # --- Petition deleted by the clerk --------------------------------------------
 
@@ -331,7 +341,7 @@ PETITION_DELETED_SUPERVISOR_BODY_DE = (
     "{reason_text}\n\n"
     "Der Antrag wurde durch die Ablehnung gelöscht. Bitte treten Sie mit den Prozessbeteiligten\n"
     "in Kontakt um Unstimmigkeiten zu klären.\n"
-    )
+)
 PETITION_DELETED_SUPERVISOR_BODY_EN = (
     "Your hiring petition (Id: {petition_id}) has been declined by PersonalServices.\n\n"
     "{reason_text_en}\n\n"

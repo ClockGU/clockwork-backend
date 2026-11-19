@@ -1,14 +1,13 @@
 from typing import Optional
 
-from fastapi import Depends, BackgroundTasks
+from fastapi import BackgroundTasks, Depends
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import (
-    get_specified_petition,
     get_specified_employee,
+    get_specified_petition,
 )
-
 from api.db.schema import Employee, Petition
 from api.handlers import EmployeeHandler, PetitionHandler
 
@@ -16,7 +15,7 @@ from api.handlers import EmployeeHandler, PetitionHandler
 def get_petition_handler(
     background_tasks: BackgroundTasks,
     petition: Optional[Petition] = Depends(get_specified_petition),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> PetitionHandler:
     """
     Dependency function to provide a PetitionHandler depending on whether a petition was

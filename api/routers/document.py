@@ -109,7 +109,9 @@ def download_document(
     )
 
 
-@router.get("/clerk/petitions/{petition_id}/documents", response_model=StudentDocumentsRead)
+@router.get(
+    "/clerk/petitions/{petition_id}/documents", response_model=StudentDocumentsRead
+)
 def get_petition_documents(
     petition_id: UUID,
     petition: Petition = Depends(get_specified_petition),
