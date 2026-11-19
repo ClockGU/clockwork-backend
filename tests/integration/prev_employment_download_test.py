@@ -30,9 +30,7 @@ def stored_proof(tmp_path, monkeypatch, db_session):
     monkeypatch.setattr(settings, "UPLOAD_DIR", tmp_path)
     create_upload_dirs()
     prev_employment = _prev_employment(db_session, f"{uuid.uuid4()}_proof.pdf")
-    (tmp_path / PREV_EMPLOYMENTS_DIR / prev_employment.proof).write_bytes(
-        PROOF_CONTENT
-    )
+    (tmp_path / PREV_EMPLOYMENTS_DIR / prev_employment.proof).write_bytes(PROOF_CONTENT)
     return prev_employment
 
 

@@ -32,6 +32,7 @@ def get_specified_petition(
         )
     return existing_petition
 
+
 def get_specified_employee(
     employee_id: Optional[UUID] = None, db: Session = Depends(get_db)
 ) -> Optional[Employee]:
@@ -49,6 +50,7 @@ def get_specified_employee(
         )
     return existing_employee
 
+
 def get_specified_prev_employment(
     prev_employment_id: Optional[UUID] = None, db: Session = Depends(get_db)
 ) -> Optional[PrevEmployment]:
@@ -59,10 +61,13 @@ def get_specified_prev_employment(
     if not prev_employment_id:
         return None
 
-    existing_prev_employment = PrevEmploymentManager(db).get_prev_employment(prev_employment_id)
+    existing_prev_employment = PrevEmploymentManager(db).get_prev_employment(
+        prev_employment_id
+    )
     if not existing_prev_employment:
         raise HTTPException(
-            status_code=404, detail=f"Employee with ID{str(prev_employment_id)} not found"
+            status_code=404,
+            detail=f"Employee with ID{str(prev_employment_id)} not found",
         )
     return existing_prev_employment
 

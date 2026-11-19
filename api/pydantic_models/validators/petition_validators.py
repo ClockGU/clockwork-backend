@@ -46,9 +46,8 @@ class PetitionValidationMixin:
             values.time_exce_name,
             values.time_exce_time,
         ]
-        if (
-            (values.time_exce_student or values.time_exce_course)
-            and not all(time_exce_fields)
+        if (values.time_exce_student or values.time_exce_course) and not all(
+            time_exce_fields
         ):
             raise ValueError(
                 "All time_exce fields must be provided together or not at all"
@@ -63,11 +62,8 @@ class PetitionValidationMixin:
             values.duration_exce_start,
             values.duration_exce_end,
         ]
-        if (
-            (
-                values.duration_exce_student or values.duration_exce_course
-            )
-            and not all(duration_exce_fields)
+        if (values.duration_exce_student or values.duration_exce_course) and not all(
+            duration_exce_fields
         ):
             raise ValueError(
                 "All duration_exce fields must be provided together or not at all"

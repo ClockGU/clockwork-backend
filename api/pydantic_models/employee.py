@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
+
 from api.db.schema.employee import Gender
 
 
@@ -28,7 +29,9 @@ class EmployeeValidate(BaseModel):
     @model_validator(mode="after")
     def validate_prev_emp_set(cls, values):
         if values.previously_employed and not values.prev_emp_duration:
-            raise ValueError("prev_emp_duration is required if previously_employed is True")
+            raise ValueError(
+                "prev_emp_duration is required if previously_employed is True"
+            )
         return values
 
 
