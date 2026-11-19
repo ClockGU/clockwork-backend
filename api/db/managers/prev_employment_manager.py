@@ -2,6 +2,7 @@ from sqlmodel import Session
 
 from api.db.schema.prev_employment import PrevEmployment
 
+
 class PrevEmploymentManager:
 
     def __init__(self, session: Session):
@@ -14,7 +15,9 @@ class PrevEmploymentManager:
     def get(self, **schema_fields) -> PrevEmployment:
         results = self.session.query(self.schema).filter_by(**schema_fields).all()
         if not results:
-            raise Exception(f"{self.schema.__name__} matching {schema_fields} does not exist.")
+            raise Exception(
+                f"{self.schema.__name__} matching {schema_fields} does not exist."
+            )
         if len(results) > 1:
             raise Exception(
                 f"{len(results)} {self.schema.__name__} objects match {schema_fields}, expected exactly one."

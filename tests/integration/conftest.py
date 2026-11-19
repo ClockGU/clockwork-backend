@@ -34,10 +34,18 @@ from api.websockets.managers import (
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Database configuration
-DB_URI = make_url(settings.DATABASE_URL).set(database="postgres").render_as_string(hide_password=False)
+DB_URI = (
+    make_url(settings.DATABASE_URL)
+    .set(database="postgres")
+    .render_as_string(hide_password=False)
+)
 # Unique per test run, so parallel runs never share (or migrate) the same database
 TEST_DB_NAME = f"test_db_{uuid.uuid4().hex[:8]}"
-TEST_DB_URL = make_url(settings.DATABASE_URL).set(database=TEST_DB_NAME).render_as_string(hide_password=False)
+TEST_DB_URL = (
+    make_url(settings.DATABASE_URL)
+    .set(database=TEST_DB_NAME)
+    .render_as_string(hide_password=False)
+)
 engine: Engine
 TestingSessionLocal: Session
 

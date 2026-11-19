@@ -1,9 +1,9 @@
 import uuid
 from datetime import date
+from enum import StrEnum, auto
 from typing import List, Optional
-from enum import auto, StrEnum
 
-from sqlalchemy import Enum, Column
+from sqlalchemy import Column, Enum
 from sqlalchemy.orm import relationship
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -28,7 +28,9 @@ class Employee(SQLModel, table=True):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     form_of_address: Optional[str] = None
-    gender: Optional[Gender] = Field(default=None, sa_column=Column(Enum(Gender), nullable=True))
+    gender: Optional[Gender] = Field(
+        default=None, sa_column=Column(Enum(Gender), nullable=True)
+    )
     date_of_birth: Optional[date] = None
     city_of_birth: Optional[str] = None
     address: Optional[str] = None

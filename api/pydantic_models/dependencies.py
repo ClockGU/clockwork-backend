@@ -31,4 +31,3 @@ def get_clerk_petition_update_model(
     Returns a PetitionSupervisorUpdate model instance with the provided petition_id and body.
     """
     return PetitionClerkUpdate.model_validate(body, petition)
-

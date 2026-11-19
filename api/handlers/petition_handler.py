@@ -3,23 +3,21 @@ from datetime import date
 from typing import List, Optional, Self
 from uuid import UUID
 
-from fastapi import HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, HTTPException
 from sqlmodel import Session
 
 from api.consts import PetitionStatus
 from api.db.managers import PetitionManager
-from api.db.managers.budget_position_manager import BudgetPositionManager
 from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.managers.student_document import StudentDocumentManager
 from api.db.schema.petition import Petition
 from api.handlers.budget_position_handler import BudgetPositionsHandler
-from api.handlers.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
+from api.handlers.mails.email_handler import EmailHandler
 from api.pdf.contract import create_contract_pdf
 from api.pydantic_models import EmployeeRead, PetitionCreate, PetitionRead
 from api.pydantic_models.employee import EmployeeValidate
 from api.pydantic_models.petition_update import (
-    PetitionSupervisorUpdate,
     PetitionUpdateModel,
 )
 
@@ -28,7 +26,12 @@ from api.pydantic_models.petition_update import (
 
 class PetitionHandler:
 
-    def __init__(self, db: Session, object_instance: Optional[Petition] = None, background_tasks: Optional[BackgroundTasks] = None):
+    def __init__(
+        self,
+        db: Session,
+        object_instance: Optional[Petition] = None,
+        background_tasks: Optional[BackgroundTasks] = None,
+    ):
         self.manager = PetitionManager(db)
         self.student_document_manager = StudentDocumentManager(db)
         self.employee_manager = EmployeeManager(db)
@@ -58,7 +61,12 @@ class PetitionHandler:
         return self._object_instance
 
     @classmethod
-    def from_existing_object(cls, db: Session, object_instance: Petition, background_tasks: Optional[BackgroundTasks] = None) -> Self:
+    def from_existing_object(
+        cls,
+        db: Session,
+        object_instance: Petition,
+        background_tasks: Optional[BackgroundTasks] = None,
+    ) -> Self:
         """
         Explicitly create a PetitionHandler instance from an existing Petition object.
         """
@@ -82,7 +90,9 @@ class PetitionHandler:
             )
 
             email_handler = EmailHandler(petition)
-            self.add_background_task(email_handler.notify_petition_created, petition.budget_positions)
+            self.add_background_task(
+                email_handler.notify_petition_created, petition.budget_positions
+            )
             return petition
         except Exception as e:
             raise self.exc.internal_error("creating the petition", e)
@@ -143,7 +153,9 @@ class PetitionHandler:
             raise self.exc.delete_failed("Petition", str(petition.id))
 
         email_handler = EmailHandler(petition)
-        self.add_background_task(email_handler.notify_petition_deleted, reason, budget_positions)
+        self.add_background_task(
+            email_handler.notify_petition_deleted, reason, budget_positions
+        )
 
         return {"detail": "Petition deleted successfully"}
 
@@ -217,7 +229,7 @@ class PetitionHandler:
         else:
             # Student rejected, notify and then move to clerk_action
             email_handler = EmailHandler(petition)
-            self.add_background_task(email_handler.notify_student_rejected, petition.budget_positions)
+            self.add_background_task(email_handler.notify_student_rejected)
             return self.delete_petition()
 
         return petition
@@ -245,7 +257,11 @@ class PetitionHandler:
         try:
 
             email_handler = EmailHandler(petition)
-            self.add_background_task(email_handler.notify_clerk_approved, contract_pdf_buffer, budget_positions)
+            self.add_background_task(
+                email_handler.notify_clerk_approved,
+                contract_pdf_buffer,
+                budget_positions,
+            )
 
         except Exception as e:
             raise self.exc.internal_error("sending contract PDF", e)
@@ -261,7 +277,9 @@ class PetitionHandler:
         self, petition: Petition, message: str, subject: Optional[str] = None
     ) -> Petition:
         email_handler = EmailHandler(petition)
-        self.add_background_task(email_handler.notify_clerk_requested_revision, message, subject)
+        self.add_background_task(
+            email_handler.notify_clerk_requested_revision, message, subject
+        )
 
         # Change status to clerk_revision
         petition = self.manager.update_petition_status(
@@ -299,7 +317,9 @@ class PetitionHandler:
         Sends email to supervisor and changes status to 'student_revision'.
         """
         email_handler = EmailHandler(petition)
-        self.add_background_task(email_handler.notify_student_requested_revision, message, subject)
+        self.add_background_task(
+            email_handler.notify_student_requested_revision, message, subject
+        )
 
         # Update petition status to student_revision
         petition = self.manager.update_petition_status(
@@ -361,8 +381,10 @@ class PetitionHandler:
                     )
 
                     try:
-                        has_approved_petition_in_semester = self._has_approved_petition_in_semester(
-                            petition.student_username, petition.start_date
+                        has_approved_petition_in_semester = (
+                            self._has_approved_petition_in_semester(
+                                petition.student_username, petition.start_date
+                            )
                         )
                         email_handler = EmailHandler(petition)
                         self.add_background_task(
@@ -393,9 +415,7 @@ class PetitionHandler:
 
                 email_handler = EmailHandler(petition)
                 self.add_background_task(
-                    email_handler.notify_budget_rejected,
-                    updated_budget_position,
-                    self.budget_positions_handler.get_objects(),
+                    email_handler.notify_budget_rejected, updated_budget_position
                 )
 
                 self.manager.delete_petition(petition)

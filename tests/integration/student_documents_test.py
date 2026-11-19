@@ -15,7 +15,12 @@ from api.db.schema.student_documents import StudentDocuments
 from api.env import settings
 from api.main import app
 from api.pydantic_models.documents import UPLOAD_FIELDS
-from api.security import UserRole, decode_user_jwt, get_current_clerk, get_current_student
+from api.security import (
+    UserRole,
+    decode_user_jwt,
+    get_current_clerk,
+    get_current_student,
+)
 from api.utils import STUDENT_DOCUMENTS_DIR, create_upload_dirs
 
 
@@ -226,9 +231,7 @@ def test_owner_patches_single_file(client, student_documents, upload_dir, as_stu
     )
 
 
-def test_owner_patches_several_files(
-    client, student_documents, upload_dir, as_student
-):
+def test_owner_patches_several_files(client, student_documents, upload_dir, as_student):
     response = client.patch(
         f"/documents/{student_documents.id}",
         files={

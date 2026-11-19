@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional, Self
 
-from fastapi import UploadFile, HTTPException
+from fastapi import HTTPException, UploadFile
 from sqlmodel import Session
 
 from api.db.managers.prev_employment_manager import PrevEmploymentManager
@@ -13,6 +13,7 @@ from api.pydantic_models.prev_employment import (
     PrevEmploymentUpdate,
 )
 from api.utils import delete_prev_emp_file, save_prev_emp_file
+
 
 class PrevEmploymentHandler:
 
@@ -54,7 +55,9 @@ class PrevEmploymentHandler:
         validated_data = PrevEmploymentCreate.model_validate(data).model_dump()
         return self.manager.create(**validated_data)
 
-    def update_prev_employment(self, prev_employment_id: uuid.UUID, data: PrevEmploymentUpdate) -> PrevEmployment:
+    def update_prev_employment(
+        self, prev_employment_id: uuid.UUID, data: PrevEmploymentUpdate
+    ) -> PrevEmployment:
         prev_employment = self.manager.get(id=prev_employment_id)
         data_dict = data.model_dump(exclude_unset=True)
         PrevEmploymentCreate.model_validate(prev_employment.model_dump() | data_dict)
@@ -64,10 +67,14 @@ class PrevEmploymentHandler:
     def get_user_prev_employments(self, user_id: str) -> list[PrevEmployment]:
         return self.manager.filter(user_account=user_id)
 
-    def upload_file(self, prev_employment_id: uuid.UUID, file: UploadFile) -> PrevEmployment:
+    def upload_file(
+        self, prev_employment_id: uuid.UUID, file: UploadFile
+    ) -> PrevEmployment:
         prev_employment = self.manager.get(id=prev_employment_id)
         file_url = save_prev_emp_file(prev_employment, file)
-        updated_prev_employment = self.manager.update([prev_employment], {"proof": file_url})
+        updated_prev_employment = self.manager.update(
+            [prev_employment], {"proof": file_url}
+        )
         return updated_prev_employment[0]
 
     def delete_prev_employment(self, prev_employment_id) -> None:
@@ -76,5 +83,7 @@ class PrevEmploymentHandler:
             try:
                 delete_prev_emp_file(prev_employment.proof)
             except FileNotFoundError:
-                raise HTTPException(500, "Error deleting file for prev employment proof")
+                raise HTTPException(
+                    500, "Error deleting file for prev employment proof"
+                )
         self.manager.delete(prev_employment)

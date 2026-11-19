@@ -32,7 +32,7 @@ services:
       - SMTP_SERVER=mailhog
       - SMTP_PORT=1025
       - SMTP_TLS=false
-      - SMTP_USER=
+      - SMTP_USER=clock@uni-frankfurt.de
       - SMTP_PASSWORD=
       - SIGNATURE_SECRET_KEY=secret
       - CLERK_LIST=http://host.docker.internal:8020/users/clerks # points to local machine

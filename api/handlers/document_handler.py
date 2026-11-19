@@ -1,14 +1,11 @@
-from typing import Optional
 from uuid import UUID
 
-from fastapi import UploadFile
 from sqlmodel import Session
 
 from api.db.managers import PetitionManager
 from api.db.managers.student_document import StudentDocumentManager
 from api.db.schema import Employee, Petition
 from api.db.schema.student_documents import StudentDocuments
-from api.handlers.email_handler import EmailHandler
 from api.handlers.exception_handler import ExceptionHandler
 from api.pydantic_models.documents import StudentDocumentsUpdate
 
