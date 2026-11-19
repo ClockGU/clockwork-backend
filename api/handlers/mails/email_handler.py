@@ -331,6 +331,8 @@ class EmailHandler:
                 BUDGET_REJECTED_APPROVER_BODY_DE,
                 BUDGET_REJECTED_APPROVER_BODY_EN,
                 rejecting_approver=rejecting_approver,
+                start=self.petition.start_date.strftime("%d.%m.%Y"),
+                end=self.petition.end_date.strftime("%d.%m.%Y"),
                 hours=self.petition.minutes / 60,
                 percentage=budget_position.percentage,
             ),
@@ -379,6 +381,8 @@ class EmailHandler:
             body=self._render_body(
                 STUDENT_REJECTED_APPROVER_BODY_DE,
                 STUDENT_REJECTED_APPROVER_BODY_EN,
+                start=self.petition.start_date.strftime("%d.%m.%Y"),
+                end=self.petition.end_date.strftime("%d.%m.%Y"),
                 hours=self.petition.minutes / 60,
                 percentage=budget_position.percentage,
             ),
