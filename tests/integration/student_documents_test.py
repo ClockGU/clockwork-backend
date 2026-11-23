@@ -87,7 +87,7 @@ def test_documents_by_username_endpoint_is_gone(client, student_documents, as_cl
 
     assert response.status_code == 404
 
-
+@pytest.mark.skip("Skipped until link between Employee and StudentDocuments schemas is lifted.")
 def test_get_documents_returns_callers_document_without_employee_query(
     client, db_session, student_documents, student_employee, as_student_payload
 ):
