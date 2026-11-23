@@ -139,10 +139,8 @@ def test_document_with_unknown_user_account_fails(db_session):
 def test_documents_creates_document_on_first_call(
     client, db_session, student_employee, as_student_payload
 ):
-    as_student_payload({"sub": str(student_employee.user_account), "username": "firstlogin"})
-
+    as_student_payload({"sub": str(student_employee.user_account), "username": student_employee.username})
     response = client.get("/documents")
-
     assert response.status_code == 200
     assert response.json()["user_account"] == str(student_employee.user_account)
     document = db_session.execute(
