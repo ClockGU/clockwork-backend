@@ -32,6 +32,15 @@ def as_student(student_employee):
     yield
     app.dependency_overrides.pop(get_current_student, None)
 
+@pytest.fixture
+def as_student_payload():
+    """Authenticate as a student with the given JWT payload, bypassing token checks."""
+
+    def _as(payload: dict):
+        app.dependency_overrides[get_current_student] = lambda: payload
+
+    yield _as
+    app.dependency_overrides.pop(get_current_student, None)
 
 @pytest.fixture
 def as_clerk():
@@ -134,6 +143,38 @@ def test_document_with_unknown_user_account_fails(db_session):
         db_session.flush()
     db_session.rollback()
 
+def test_documents_creates_document_on_first_call(
+    client, db_session, student_employee, as_student_payload
+):
+    user_account = uuid.uuid4()
+    as_student_payload({"sub": str(user_account), "username": "firstlogin"})
+
+    response = client.get("/documents")
+
+    assert response.status_code == 200
+    assert response.json()["user_account"] == str(user_account)
+    document = db_session.execute(
+        select(StudentDocuments).where(StudentDocuments.user_account == user_account)
+    ).scalar_one()
+    assert str(document.id) == response.json()["id"]
+    assert str(document.employee.id) == str(student_employee.id)
+
+
+def test_documents_returns_existing_student_documents_without_duplicates(
+    client, db_session, student_employee, student_documents, as_student_payload
+):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
+
+    response = client.get("/documents")
+
+    assert response.status_code == 200
+    assert response.json()["id"] == str(student_documents.id)
+    documents = db_session.execute(
+        select(StudentDocuments).where(StudentDocuments.user_account == student_employee.user_account)
+    ).all()
+    assert len(documents) == 1
 
 def test_get_documents_returns_file_keys(client, student_documents, as_student):
     response = client.get("/documents")
