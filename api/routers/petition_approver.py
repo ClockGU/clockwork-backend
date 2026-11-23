@@ -49,9 +49,3 @@ def update_budget_position_approval(
     )
 
     return updated_petition
-
-
-@router.patch("/test")
-def test_patch(data: BudgetPositionApprovalUpdate = Body(...)):
-    print(data)
-    return data

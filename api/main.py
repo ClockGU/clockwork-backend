@@ -91,7 +91,6 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-
 @app.exception_handler(ValidationError)
 async def pydantic_validation_handler(request, exc: ValidationError):
     messages = []
