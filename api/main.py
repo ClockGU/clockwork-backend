@@ -106,25 +106,3 @@ async def pydantic_validation_handler(request, exc: ValidationError):
         status_code=422,
         content={"detail": "\n".join(messages)},
     )
-
-
-@app.get("/checksupervisor")
-def check_supervisor(current_user: dict = Depends(get_current_supervisor)):
-    return current_user
-
-
-@app.get("/checkstudent")
-def check_student(current_user: dict = Depends(get_current_student)):
-    return current_user
-
-
-# routes to check the basic working
-@app.get("/check-db")
-def check_db(db: Session = Depends(get_db)):
-    if db.bind.dialect.name == "sqlite":
-        query = "SELECT CURRENT_TIMESTAMP"
-    else:
-        query = "SELECT NOW()"
-    result = db.execute(text(query))
-    current_time = result.scalar()
-    return {"database_time": current_time}
