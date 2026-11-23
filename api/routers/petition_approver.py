@@ -30,6 +30,7 @@ def read_petition(
 
 @router.patch("/approver/petitions/{petition_id}/{signature}/{budget_position_id}")
 def update_budget_position_approval(
+    petition_id: str,
     signature: str,
     budget_position_id: UUID,
     approval_data: BudgetPositionApprovalUpdate = Body(...),

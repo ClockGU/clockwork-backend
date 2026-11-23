@@ -83,11 +83,15 @@ def get_document_for_clerk_or_owner(
     so the document's existence is not disclosed.
     """
     document = StudentDocumentManager(db).get_document(document_id)
-    if not document or (
+    if not document:
+        raise HTTPException(
+            status_code=404, detail=f"Document with ID{str(document_id)} not found"
+        )
+    if (
         user.get("user_role") != UserRole.CLERK.value
         and str(document.user_account) != user.get("sub")
     ):
         raise HTTPException(
-            status_code=404, detail=f"Document with ID{str(document_id)} not found"
+            status_code=403, detail=f"You do not have permission to access the document with id {str(document_id)} "
         )
     return document
