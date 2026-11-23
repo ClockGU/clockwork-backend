@@ -23,7 +23,9 @@ def get_employee_by_user(
     """
     Retrieve an employee record by the user ID (user_account).
     """
-    employee = handler.get_employee_by_user_account(user.get("sub"))
+    employee = handler.get_or_create_employee(
+        user_id=user.get("sub"), username=user.get("username")
+    )
     return employee
 
 

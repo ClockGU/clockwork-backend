@@ -46,16 +46,17 @@ class EmployeeHandler:
             raise self.exc.created_failed("Employee")
         return employee
 
-    def get_employee_by_user_account(self, user_account: UUID) -> Employee:
+    def get_or_create_employee(self, user_id: UUID, username: str) -> Employee:
         """
         Retrieve an employee by their user_account UUID.
         """
-        employee = self.manager.get_employee_by_user_account(user_account)
+        employee = self.manager.get_employee_by_user_account(user_id)
         if not employee:
-            raise self.exc.not_found(
-                "Employee",
-                message=f"Employee with user_account {user_account} not found",
-            )
+            data = EmployeeCreate(user_account=user_id, username=username)
+            try:
+                employee = self.manager.create_employee(employee_data=data)
+            except:
+                raise self.exc.created_failed("Employee")
         return employee
 
     def employee_exists_by_user_account(self, user_account: UUID) -> bool:
