@@ -1,15 +1,11 @@
 import uuid
 from datetime import date
 
-import jwt
 import pytest
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 from sqlalchemy import event, text
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
-import api.security
 from api.db.schema.employee import Employee
 from api.db.schema.student_documents import StudentDocuments
 from api.env import settings
@@ -25,14 +21,6 @@ from api.utils import STUDENT_DOCUMENTS_DIR, create_upload_dirs
 
 
 @pytest.fixture
-def as_student(student_employee):
-    app.dependency_overrides[get_current_student] = lambda: {
-        "sub": str(student_employee.user_account)
-    }
-    yield
-    app.dependency_overrides.pop(get_current_student, None)
-
-@pytest.fixture
 def as_student_payload():
     """Authenticate as a student with the given JWT payload, bypassing token checks."""
 
@@ -41,6 +29,7 @@ def as_student_payload():
 
     yield _as
     app.dependency_overrides.pop(get_current_student, None)
+
 
 @pytest.fixture
 def as_clerk():
@@ -100,8 +89,11 @@ def test_documents_by_username_endpoint_is_gone(client, student_documents, as_cl
 
 
 def test_get_documents_returns_callers_document_without_employee_query(
-    client, db_session, student_documents, as_student
+    client, db_session, student_documents, student_employee, as_student_payload
 ):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     statements = []
 
     def record(conn, cursor, statement, parameters, context, executemany):
@@ -143,18 +135,18 @@ def test_document_with_unknown_user_account_fails(db_session):
         db_session.flush()
     db_session.rollback()
 
+
 def test_documents_creates_document_on_first_call(
     client, db_session, student_employee, as_student_payload
 ):
-    user_account = uuid.uuid4()
-    as_student_payload({"sub": str(user_account), "username": "firstlogin"})
+    as_student_payload({"sub": str(student_employee.user_account), "username": "firstlogin"})
 
     response = client.get("/documents")
 
     assert response.status_code == 200
-    assert response.json()["user_account"] == str(user_account)
+    assert response.json()["user_account"] == str(student_employee.user_account)
     document = db_session.execute(
-        select(StudentDocuments).where(StudentDocuments.user_account == user_account)
+        select(StudentDocuments).where(StudentDocuments.user_account == student_employee.user_account)
     ).scalar_one()
     assert str(document.id) == response.json()["id"]
     assert str(document.employee.id) == str(student_employee.id)
@@ -172,11 +164,19 @@ def test_documents_returns_existing_student_documents_without_duplicates(
     assert response.status_code == 200
     assert response.json()["id"] == str(student_documents.id)
     documents = db_session.execute(
-        select(StudentDocuments).where(StudentDocuments.user_account == student_employee.user_account)
+        select(StudentDocuments).where(
+            StudentDocuments.user_account == student_employee.user_account
+        )
     ).all()
     assert len(documents) == 1
 
-def test_get_documents_returns_file_keys(client, student_documents, as_student):
+
+def test_get_documents_returns_file_keys(
+    client, student_documents, student_employee, as_student_payload
+):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.get("/documents")
 
     assert response.status_code == 200
@@ -224,7 +224,12 @@ def other_student_documents(db_session):
     return docs
 
 
-def test_owner_patches_single_file(client, student_documents, upload_dir, as_student):
+def test_owner_patches_single_file(
+    client, student_documents, upload_dir, student_employee, as_student_payload
+):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.patch(
         f"/documents/{student_documents.id}",
         files={"elstam": ("Scan.PDF", b"elstam content")},
@@ -239,7 +244,12 @@ def test_owner_patches_single_file(client, student_documents, upload_dir, as_stu
     )
 
 
-def test_owner_patches_several_files(client, student_documents, upload_dir, as_student):
+def test_owner_patches_several_files(
+    client, student_documents, upload_dir, student_employee, as_student_payload
+):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.patch(
         f"/documents/{student_documents.id}",
         files={
@@ -261,8 +271,16 @@ def test_owner_patches_several_files(client, student_documents, upload_dir, as_s
 
 
 def test_patch_other_students_document_returns_404(
-    client, student_documents, other_student_documents, upload_dir, as_student
+    client,
+    student_documents,
+    other_student_documents,
+    upload_dir,
+    student_employee,
+    as_student_payload,
 ):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.patch(
         f"/documents/{other_student_documents.id}",
         files={"elstam": ("elstam.pdf", b"elstam")},
@@ -273,8 +291,11 @@ def test_patch_other_students_document_returns_404(
 
 
 def test_patch_unknown_document_returns_404(
-    client, student_documents, upload_dir, as_student
+    client, student_documents, upload_dir, student_employee, as_student_payload
 ):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.patch(
         f"/documents/{uuid.uuid4()}",
         files={"elstam": ("elstam.pdf", b"elstam")},
@@ -284,16 +305,22 @@ def test_patch_unknown_document_returns_404(
 
 
 def test_patch_without_files_returns_422(
-    client, student_documents, upload_dir, as_student
+    client, student_documents, upload_dir, student_employee, as_student_payload
 ):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.patch(f"/documents/{student_documents.id}")
 
     assert response.status_code == 422
 
 
 def test_patch_ignores_unknown_form_field(
-    client, student_documents, upload_dir, as_student
+    client, student_documents, upload_dir, student_employee, as_student_payload
 ):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.patch(
         f"/documents/{student_documents.id}",
         files={
@@ -313,8 +340,11 @@ def test_patch_ignores_unknown_form_field(
 
 
 def test_patch_with_only_unknown_form_field_returns_422(
-    client, student_documents, upload_dir, as_student
+    client, student_documents, upload_dir, student_employee, as_student_payload
 ):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.patch(
         f"/documents/{student_documents.id}",
         files={"unknown": ("unknown.pdf", b"unknown")},
@@ -323,7 +353,12 @@ def test_patch_with_only_unknown_form_field_returns_422(
     assert response.status_code == 422
 
 
-def test_patch_documents_without_id_is_gone(client, student_documents, as_student):
+def test_patch_documents_without_id_is_gone(
+    client, student_documents, student_employee, as_student_payload
+):
+    as_student_payload(
+        {"sub": str(student_employee.user_account), "username": "teststudent"}
+    )
     response = client.patch("/documents", files={"elstam": ("elstam.pdf", b"x")})
 
     assert response.status_code == 405
