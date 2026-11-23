@@ -53,8 +53,8 @@ def decode_user_jwt(token: str = Depends(retrieve_jwt_bearer_token)):
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
 
-def authenticate_clerk(user: dict):
-    if user.get("user_role") != UserRole.CLERK.value:
+def authenticate_role(user: dict, role: int):
+    if user.get("user_role") != role:
         raise HTTPException(
             status_code=403, detail="No permission to access this resource"
         )
@@ -62,7 +62,7 @@ def authenticate_clerk(user: dict):
 
 
 def auth_clerk_from_token(token: str):
-    authenticate_clerk(user=decode_user_jwt(token=token))
+    authenticate_role(user=decode_user_jwt(token=token), role=UserRole.CLERK.value)
 
 
 def get_current_supervisor(request: Request):
@@ -149,7 +149,7 @@ def get_current_clerk(user: dict = Depends(decode_user_jwt)) -> dict:
     """
     decode the JWT token to inject user in api and checks the role of clerk
     """
-    authenticate_clerk(user)
+    authenticate_role(user, role=UserRole.CLERK.value)
     return user
 
 
