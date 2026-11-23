@@ -14,6 +14,8 @@ from api.db.managers.dependencies import (
 )
 from api.db.schema import Petition
 from api.db.schema.student_documents import StudentDocuments
+from api.handlers import EmployeeHandler
+from api.handlers.dependencies import get_employee_handler
 from api.handlers.document_handler import StudentDocumentHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.pydantic_models.documents import UPLOAD_FIELDS, DocumentType
@@ -31,12 +33,14 @@ def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandle
 @router.get("/documents", response_model=StudentDocumentsRead)
 def get_document(
     handler: StudentDocumentHandler = Depends(get_document_handler),
+    employee_handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_student),  # Secure the endpoint
 ):
     """
     Retrieve a document by the user's account.
     """
-    return handler.get_document_by_user_account(user.get("sub"))
+    employee = employee_handler.get_employee_by_username(username=user.get("username"))
+    return handler.get_or_create_student_document(user_id=user.get("sub"), employee=employee)
 
 
 def files_dependency(names: list[str]):

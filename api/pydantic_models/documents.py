@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from api.db.schema.student_documents import StudentDocuments
+from api.pydantic_models.employee import EmployeeRead
 
 UPLOAD_FIELDS = [
     k.removesuffix("_file")
@@ -14,6 +15,9 @@ UPLOAD_FIELDS = [
 
 DocumentType = Enum("DocumentType", {field: field for field in UPLOAD_FIELDS}, type=str)
 
+class StudentDocumentsCreate(BaseModel):
+    user_account: UUID
+    employee: EmployeeRead
 
 class StudentDocumentsUpdate(BaseModel):
     elstam_file: Optional[str] = None
