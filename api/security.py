@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import secrets
+from collections.abc import Callable
 from enum import Enum
 
 import jwt
@@ -60,100 +61,27 @@ def authenticate_role(user: dict, role: int):
         )
     return user
 
+def build_current_role_retrival(role: UserRole) -> Callable[[Request], dict]:
+    """
+    A factory function building an authentication function for a role provided.
+    The authentication function can be used as a dependency for endpoints. It
+    attempts to read a 'Bearer' toke from the requests headers, tries to decode
+    a JWT from it and checks whether the decoded user object has the specified role.
+    """
+    def get_current_role(request: Request):
+        token = retrieve_jwt_bearer_token(request)
+        user = decode_user_jwt(token)
+        return authenticate_role(user, role.value)
+    return get_current_role
+
+
+get_current_student = build_current_role_retrival(UserRole.STUDENT)
+get_current_supervisor = build_current_role_retrival(UserRole.SUPERVISOR)
+get_current_clerk = build_current_role_retrival(UserRole.CLERK)
 
 def auth_clerk_from_token(token: str):
     authenticate_role(user=decode_user_jwt(token=token), role=UserRole.CLERK.value)
 
-
-def get_current_supervisor(request: Request):
-    """
-    decode the JWT token to inject user in api and checks the role of supervisor
-    """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    scheme, token = auth_header.split()
-    if scheme.lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-
-    try:
-        # Decode the JWT token using the public key
-        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGORITHM])
-        ####check the role of supervisor
-        if payload.get("user_role") != UserRole.SUPERVISOR.value:
-            raise HTTPException(
-                status_code=403, detail="No permission to access this resource"
-            )
-        return payload
-
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
-
-
-def get_current_student(request: Request, db: Session = Depends(get_db)) -> dict:
-    """
-    Decode the JWT token to inject user in API and checks the role of student.
-    If no employee entry exists for the user, create one and also create a document entry.
-    """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-
-    try:
-        scheme, token = auth_header.split()
-        if scheme.lower() != "bearer":
-            raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-
-        # Decode the JWT token using the public key
-        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGORITHM])
-
-        # Check the role of student
-        if payload.get("user_role") != UserRole.STUDENT.value:
-            raise HTTPException(
-                status_code=403, detail="No permission to access this resource"
-            )
-
-        # Extract user_account from the payload
-        user_account = payload.get("sub")
-        if not user_account:
-            raise HTTPException(
-                status_code=400, detail="Invalid token: Missing user_account"
-            )
-
-        # Dependency injection for handlers
-        employee_handler = EmployeeHandler(db)
-        document_handler = StudentDocumentHandler(db)
-
-        # Check if an employee entry exists
-        # Todo: This could become a handler method setup_employee_entry_for_user
-        if not employee_handler.employee_exists_by_user_account(user_account):
-            # Create a new employee entry
-            new_employee_data = EmployeeCreate(
-                user_account=user_account, username=payload.get("username")
-            )
-
-            new_employee = employee_handler.create_employee(new_employee_data)
-
-            document_handler.create_document(new_employee)
-        return payload
-
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
-
-
-def get_current_clerk(user: dict = Depends(decode_user_jwt)) -> dict:
-    """
-    decode the JWT token to inject user in api and checks the role of clerk
-    """
-    authenticate_role(user, role=UserRole.CLERK.value)
-    return user
-
-
-# for email signature
 SECRET_KEY = settings.SIGNATURE_SECRET_KEY  # Ensure the secret key is bytes
 
 
