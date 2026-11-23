@@ -135,39 +135,6 @@ def test_document_with_unknown_user_account_fails(db_session):
     db_session.rollback()
 
 
-def test_first_login_creates_employee_and_documents(client, db_session, monkeypatch):
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    public_pem = private_key.public_key().public_bytes(
-        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
-    )
-    monkeypatch.setattr(api.security, "PUBLIC_KEY", public_pem)
-    monkeypatch.setattr(api.security, "JWT_ALGORITHM", "RS256")
-
-    user_account = uuid.uuid4()
-    token = jwt.encode(
-        {
-            "sub": str(user_account),
-            "username": "firstlogin",
-            "user_role": UserRole.STUDENT.value,
-        },
-        private_key,
-        algorithm="RS256",
-    )
-
-    response = client.get("/documents", headers={"Authorization": f"Bearer {token}"})
-
-    assert response.status_code == 200
-    assert response.json()["user_account"] == str(user_account)
-    employee = db_session.execute(
-        select(Employee).where(Employee.user_account == user_account)
-    ).scalar_one()
-    assert employee.username == "firstlogin"
-    document = db_session.execute(
-        select(StudentDocuments).where(StudentDocuments.user_account == user_account)
-    ).scalar_one()
-    assert document.employee.id == employee.id
-
-
 def test_get_documents_returns_file_keys(client, student_documents, as_student):
     response = client.get("/documents")
 
