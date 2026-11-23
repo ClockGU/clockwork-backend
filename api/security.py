@@ -21,7 +21,7 @@ JWT_ALGORITHM = settings.JWT_ALGORITHM
 if not PUBLIC_KEY_PATH:
     raise Exception("JWT public certificate is not provided")
 with open(PUBLIC_KEY_PATH, "r") as f:
-    public_key = f.read()
+    PUBLIC_KEY = f.read()
 
 
 class UserRole(Enum):
@@ -43,7 +43,7 @@ def retrieve_jwt_bearer_token(request: Request):
 def decode_user_jwt(token: str = Depends(retrieve_jwt_bearer_token)):
     try:
         # Decode the JWT token using the public key
-        payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGORITHM])
 
         return payload
 
@@ -78,7 +78,7 @@ def get_current_supervisor(request: Request):
 
     try:
         # Decode the JWT token using the public key
-        payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGORITHM])
         ####check the role of supervisor
         if payload.get("user_role") != UserRole.SUPERVISOR.value:
             raise HTTPException(
@@ -107,7 +107,7 @@ def get_current_student(request: Request, db: Session = Depends(get_db)) -> dict
             raise HTTPException(status_code=401, detail="Invalid authentication scheme")
 
         # Decode the JWT token using the public key
-        payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGORITHM])
 
         # Check the role of student
         if payload.get("user_role") != UserRole.STUDENT.value:

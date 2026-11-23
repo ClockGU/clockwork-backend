@@ -140,7 +140,7 @@ def test_first_login_creates_employee_and_documents(client, db_session, monkeypa
     public_pem = private_key.public_key().public_bytes(
         serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    monkeypatch.setattr(api.security, "public_key", public_pem)
+    monkeypatch.setattr(api.security, "PUBLIC_KEY", public_pem)
     monkeypatch.setattr(api.security, "JWT_ALGORITHM", "RS256")
 
     user_account = uuid.uuid4()
