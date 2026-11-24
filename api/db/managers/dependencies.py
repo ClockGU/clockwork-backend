@@ -18,10 +18,11 @@ from api.security import (
     decode_user_jwt,
     get_current_student,
     verify_signature,
+    can_access,
 )
 
 def get_specified_petition(
-    petition_id: Optional[UUID] = None, db: Session = Depends(get_db)
+    petition_id: Optional[UUID] = None, user: dict = Depends(decode_user_jwt), db: Session = Depends(get_db)
 ) -> Optional[Petition]:
     """
     Dependency function to retrieve a specified petition if a petition_id was provided in the path.
@@ -31,7 +32,7 @@ def get_specified_petition(
         return None
 
     existing_petition = PetitionManager(db).get_petition(petition_id)
-    if not existing_petition:
+    if not existing_petition or not can_access(user, existing_petition):
         raise HTTPException(
             status_code=404, detail=f"Petition with ID{str(petition_id)} not found"
         )
@@ -39,7 +40,7 @@ def get_specified_petition(
 
 
 def get_specified_employee(
-    employee_id: Optional[UUID] = None, db: Session = Depends(get_db)
+    employee_id: Optional[UUID] = None, user: dict = Depends(decode_user_jwt), db: Session = Depends(get_db)
 ) -> Optional[Employee]:
     """
     Dependency function to retrieve a specified employee if a employee_id was provided in the path.
@@ -49,7 +50,7 @@ def get_specified_employee(
         return None
 
     existing_employee = EmployeeManager(db).get_employee(employee_id)
-    if not existing_employee:
+    if not existing_employee or not can_access(user, existing_employee):
         raise HTTPException(
             status_code=404, detail=f"Employee with ID{str(employee_id)} not found"
         )
@@ -57,7 +58,7 @@ def get_specified_employee(
 
 
 def get_specified_prev_employment(
-    prev_employment_id: Optional[UUID] = None, db: Session = Depends(get_db)
+    prev_employment_id: Optional[UUID] = None, user: dict = Depends(decode_user_jwt), db: Session = Depends(get_db)
 ) -> Optional[PrevEmployment]:
     """
     Dependency function to retrieve a specified employee if a employee_id was provided in the path.
@@ -69,7 +70,7 @@ def get_specified_prev_employment(
     existing_prev_employment = PrevEmploymentManager(db).get_prev_employment(
         prev_employment_id
     )
-    if not existing_prev_employment:
+    if not existing_prev_employment or not can_access(user, existing_prev_employment):
         raise HTTPException(
             status_code=404,
             detail=f"Employee with ID{str(prev_employment_id)} not found",
@@ -78,7 +79,7 @@ def get_specified_prev_employment(
 
 
 def get_specified_student_document(
-    document_id: UUID, db: Session = Depends(get_db),
+    document_id: UUID, user: dict = Depends(decode_user_jwt), db: Session = Depends(get_db),
 ) -> StudentDocuments:
     """
     Dependency function to retrieve the specified document if the user is a clerk or the student owning it.
@@ -86,7 +87,7 @@ def get_specified_student_document(
     so the document's existence is not disclosed.
     """
     document = StudentDocumentManager(db).get_document(document_id)
-    if not document:
+    if not document or not can_access(user, document):
         raise HTTPException(
             status_code=404, detail=f"Document with ID{str(document_id)} not found"
         )

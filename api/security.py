@@ -10,6 +10,7 @@ from uuid import UUID
 import jwt
 from fastapi import Depends, HTTPException, Request
 
+from api.db.schema import Petition
 from api.env import settings
 
 
@@ -87,6 +88,18 @@ def get_current_clerk_or_student(user: dict = Depends(decode_user_jwt)):
 
 def auth_clerk_from_token(token: str):
     authenticate_role(user=decode_user_jwt(token=token), role=UserRole.CLERK.value)
+
+def can_access(user: dict, obj) -> bool:
+  role = user.get("user_role")
+  if role == UserRole.CLERK.value:
+      return True
+  if isinstance(obj, Petition):
+      if role == UserRole.SUPERVISOR.value:
+          return str(obj.user_account) == user["sub"]
+      if role == UserRole.STUDENT.value:
+          return obj.student_username == user["username"]
+      return False
+  return str(obj.user_account) == user["sub"] # Employee, StudentDocuments, PrevEmployment
 
 SECRET_KEY = settings.SIGNATURE_SECRET_KEY  # Ensure the secret key is bytes
 
