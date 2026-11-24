@@ -1,19 +1,17 @@
 import base64
 import hashlib
 import hmac
+import json
 import secrets
 from collections.abc import Callable
 from enum import Enum
+from uuid import UUID
 
 import jwt
 from fastapi import Depends, HTTPException, Request
-from sqlmodel import Session
 
-from api.db.dependencies import get_db
 from api.env import settings
-from api.handlers.document_handler import StudentDocumentHandler
-from api.handlers.employee_handler import EmployeeHandler
-from api.pydantic_models.employee import EmployeeCreate
+
 
 # Replace with your actual public key
 PUBLIC_KEY_PATH = settings.JWT_PUBLIC_KEY_PATH
@@ -95,27 +93,28 @@ def auth_clerk_from_token(token: str):
 SECRET_KEY = settings.SIGNATURE_SECRET_KEY  # Ensure the secret key is bytes
 
 
-def generate_signature() -> str:
+def generate_signature(budget_position_id: UUID) -> str:
     """
-    Generate a unique HMAC signature using a random nonce and a secret key.
+    Generate a unique HMAC signature using a random nonce and a secret key for a given BudgetPosition id.
     """
     nonce = secrets.token_urlsafe(32)  # Generates a secure random string
-    signature = hmac.new(SECRET_KEY, nonce.encode(), hashlib.sha256).digest()
+    msg = {"nonce": nonce, "budget_position_id": str(budget_position_id)}
+    signature = hmac.new(SECRET_KEY, json.dumps(msg).encode("utf-8"), hashlib.sha256).digest()
     signature_b64 = base64.urlsafe_b64encode(nonce.encode() + b"." + signature).decode()
     return signature_b64
 
 
-def verify_signature(signature_b64: str) -> bool:
+def verify_signature(signature_b64: str, budget_position_id: UUID) -> bool:
     """
-    Verify if the given signature is valid using the secret key.
+    Verify if the given signature is valid for the provided budget_position_id using the secret key.
     """
     try:
         # Decode and split nonce and signature
         decoded = base64.urlsafe_b64decode(signature_b64.encode())
         nonce, received_sig = decoded.split(b".", 1)
-
+        msg = {"nonce": nonce.decode(), "budget_position_id": str(budget_position_id)}
         # Recalculate the expected signature
-        expected_sig = hmac.new(SECRET_KEY, nonce, hashlib.sha256).digest()
+        expected_sig = hmac.new(SECRET_KEY, json.dumps(msg).encode("utf-8"), hashlib.sha256).digest()
 
         # Securely compare both signatures
         return hmac.compare_digest(received_sig, expected_sig)
