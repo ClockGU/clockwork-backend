@@ -34,7 +34,10 @@ def retrieve_jwt_bearer_token(request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         raise HTTPException(status_code=401, detail="Missing Authorization header")
-    scheme, token = auth_header.split()
+    try:
+        scheme, token = auth_header.split()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Malformed Authorization header")
     if scheme.lower() != "bearer":
         raise HTTPException(status_code=401, detail="Invalid authentication scheme")
     return token
