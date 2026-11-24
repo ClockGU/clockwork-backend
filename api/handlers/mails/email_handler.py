@@ -43,8 +43,7 @@ class EmailHandler:
     def _approver_url(self, budget_position: BudgetPosition, signature: str) -> str:
         """Signed link for a budget approver to review the petition for their budget position."""
         return (
-            f"{settings.FRONTEND_URL}/approver?petition_id={self.petition.id}"
-            f"&signature={signature}&budget_position_id={budget_position.id}"
+            f"{settings.FRONTEND_URL}/approver?signature={signature}&budget_position_id={budget_position.id}"
         )
 
     def get_or_create_smtp_server(self):
