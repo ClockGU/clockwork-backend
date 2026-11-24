@@ -13,7 +13,9 @@ from api.db.managers.dependencies import (
     get_specified_student_document,
 )
 from api.db.schema.prev_employment import PrevEmployment
+from api.env import settings
 from api.security import UserRole, decode_user_jwt
+from api.utils import create_upload_dirs
 
 # Minimal app: one route per loader, so only the loader decides 200 vs 404.
 loader_app = FastAPI()
@@ -124,3 +126,54 @@ def test_loader_checks_ownership(as_user, urls, users, resource, user, expected_
     response = as_user(users[user]).get(urls[resource])
 
     assert response.status_code == expected_status
+
+
+# Route level: the student prev-employment routes must go through the ownership check.
+PREV_EMPLOYMENT_ROUTES = {
+    "upload_proof": (
+        "PATCH",
+        "/prev_employments/{id}/proof",
+        {"files": {"proof": ("proof.pdf", b"%PDF-1.4", "application/pdf")}},
+        200,
+    ),
+    "update": (
+        "PATCH",
+        "/prev_employments/{id}",
+        {"json": {"employer_name": "New Employer"}},
+        200,
+    ),
+    "delete": ("DELETE", "/prev_employments/{id}", {}, 204),
+}
+
+
+@pytest.fixture
+def prev_employment_upload_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "UPLOAD_DIR", tmp_path)
+    create_upload_dirs()
+
+
+@pytest.mark.parametrize("is_owner", [True, False], ids=["owner", "other_student"])
+@pytest.mark.parametrize("route", PREV_EMPLOYMENT_ROUTES)
+def test_prev_employment_routes_check_ownership(
+    client,
+    as_student_payload,
+    prev_employment_upload_dir,
+    student_employee,
+    prev_employment,
+    route,
+    is_owner,
+):
+    method, path, kwargs, owner_status = PREV_EMPLOYMENT_ROUTES[route]
+    if is_owner:
+        as_student_payload(
+            {
+                "sub": str(student_employee.user_account),
+                "username": student_employee.username,
+            }
+        )
+    else:
+        as_student_payload({"sub": str(uuid.uuid4()), "username": "otherstudent"})
+
+    response = client.request(method, path.format(id=prev_employment.id), **kwargs)
+
+    assert response.status_code == (owner_status if is_owner else 404)
