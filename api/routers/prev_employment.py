@@ -58,7 +58,9 @@ def upload_proof(
 
 @router.delete("/prev_employments/{prev_employment_id}", status_code=204)
 def delete_prev_employment(
-    prev_employment_id: uuid.UUID, session: Session = Depends(get_db)
+    prev_employment_id: uuid.UUID,
+    session: Session = Depends(get_db),
+    user=Depends(get_current_student),
 ):
     PrevEmploymentHandler(session).delete_prev_employment(prev_employment_id)
 
