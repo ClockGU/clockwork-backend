@@ -96,16 +96,15 @@ def get_specified_budget_position(
     budget_position_id: UUID, signature: str, db: Session = Depends(get_db)
 ) -> BudgetPosition:
     """
-    Dependency function to retrieve the specified document if the user is a clerk or the student owning it.
-    :raises: HTTPException with status code 404 if the document is not found or not owned by the user,
-    so the document's existence is not disclosed.
+    Dependency function to retrieve the specified BudgetPosition if the signature is correct.
+    :raises: HTTPException with status code 404 if the document is not found.
+    :raises: HTTPException with status code 403 if the signature is not verified.
     """
+    if not verify_signature(signature, budget_position_id):
+        raise HTTPException(status_code=403, detail="Invalid signature")
     budget_position = BudgetPositionManager(db).get_budget_position(budget_position_id)
     if not budget_position:
         raise HTTPException(
             status_code=404, detail=f"BudgetPosition with ID{str(budget_position_id)} not found"
         )
-    if not verify_signature(signature, budget_position_id):
-        raise HTTPException(status_code=403, detail="Invalid signature")
-
     return budget_position
