@@ -6,10 +6,11 @@ from sqlmodel import Session
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import (
     get_specified_employee,
-    get_specified_petition,
+    get_specified_petition, get_specified_prev_employment,
 )
-from api.db.schema import Employee, Petition
+from api.db.schema import Employee, Petition, PrevEmployment
 from api.handlers import EmployeeHandler, PetitionHandler
+from api.handlers.prev_employment_handler import PrevEmploymentHandler
 
 
 def get_petition_handler(
@@ -37,3 +38,11 @@ def get_employee_handler(
     if employee:
         return EmployeeHandler.from_existing_object(db, employee)
     return EmployeeHandler(db)
+
+def get_prev_employment_handler(
+        prev_employment: Optional[PrevEmployment] = Depends(get_specified_prev_employment),
+        db: Session = Depends(get_db),
+)-> PrevEmploymentHandler:
+    if prev_employment:
+        return PrevEmploymentHandler.from_existing_object(db, object_instance=prev_employment)
+    return PrevEmploymentHandler(db)
