@@ -104,7 +104,7 @@ def download_document(
     user=Depends(get_current_clerk_or_student)
 ):
     """
-    Download a file of a document. Only clerks and the owning student have access.
+    Download a file of a document. Only clerks and students can access the endpoint.
     """
     file_name = getattr(document, f"{document_type.value}_file")
     if not file_name:
