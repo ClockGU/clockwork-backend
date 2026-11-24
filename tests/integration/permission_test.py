@@ -16,8 +16,8 @@ IGNORE_PATHS = {
 # APIRoutes without a role guard on purpose, ignored per (method, path).
 IGNORE_ROUTES = {
     # BudgetPosition endpoints do not have assigned permission guards since they do not log in
-    ("GET", "/approver/petitions/{petition_id}/{signature}/{budget_position_id}"),
-    ("PATCH", "/approver/petitions/{petition_id}/{signature}/{budget_position_id}"),
+    ("GET", "/approver/{budget_position_id}/{signature}"),
+    ("PATCH", "/approver/{budget_position_id}/{signature}"),
 }
 EXPECTED_PERMISSIONS = {
     # StudentDocument endpoints
