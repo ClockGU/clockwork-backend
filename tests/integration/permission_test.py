@@ -9,10 +9,15 @@ PERMISSION_FUNCS = {
     "SUPERVISOR": get_current_supervisor,
     "STUDENT_OR_CLERK": get_current_clerk_or_student,
 }
-IGNORE_ROUTES = {
+# Not APIRoutes (framework routes, admin mount, websocket): ignored by path.
+IGNORE_PATHS = {
     "/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc", "/admin","/ws/{client_id}",
+}
+# APIRoutes without a role guard on purpose, ignored per (method, path).
+IGNORE_ROUTES = {
     # BudgetPosition endpoints do not have assigned permission guards since they do not log in
-    "/approver/petitions/{petition_id}/{signature}/{budget_position_id}"
+    ("GET", "/approver/petitions/{petition_id}/{signature}/{budget_position_id}"),
+    ("PATCH", "/approver/petitions/{petition_id}/{signature}/{budget_position_id}"),
 }
 EXPECTED_PERMISSIONS = {
     # StudentDocument endpoints
@@ -34,8 +39,8 @@ EXPECTED_PERMISSIONS = {
     "/supervisor/petitions": {"POST": "SUPERVISOR","GET": "SUPERVISOR"},
     "/supervisor/petitions/{petition_id}": {"GET": "SUPERVISOR","PATCH": "SUPERVISOR","DELETE": "SUPERVISOR"},
     # PrevEmployments
-    "/prev_employments": {"POST": "STUDENT","GET": "STUDENT"},
-    "/prev_employments/{prev_employment_id}/proof": {"GET": "STUDENT", "PATCH": "STUDENT"},
+    "/prev_employments": {"POST": "STUDENT", "GET": "STUDENT"},
+    "/prev_employments/{prev_employment_id}/proof": {"PATCH": "STUDENT"},
     "/prev_employments/{prev_employment_id}": {"DELETE":"STUDENT","PATCH": "STUDENT"},
     "/clerk/prev_employments/petition/{petition_id}": {"GET": "CLERK"},
     "/clerk/prev_employments/{prev_employment_id}/download": {"GET": "CLERK"},
@@ -46,16 +51,18 @@ def test_route_permission_test():
     from api.main import app
 
     for route in app.routes:
-        if route.path in IGNORE_ROUTES:
+        if route.path in IGNORE_PATHS:
             continue
         if not isinstance(route, APIRoute):
-            warnings.warn(f"A non-APIRoute with path {route.path} not present in IGNORE_ROUTES was encountered and skipped.",UserWarning, stacklevel=2)
+            warnings.warn(f"A non-APIRoute with path {route.path} not present in IGNORE_PATHS was encountered and skipped.",UserWarning, stacklevel=2)
+            continue
+        route_method = list(route.methods)[0]
+        if (route_method, route.path) in IGNORE_ROUTES:
             continue
         expected_methods = EXPECTED_PERMISSIONS.get(route.path)
         if not expected_methods:
             raise Exception(f"The route with path {route.path} and method {route.methods} has "
-                            "neither defined expected permissions nor is it specified as an IGNORE_ROUTE.")
-        route_method = list(route.methods)[0]
+                            "neither defined expected permissions nor is it specified in IGNORE_ROUTES.")
         method_permission = expected_methods.get(route_method)
         if not method_permission:
             raise Exception(
