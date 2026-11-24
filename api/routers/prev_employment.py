@@ -70,6 +70,7 @@ def update_prev_employment(
     prev_employment_id: uuid.UUID,
     body: PrevEmploymentUpdate,
     session: Session = Depends(get_db),
+    user=Depends(get_current_student),
 ):
     return PrevEmploymentHandler(session).update_prev_employment(
         prev_employment_id, body
