@@ -129,10 +129,6 @@ def test_prev_employment_handler_upload_file(upload_dir):
     prev_emp = SimpleNamespace(id=uuid.uuid4(), proof=None)
 
     class StubManager:
-        def get(self, id):
-            assert id == prev_emp.id
-            return prev_emp
-
         def update(self, objs, data):
             for obj in objs:
                 for key, value in data.items():
@@ -141,12 +137,13 @@ def test_prev_employment_handler_upload_file(upload_dir):
 
     handler = PrevEmploymentHandler.__new__(PrevEmploymentHandler)
     handler.manager = StubManager()
+    handler._prev_employment = prev_emp
 
-    handler.upload_file(prev_emp.id, make_upload("proof.pdf"))
+    handler.upload_file(make_upload("proof.pdf"))
     assert prev_emp.proof == f"{prev_emp.id}_proof.pdf"
     assert (upload_dir / PREV_EMPLOYMENTS_DIR / prev_emp.proof).is_file()
 
-    handler.upload_file(prev_emp.id, make_upload("proof.jpg"))
+    handler.upload_file(make_upload("proof.jpg"))
     assert prev_emp.proof == f"{prev_emp.id}_proof.jpg"
     assert [p.name for p in (upload_dir / PREV_EMPLOYMENTS_DIR).iterdir()] == [
         prev_emp.proof
