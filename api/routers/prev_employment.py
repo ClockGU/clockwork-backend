@@ -48,7 +48,10 @@ def get_prev_employments(
     "/prev_employments/{prev_employment_id}/proof", response_model=PrevEmployment
 )
 def upload_proof(
-    prev_employment_id: uuid.UUID, proof: UploadFile, session: Session = Depends(get_db)
+    prev_employment_id: uuid.UUID,
+    proof: UploadFile,
+    session: Session = Depends(get_db),
+    user=Depends(get_current_student),
 ):
     return PrevEmploymentHandler(session).upload_file(prev_employment_id, proof)
 
