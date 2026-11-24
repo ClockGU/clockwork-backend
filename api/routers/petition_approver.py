@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/approver/petitions/{petition_id}/{signature}/{budget_position_id}",
+    "/approver/{budget_position_id}/{signature}",
     response_model=PetitionRead,
 )
 def read_petition(
@@ -22,15 +22,14 @@ def read_petition(
     budget_position_id: UUID,
     handler: PetitionHandler = Depends(get_petition_handler),
 ):
-    if not verify_signature(signature):
+    if not verify_signature(signature, budget_position_id):
         raise HTTPException(status_code=403, detail="Invalid signature")
     petition = handler.get_petition_for_approver_action(budget_position_id)
     return petition
 
 
-@router.patch("/approver/petitions/{petition_id}/{signature}/{budget_position_id}")
+@router.patch("/approver/{budget_position_id}/{signature}")
 def update_budget_position_approval(
-    petition_id: str,
     signature: str,
     budget_position_id: UUID,
     approval_data: BudgetPositionApprovalUpdate = Body(...),
@@ -38,7 +37,7 @@ def update_budget_position_approval(
 ):
     """Update the approval status of a specific budget position"""
 
-    if not verify_signature(signature):
+    if not verify_signature(signature, budget_position_id):
         raise HTTPException(status_code=403, detail="Invalid signature")
 
     updated_petition = handler.update_budget_position_approval(
