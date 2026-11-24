@@ -33,17 +33,15 @@ def read_petition(
 
 @router.patch("/approver/{budget_position_id}/{signature}")
 def update_budget_position_approval(
-    signature: str,
     budget_position_id: UUID,
+    signature: str,
     approval_data: BudgetPositionApprovalUpdate = Body(...),
-    handler: PetitionHandler = Depends(get_petition_handler),
+    budget_position: BudgetPosition = Depends(get_specified_budget_position),
+    db: Session = Depends(get_db),
 ):
     """Update the approval status of a specific budget position"""
-
-    if not verify_signature(signature, budget_position_id):
-        raise HTTPException(status_code=403, detail="Invalid signature")
-
-    updated_petition = handler.update_budget_position_approval(
+    # TODO: This call is somehow unnecessarily complicated
+    updated_petition = PetitionHandler.from_existing_object(db, budget_position.petition).update_budget_position_approval(
         budget_position_id=budget_position_id,
         budget_position_approved=approval_data.budget_position_approved,
         message=approval_data.message,
