@@ -61,16 +61,14 @@ def authenticate_role(user: dict, role: int):
         )
     return user
 
-def build_current_role_retrival(role: UserRole) -> Callable[[Request], dict]:
+def build_current_role_retrival(role: UserRole) -> Callable[[], dict]:
     """
     A factory function building an authentication function for a role provided.
     The authentication function can be used as a dependency for endpoints. It
     attempts to read a 'Bearer' toke from the requests headers, tries to decode
     a JWT from it and checks whether the decoded user object has the specified role.
     """
-    def get_current_role(request: Request):
-        token = retrieve_jwt_bearer_token(request)
-        user = decode_user_jwt(token)
+    def get_current_role(user: dict = Depends(decode_user_jwt)):
         return authenticate_role(user, role.value)
     func_name = f"get_current_{role.name.lower()}"
     get_current_role.__name__ = func_name
