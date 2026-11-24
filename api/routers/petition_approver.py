@@ -4,6 +4,9 @@ from uuid import UUID
 from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlmodel import Session
 
+from api.db.dependencies import get_db
+from api.db.managers.dependencies import get_specified_budget_position
+from api.db.schema import BudgetPosition
 from api.handlers.dependencies import get_petition_handler
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import PetitionRead
@@ -18,13 +21,13 @@ router = APIRouter()
     response_model=PetitionRead,
 )
 def read_petition(
-    signature: str,
     budget_position_id: UUID,
-    handler: PetitionHandler = Depends(get_petition_handler),
+    signature: str,
+    budget_position: BudgetPosition = Depends(get_specified_budget_position),
+    db: Session = Depends(get_db)
 ):
-    if not verify_signature(signature, budget_position_id):
-        raise HTTPException(status_code=403, detail="Invalid signature")
-    petition = handler.get_petition_for_approver_action(budget_position_id)
+    # TODO: This call is somehow unnecessarily complicated
+    petition = PetitionHandler.from_existing_object(db, budget_position.petition).get_petition_for_approver_action(budget_position_id)
     return petition
 
 

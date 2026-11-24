@@ -7,13 +7,18 @@ from starlette.requests import Request
 
 from api.db.dependencies import get_db
 from api.db.managers import PetitionManager
+from api.db.managers.budget_position_manager import BudgetPositionManager
 from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.managers.prev_employment_manager import PrevEmploymentManager
 from api.db.managers.student_document import StudentDocumentManager
-from api.db.schema import Employee, Petition, PrevEmployment
+from api.db.schema import Employee, Petition, PrevEmployment, BudgetPosition
 from api.db.schema.student_documents import StudentDocuments
-from api.security import UserRole, decode_user_jwt, get_current_student
-
+from api.security import (
+    UserRole,
+    decode_user_jwt,
+    get_current_student,
+    verify_signature,
+)
 
 def get_specified_petition(
     petition_id: Optional[UUID] = None, db: Session = Depends(get_db)
@@ -86,3 +91,21 @@ def get_specified_student_document(
             status_code=404, detail=f"Document with ID{str(document_id)} not found"
         )
     return document
+
+def get_specified_budget_position(
+    budget_position_id: UUID, signature: str, db: Session = Depends(get_db)
+) -> BudgetPosition:
+    """
+    Dependency function to retrieve the specified document if the user is a clerk or the student owning it.
+    :raises: HTTPException with status code 404 if the document is not found or not owned by the user,
+    so the document's existence is not disclosed.
+    """
+    budget_position = BudgetPositionManager(db).get_budget_position(budget_position_id)
+    if not budget_position:
+        raise HTTPException(
+            status_code=404, detail=f"BudgetPosition with ID{str(budget_position_id)} not found"
+        )
+    if not verify_signature(signature, budget_position_id):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    return budget_position
