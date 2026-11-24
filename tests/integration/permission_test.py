@@ -34,7 +34,7 @@ EXPECTED_PERMISSIONS = {
     "/supervisor/petitions": {"POST": "SUPERVISOR","GET": "SUPERVISOR"},
     "/supervisor/petitions/{petition_id}": {"GET": "SUPERVISOR","PATCH": "SUPERVISOR","DELETE": "SUPERVISOR"},
     # PrevEmployments
-    "/prev_employments": {"POST": "STUDENT","GET": "STUDENT_OR_CLERK"},
+    "/prev_employments": {"POST": "STUDENT","GET": "STUDENT"},
     "/prev_employments/{prev_employment_id}/proof": {"GET": "STUDENT"},
     "/prev_employments/{prev_employment_id}": {"DELETE":"STUDENT","PATCH": "STUDENT"},
     "/clerk/prev_employments/petition/{petition_id}": {"GET": "CLERK"},
