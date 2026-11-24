@@ -72,6 +72,9 @@ def build_current_role_retrival(role: UserRole) -> Callable[[Request], dict]:
         token = retrieve_jwt_bearer_token(request)
         user = decode_user_jwt(token)
         return authenticate_role(user, role.value)
+    func_name = f"get_current_{role.name.lower()}"
+    get_current_role.__name__ = func_name
+    get_current_role.__qualname__ = func_name
     return get_current_role
 
 
