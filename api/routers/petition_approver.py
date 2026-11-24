@@ -1,17 +1,14 @@
-from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends
 from sqlmodel import Session
 
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import get_specified_budget_position
 from api.db.schema import BudgetPosition
-from api.handlers.dependencies import get_petition_handler
 from api.handlers.petition_handler import PetitionHandler
 from api.pydantic_models import PetitionRead
 from api.pydantic_models.budget_position import BudgetPositionApprovalUpdate
-from api.security import verify_signature
 
 router = APIRouter()
 
