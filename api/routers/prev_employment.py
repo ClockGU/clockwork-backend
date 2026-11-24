@@ -13,7 +13,7 @@ from api.db.managers.dependencies import (
 from api.db.schema import Petition
 from api.db.schema.prev_employment import PrevEmployment
 from api.handlers import EmployeeHandler
-from api.handlers.dependencies import get_employee_handler
+from api.handlers.dependencies import get_employee_handler, get_prev_employment_handler
 from api.handlers.prev_employment_handler import PrevEmploymentHandler
 from api.pydantic_models.prev_employment import (
     PrevEmploymentRead,
@@ -30,18 +30,20 @@ router = APIRouter()
 @router.post("/prev_employments", response_model=PrevEmployment)
 def create_new_employment(
     body: dict = Body(...),
-    session: Session = Depends(get_db),
     user=Depends(get_current_student),
+    prev_employment_handler: PrevEmploymentHandler = Depends(
+        get_prev_employment_handler
+    )
 ):
-    response = PrevEmploymentHandler(session).create_prev_employment(body, user["sub"])
-    return response
+    return prev_employment_handler.create_prev_employment(body, user["sub"])
 
 
 @router.get("/prev_employments", response_model=list[PrevEmploymentRead])
 def get_prev_employments(
-    session: Session = Depends(get_db), user=Depends(get_current_student)
+    user=Depends(get_current_student),
+    prev_employment_handler: PrevEmploymentHandler = Depends(get_prev_employment_handler),
 ):
-    return PrevEmploymentHandler(session).get_user_prev_employments(user["sub"])
+    return prev_employment_handler.get_user_prev_employments(user["sub"])
 
 
 @router.patch(
@@ -50,31 +52,32 @@ def get_prev_employments(
 def upload_proof(
     prev_employment_id: uuid.UUID,
     proof: UploadFile,
-    session: Session = Depends(get_db),
     user=Depends(get_current_student),
+    prev_employment_handler: PrevEmploymentHandler = Depends(
+        get_prev_employment_handler
+    ),
 ):
-    return PrevEmploymentHandler(session).upload_file(prev_employment_id, proof)
+    return prev_employment_handler.upload_file(proof)
 
 
 @router.delete("/prev_employments/{prev_employment_id}", status_code=204)
 def delete_prev_employment(
     prev_employment_id: uuid.UUID,
-    session: Session = Depends(get_db),
     user=Depends(get_current_student),
+    prev_employment_handler: PrevEmploymentHandler = Depends(get_prev_employment_handler)
 ):
-    PrevEmploymentHandler(session).delete_prev_employment(prev_employment_id)
+    prev_employment_handler.delete_prev_employment()
 
 
 @router.patch("/prev_employments/{prev_employment_id}", response_model=PrevEmployment)
 def update_prev_employment(
     prev_employment_id: uuid.UUID,
     body: PrevEmploymentUpdate,
-    session: Session = Depends(get_db),
     user=Depends(get_current_student),
+    prev_employment_handler: PrevEmploymentHandler = Depends(get_prev_employment_handler),
+
 ):
-    return PrevEmploymentHandler(session).update_prev_employment(
-        prev_employment_id, body
-    )
+    return prev_employment_handler.update_prev_employment(body)
 
 
 # TODO: Refactor when we refactor how users ar distinguished in hr-login-backend
@@ -87,12 +90,12 @@ def get_petitions_employees_employments(
     user=Depends(get_current_clerk),
     petition: Petition = Depends(get_specified_petition),
     employee_handler: EmployeeHandler = Depends(get_employee_handler),
-    session: Session = Depends(get_db),
+    prev_employment_handler: PrevEmploymentHandler = Depends(
+        get_prev_employment_handler
+    ),
 ):
     employee = employee_handler.get_employee_by_username(petition.student_username)
-    return PrevEmploymentHandler(session).get_user_prev_employments(
-        employee.user_account
-    )
+    return prev_employment_handler.get_user_prev_employments(employee.user_account)
 
 
 @router.get(
