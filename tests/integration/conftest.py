@@ -23,7 +23,7 @@ from api.db.schema.petition import Petition
 from api.db.schema.student_documents import StudentDocuments
 from api.env import settings
 from api.main import app
-from api.security import get_current_student
+from api.security import UserRole, decode_user_jwt
 
 # Get project root
 from api.websockets.managers import (
@@ -113,6 +113,30 @@ def client(db_session):
 
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
+
+
+@pytest.fixture
+def as_student_payload():
+    """Authenticate as a student with the given JWT payload, bypassing token decoding."""
+
+    def _as(payload: dict):
+        user = {**payload, "user_role": UserRole.STUDENT.value}
+        app.dependency_overrides[decode_user_jwt] = lambda: user
+
+    yield _as
+    app.dependency_overrides.pop(decode_user_jwt, None)
+
+
+@pytest.fixture
+def as_clerk_payload():
+    """Authenticate as a clerk with the given JWT payload, bypassing token decoding."""
+
+    def _as(payload: dict):
+        user = {**payload, "user_role": UserRole.CLERK.value}
+        app.dependency_overrides[decode_user_jwt] = lambda: user
+
+    yield _as
+    app.dependency_overrides.pop(decode_user_jwt, None)
 
 
 @pytest.fixture
@@ -227,7 +251,12 @@ async def clerk_ws_setup(
     app.dependency_overrides[get_clerk_connection_manager] = (
         get_clerk_connection_manager_fixture_callable
     )
-    app.dependency_overrides[get_current_student] = lambda: {}
+    # The student owning petition_student_action (matched by student_username)
+    app.dependency_overrides[decode_user_jwt] = lambda: {
+        "sub": str(uuid.uuid4()),
+        "username": "teststudent",
+        "user_role": UserRole.STUDENT.value,
+    }
     app.dependency_overrides[get_db] = lambda: db_session
 
     c2s: asyncio.Queue = asyncio.Queue()
@@ -264,7 +293,7 @@ async def clerk_ws_setup(
         ws_scope=ws_scope,
     )
 
-    app.dependency_overrides.pop(get_current_student, None)
+    app.dependency_overrides.pop(decode_user_jwt, None)
     app.dependency_overrides.pop(get_db, None)
 
 

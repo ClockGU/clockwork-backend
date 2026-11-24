@@ -11,31 +11,13 @@ from api.db.schema.student_documents import StudentDocuments
 from api.env import settings
 from api.main import app
 from api.pydantic_models.documents import UPLOAD_FIELDS
-from api.security import (
-    UserRole,
-    decode_user_jwt,
-    get_current_clerk,
-    get_current_student,
-)
+from api.security import UserRole, decode_user_jwt
 from api.utils import STUDENT_DOCUMENTS_DIR, create_upload_dirs
 
 
 @pytest.fixture
-def as_student_payload():
-    """Authenticate as a student with the given JWT payload, bypassing token checks."""
-
-    def _as(payload: dict):
-        app.dependency_overrides[get_current_student] = lambda: payload
-
-    yield _as
-    app.dependency_overrides.pop(get_current_student, None)
-
-
-@pytest.fixture
-def as_clerk():
-    app.dependency_overrides[get_current_clerk] = lambda: {"sub": str(uuid.uuid4())}
-    yield
-    app.dependency_overrides.pop(get_current_clerk, None)
+def as_clerk(as_clerk_payload):
+    as_clerk_payload({"sub": str(uuid.uuid4()), "username": "testclerk"})
 
 
 def test_clerk_gets_documents_for_petition(
@@ -54,6 +36,7 @@ def test_non_clerk_cannot_get_documents_for_petition(
 ):
     app.dependency_overrides[decode_user_jwt] = lambda: {
         "sub": str(uuid.uuid4()),
+        "username": "testuser",
         "user_role": UserRole.STUDENT.value,
     }
     try:
@@ -63,7 +46,7 @@ def test_non_clerk_cannot_get_documents_for_petition(
     finally:
         app.dependency_overrides.pop(decode_user_jwt, None)
 
-    assert response.status_code == 403
+    assert response.status_code == 404
 
 
 def test_documents_for_unknown_petition_returns_404(client, as_clerk):
