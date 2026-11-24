@@ -7,6 +7,7 @@ PERMISSION_FUNCS = {
     "CLERK": get_current_clerk,
     "STUDENT": get_current_student,
     "SUPERVISOR": get_current_supervisor,
+    "STUDENT_OR_CLERK": get_current_clerk_or_student,
 }
 IGNORE_ROUTES = {
     "/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc", "/admin","/ws/{client_id}",

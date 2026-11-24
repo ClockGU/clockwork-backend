@@ -82,6 +82,15 @@ get_current_student = build_current_role_retrival(UserRole.STUDENT)
 get_current_supervisor = build_current_role_retrival(UserRole.SUPERVISOR)
 get_current_clerk = build_current_role_retrival(UserRole.CLERK)
 
+def get_current_clerk_or_student(request: Request):
+    token = retrieve_jwt_bearer_token(request)
+    user = decode_user_jwt(token)
+    if user.get("user_role") not in [UserRole.CLERK.value, UserRole.STUDENT.value]:
+        raise HTTPException(
+            status_code=403, detail="No permission to access this resource"
+        )
+    return user
+
 def auth_clerk_from_token(token: str):
     authenticate_role(user=decode_user_jwt(token=token), role=UserRole.CLERK.value)
 
