@@ -6,7 +6,6 @@ from sqlmodel import Session
 
 from api.db.managers.prev_employment_manager import PrevEmploymentManager
 from api.db.schema.prev_employment import PrevEmployment
-from api.env import settings
 from api.handlers.exception_handler import ExceptionHandler
 from api.pydantic_models.prev_employment import (
     PrevEmploymentCreate,
@@ -56,9 +55,9 @@ class PrevEmploymentHandler:
         return self.manager.create(**validated_data)
 
     def update_prev_employment(
-        self, prev_employment_id: uuid.UUID, data: PrevEmploymentUpdate
+        self, data: PrevEmploymentUpdate
     ) -> PrevEmployment:
-        prev_employment = self.manager.get(id=prev_employment_id)
+        prev_employment = self.get_prev_employment()
         data_dict = data.model_dump(exclude_unset=True)
         PrevEmploymentCreate.model_validate(prev_employment.model_dump() | data_dict)
         updated_prev_employment = self.manager.update([prev_employment], data_dict)
@@ -68,17 +67,17 @@ class PrevEmploymentHandler:
         return self.manager.filter(user_account=user_id)
 
     def upload_file(
-        self, prev_employment_id: uuid.UUID, file: UploadFile
+        self, file: UploadFile
     ) -> PrevEmployment:
-        prev_employment = self.manager.get(id=prev_employment_id)
+        prev_employment = self.get_prev_employment()
         file_url = save_prev_emp_file(prev_employment, file)
         updated_prev_employment = self.manager.update(
             [prev_employment], {"proof": file_url}
         )
         return updated_prev_employment[0]
 
-    def delete_prev_employment(self, prev_employment_id) -> None:
-        prev_employment = self.manager.get(id=prev_employment_id)
+    def delete_prev_employment(self) -> None:
+        prev_employment = self.get_prev_employment()
         if prev_employment.proof:
             try:
                 delete_file(PREV_EMPLOYMENTS_DIR, prev_employment.proof)
