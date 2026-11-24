@@ -72,10 +72,8 @@ def get_specified_prev_employment(
     return existing_prev_employment
 
 
-def get_document_for_clerk_or_owner(
-    document_id: UUID,
-    user: dict = Depends(decode_user_jwt),
-    db: Session = Depends(get_db),
+def get_specified_student_document(
+    document_id: UUID, db: Session = Depends(get_db),
 ) -> StudentDocuments:
     """
     Dependency function to retrieve the specified document if the user is a clerk or the student owning it.
@@ -86,12 +84,5 @@ def get_document_for_clerk_or_owner(
     if not document:
         raise HTTPException(
             status_code=404, detail=f"Document with ID{str(document_id)} not found"
-        )
-    if (
-        user.get("user_role") != UserRole.CLERK.value
-        and str(document.user_account) != user.get("sub")
-    ):
-        raise HTTPException(
-            status_code=403, detail=f"You do not have permission to access the document with id {str(document_id)} "
         )
     return document

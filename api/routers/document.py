@@ -9,7 +9,7 @@ from sqlmodel import Session
 
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import (
-    get_document_for_clerk_or_owner,
+    get_specified_student_document,
     get_specified_petition,
 )
 from api.db.schema import Petition
@@ -19,7 +19,11 @@ from api.handlers.dependencies import get_employee_handler
 from api.handlers.document_handler import StudentDocumentHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.pydantic_models.documents import UPLOAD_FIELDS, DocumentType
-from api.security import get_current_clerk, get_current_student
+from api.security import (
+    get_current_clerk,
+    get_current_student,
+    get_current_clerk_or_student,
+)
 from api.utils import STUDENT_DOCUMENTS_DIR, file_response, save_student_doc_file
 
 router = APIRouter()
@@ -95,8 +99,9 @@ def update_document(
 @router.get("/documents/{document_id}/{document_type}")
 def download_document(
     document_type: DocumentType,
-    document: StudentDocuments = Depends(get_document_for_clerk_or_owner),
+    document: StudentDocuments = Depends(get_specified_student_document),
     handler: StudentDocumentHandler = Depends(get_document_handler),
+    user=Depends(get_current_clerk_or_student)
 ):
     """
     Download a file of a document. Only clerks and the owning student have access.
