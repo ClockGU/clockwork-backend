@@ -46,7 +46,7 @@ def test_non_clerk_cannot_get_documents_for_petition(
     finally:
         app.dependency_overrides.pop(decode_user_jwt, None)
 
-    assert response.status_code == 404
+    assert response.status_code == 403
 
 
 def test_documents_for_unknown_petition_returns_404(client, as_clerk):

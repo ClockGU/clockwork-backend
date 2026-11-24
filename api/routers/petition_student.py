@@ -38,9 +38,9 @@ def read_petitions(
 @router.patch("/students/petitions/{petition_id}/student-action")
 def student_accept_or_reject_petition(
     body: dict,
+    user=Depends(get_current_student),
     petition: Petition = Depends(get_specified_petition),
     handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_student),
 ):
     """
     API for students to accept or reject their petition.
@@ -63,9 +63,9 @@ def student_accept_or_reject_petition(
 )
 def request_revision_from_supervisor(
     body: dict,
+    user=Depends(get_current_student),
     petition: Petition = Depends(get_specified_petition),
     handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_student),
 ):
     """
     API for students to request revision from supervisor.

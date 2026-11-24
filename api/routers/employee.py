@@ -49,8 +49,8 @@ def get_employee_by_petition_id(
 def update_employee(
     employee_data: EmployeeUpdate,
     employee_id: str,
-    handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_student),
+    handler: EmployeeHandler = Depends(get_employee_handler),
 ):
     """
     Update an employee record by the user ID (user_account).

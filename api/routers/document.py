@@ -99,9 +99,9 @@ def update_document(
 @router.get("/documents/{document_id}/{document_type}")
 def download_document(
     document_type: DocumentType,
+    user=Depends(get_current_clerk_or_student),
     document: StudentDocuments = Depends(get_specified_student_document),
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    user=Depends(get_current_clerk_or_student)
 ):
     """
     Download a file of a document. Only clerks and students can access the endpoint.
@@ -123,9 +123,9 @@ def download_document(
 )
 def get_petition_documents(
     petition_id: UUID,
+    user=Depends(get_current_clerk),  # Secure the endpoint
     petition: Petition = Depends(get_specified_petition),
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    user=Depends(get_current_clerk),  # Secure the endpoint
 ):
     """
     Retrieve the student documents for a petition.

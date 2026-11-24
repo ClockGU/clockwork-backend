@@ -84,10 +84,10 @@ def update_prev_employment(
 )
 def get_petitions_employees_employments(
     petition_id: uuid.UUID,
+    user=Depends(get_current_clerk),
     petition: Petition = Depends(get_specified_petition),
     employee_handler: EmployeeHandler = Depends(get_employee_handler),
     session: Session = Depends(get_db),
-    user=Depends(get_current_clerk),
 ):
     employee = employee_handler.get_employee_by_username(petition.student_username)
     return PrevEmploymentHandler(session).get_user_prev_employments(
@@ -100,8 +100,8 @@ def get_petitions_employees_employments(
 )
 def download_prev_employment_proof(
     prev_employment_id: uuid.UUID,
-    prev_employmeent: PrevEmployment = Depends(get_specified_prev_employment),
     user=Depends(get_current_clerk),
+    prev_employmeent: PrevEmployment = Depends(get_specified_prev_employment),
 ):
     if not prev_employmeent.proof:
         raise HTTPException(

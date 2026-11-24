@@ -30,12 +30,12 @@ router = APIRouter()
 # 2. API to delete a petition by ID
 @router.delete("/clerk/petitions/{petition_id}")
 async def delete_petition(
+    user=Depends(get_current_clerk),
     petition: Petition = Depends(get_specified_petition),
     deletion_request: ClerkDeletionRequest = Body(
         default=ClerkDeletionRequest(reason="")
     ),
     handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_clerk),
 ):
     success = handler.delete_petition_as_clerk(deletion_request.reason)
     await send_serialized_data_to_clerks(
@@ -50,10 +50,10 @@ async def delete_petition(
 # 3. API to update a petition
 @router.patch("/clerk/petitions/{petition_id}", response_model=PetitionRead)
 async def update_petition_as_clerk(
+    user=Depends(get_current_clerk),
     petition: Petition = Depends(get_specified_petition),
     petition_data: PetitionClerkUpdate = Depends(get_clerk_petition_update_model),
     handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_clerk),
 ):
     updated_petition = handler.update_petition_as_clerk(approved=petition_data.approved)
 
@@ -68,10 +68,10 @@ async def update_petition_as_clerk(
     "/clerk/petitions/{petition_id}/request-revision", response_model=PetitionRead
 )
 async def request_revision_from_student(
+    user=Depends(get_current_clerk),
     petition: Petition = Depends(get_specified_petition),
     revision: ClerkRevisionRequest = Body(...),
     handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_clerk),
 ):
     updated_petition = handler.request_revision_from_student(
         petition=petition, message=revision.message, subject=revision.subject
@@ -81,8 +81,8 @@ async def request_revision_from_student(
 
 @router.get("/clerk/petitions/{petition_id}/student-data-pdf")
 async def get_student_data_pdf(
-    handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_clerk),
+    handler: PetitionHandler = Depends(get_petition_handler),
 ):
     petition = handler.get_object()
     employee = EmployeeManager(handler.db).get_employee_by_username(

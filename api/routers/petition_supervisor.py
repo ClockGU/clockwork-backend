@@ -52,8 +52,8 @@ def read_petitions_by_user(
 
 @router.get("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
 def read_petition(
-    handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
+    handler: PetitionHandler = Depends(get_petition_handler),
 ):
     petition = handler.get_petition()
     return petition
@@ -61,11 +61,11 @@ def read_petition(
 
 @router.patch("/supervisor/petitions/{petition_id}", response_model=PetitionRead)
 def update_petition(
+    user=Depends(get_current_supervisor),
     petition_data: PetitionSupervisorUpdate = Depends(
         get_supervisor_petition_update_model
     ),
     handler: PetitionHandler = Depends(get_petition_handler),
-    user=Depends(get_current_supervisor),
 ):
     updated_petition = handler.update_petition_as_supervisor(petition_data)
     return updated_petition
@@ -73,8 +73,8 @@ def update_petition(
 
 @router.delete("/supervisor/petitions/{petition_id}")
 def delete_petition(
-    handler: PetitionHandler = Depends(get_petition_handler),
     user=Depends(get_current_supervisor),
+    handler: PetitionHandler = Depends(get_petition_handler),
 ):
     # TODO: Maybe simply calling handler.delete_petition() is not enough, we might need to add some mail logic to it.
     return handler.delete_petition()
