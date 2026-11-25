@@ -102,6 +102,15 @@ def test_missing_header_is_unauthorized(client, role):
     assert response.status_code == 401
 
 
+@pytest.mark.parametrize(
+    "header", ["Bearer", "Bearer a b"], ids=["no_token", "extra_part"]
+)
+@pytest.mark.parametrize("role", list(UserRole))
+def test_malformed_header_is_bad_request(client, role, header):
+    response = client.get(f"/{role.name.lower()}", headers={"Authorization": header})
+    assert response.status_code == 400
+
+
 @pytest.mark.parametrize("role", list(UserRole))
 def test_invalid_token_is_unauthorized(client, role):
     response = client.get(f"/{role.name.lower()}", headers=bearer("not-a-jwt"))
