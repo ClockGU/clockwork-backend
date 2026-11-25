@@ -16,6 +16,7 @@ class EmployeeManager:
     def create_employee(self, employee_data: EmployeeCreate) -> Employee:
         """
         Create a new employee record.
+        :raises: IntegrityError
         """
         employee_dict = employee_data.model_dump()
         employee = self.schema.model_validate(employee_dict)
@@ -26,7 +27,7 @@ class EmployeeManager:
             return employee
         except IntegrityError:
             self.db.rollback()
-            return self.get_employee_by_user_account(employee_data.user_account)
+            raise
 
     def get_employee(self, employee_id: UUID) -> Optional[Employee]:
         """

@@ -1,8 +1,6 @@
 from pathlib import Path
-from typing import Annotated
 
-from pydantic import field_validator
-from pydantic_settings import BaseSettings, NoDecode
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):

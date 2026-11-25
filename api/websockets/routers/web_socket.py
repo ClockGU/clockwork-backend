@@ -15,7 +15,6 @@ from api.handlers import (
     PetitionHandler,
 )
 from api.websockets.managers import (
-    ClerkConnectionManager,
     WebsocketConnectionManager,
     get_clerk_connection_manager,
 )

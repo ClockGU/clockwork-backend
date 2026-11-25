@@ -6,7 +6,6 @@ from api.db.managers.dependencies import get_specified_petition
 from api.db.schema import Petition
 from api.pydantic_models import (
     PetitionClerkUpdate,
-    PetitionStudentUpdate,
     PetitionSupervisorUpdate,
 )
 

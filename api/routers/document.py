@@ -1,5 +1,4 @@
 import inspect
-import os
 from pathlib import Path
 from typing import Optional
 from uuid import UUID
@@ -9,15 +8,21 @@ from sqlmodel import Session
 
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import (
-    get_document_for_clerk_or_owner,
     get_specified_petition,
+    get_specified_student_document,
 )
 from api.db.schema import Petition
 from api.db.schema.student_documents import StudentDocuments
+from api.handlers import EmployeeHandler
+from api.handlers.dependencies import get_employee_handler
 from api.handlers.document_handler import StudentDocumentHandler
 from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.pydantic_models.documents import UPLOAD_FIELDS, DocumentType
-from api.security import get_current_clerk, get_current_student
+from api.security import (
+    get_current_clerk,
+    get_current_clerk_or_student,
+    get_current_student,
+)
 from api.utils import STUDENT_DOCUMENTS_DIR, file_response, save_student_doc_file
 
 router = APIRouter()
@@ -31,12 +36,16 @@ def get_document_handler(db: Session = Depends(get_db)) -> StudentDocumentHandle
 @router.get("/documents", response_model=StudentDocumentsRead)
 def get_document(
     handler: StudentDocumentHandler = Depends(get_document_handler),
+    employee_handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_student),  # Secure the endpoint
 ):
     """
     Retrieve a document by the user's account.
     """
-    return handler.get_document_by_user_account(user.get("sub"))
+    employee = employee_handler.get_employee_by_username(username=user.get("username"))
+    return handler.get_or_create_student_document(
+        user_id=user.get("sub"), employee=employee
+    )
 
 
 def files_dependency(names: list[str]):
@@ -91,11 +100,12 @@ def update_document(
 @router.get("/documents/{document_id}/{document_type}")
 def download_document(
     document_type: DocumentType,
-    document: StudentDocuments = Depends(get_document_for_clerk_or_owner),
+    user=Depends(get_current_clerk_or_student),
+    document: StudentDocuments = Depends(get_specified_student_document),
     handler: StudentDocumentHandler = Depends(get_document_handler),
 ):
     """
-    Download a file of a document. Only clerks and the owning student have access.
+    Download a file of a document. Only clerks and students can access the endpoint.
     """
     file_name = getattr(document, f"{document_type.value}_file")
     if not file_name:
@@ -114,9 +124,9 @@ def download_document(
 )
 def get_petition_documents(
     petition_id: UUID,
+    user=Depends(get_current_clerk),  # Secure the endpoint
     petition: Petition = Depends(get_specified_petition),
     handler: StudentDocumentHandler = Depends(get_document_handler),
-    user=Depends(get_current_clerk),  # Secure the endpoint
 ):
     """
     Retrieve the student documents for a petition.

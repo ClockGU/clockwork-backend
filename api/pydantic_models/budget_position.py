@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from sqlmodel import SQLModel
 
 from .validators.budget_position_validators import BudgetPositionValidationMixin

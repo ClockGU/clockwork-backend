@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 
 from api.db.schema.employee import Employee
 from api.db.schema.student_documents import StudentDocuments
-from api.pydantic_models.documents import StudentDocumentsUpdate
+from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
 
 
 class StudentDocumentManager:
@@ -14,13 +14,15 @@ class StudentDocumentManager:
         self.db = db
         self.schema = StudentDocuments
 
-    def get_or_create_document(self, document_data: dict) -> StudentDocuments:
+    def create_document(
+        self, document_data: StudentDocumentsCreate
+    ) -> StudentDocuments:
         """
         Create a new document record.
+        :raises: IntegrityError
         """
-
-        document = self.schema(**document_data)
-
+        document_dict = document_data.model_dump()
+        document = self.schema.model_validate(document_dict)
         try:
             self.db.add(document)
             self.db.commit()
@@ -28,9 +30,7 @@ class StudentDocumentManager:
             return document
         except IntegrityError:
             self.db.rollback()
-            # If document already exists, we can safely ignore this error
-            # as the employee already has a document associated
-            return self.get_document_by_user_account(document_data["user_account"])
+            raise
 
     def get_document(self, document_id: UUID) -> Optional[StudentDocuments]:
         """

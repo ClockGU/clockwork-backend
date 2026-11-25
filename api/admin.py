@@ -1,8 +1,6 @@
-import jwt
 from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
 
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.employee import Employee

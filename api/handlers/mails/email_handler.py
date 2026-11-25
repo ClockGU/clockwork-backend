@@ -42,10 +42,7 @@ class EmailHandler:
 
     def _approver_url(self, budget_position: BudgetPosition, signature: str) -> str:
         """Signed link for a budget approver to review the petition for their budget position."""
-        return (
-            f"{settings.FRONTEND_URL}/approver?petition_id={self.petition.id}"
-            f"&signature={signature}&budget_position_id={budget_position.id}"
-        )
+        return f"{settings.FRONTEND_URL}/approver?signature={signature}&budget_position_id={budget_position.id}"
 
     def get_or_create_smtp_server(self):
         if self.server is None:
@@ -146,11 +143,12 @@ class EmailHandler:
         # Local import: api.security imports api.handlers, a top-level import would be circular.
         from api.security import generate_signature
 
-        signature = generate_signature()
         with self.smtp_session():
             self._mail_petition_created_student()
             for budget_position in budget_positions:
-                self._mail_approval_request_approver(budget_position, signature)
+                self._mail_approval_request_approver(
+                    budget_position, generate_signature(budget_position.id)
+                )
 
     def _mail_petition_created_student(self) -> None:
         self.send_email(
@@ -192,9 +190,10 @@ class EmailHandler:
                 self._mail_budget_approved_approver(budget_position)
             if has_approved_petition_in_semester:
                 # Local import: api.security imports api.handlers, a top-level import would be circular.
-                from api.security import generate_signature
-
-                self._mail_acceptance_link_student(generate_signature())
+                # from api.security import generate_signature
+                # TODO: The way signatures are generated was changed so this Mail sends out links that do not work
+                # self._mail_acceptance_link_student(generate_signature(budget_position.id))
+                self._mail_upload_request_student()
             else:
                 self._mail_upload_request_student()
 
@@ -396,10 +395,11 @@ class EmailHandler:
         # Local import: api.security imports api.handlers, a top-level import would be circular.
         from api.security import generate_signature
 
-        signature = generate_signature()
         with self.smtp_session():
             for budget_position in budget_positions:
-                self._mail_petition_updated_approver(budget_position, signature)
+                self._mail_petition_updated_approver(
+                    budget_position, generate_signature(budget_position.id)
+                )
 
     def _mail_petition_updated_approver(
         self, budget_position: BudgetPosition, signature: str

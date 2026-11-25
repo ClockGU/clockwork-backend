@@ -1,20 +1,17 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from pydantic import ValidationError
-from sqlalchemy import text
-from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 
 from api.admin import setup_admin
-from api.db.dependencies import engine, get_db
+from api.db.dependencies import engine
 from api.env import settings
 from api.events import register_all_events
 from api.routers import router
-from api.security import get_current_student, get_current_supervisor
 from api.utils import create_upload_dirs
 
 
@@ -106,25 +103,3 @@ async def pydantic_validation_handler(request, exc: ValidationError):
         status_code=422,
         content={"detail": "\n".join(messages)},
     )
-
-
-@app.get("/checksupervisor")
-def check_supervisor(current_user: dict = Depends(get_current_supervisor)):
-    return current_user
-
-
-@app.get("/checkstudent")
-def check_student(current_user: dict = Depends(get_current_student)):
-    return current_user
-
-
-# routes to check the basic working
-@app.get("/check-db")
-def check_db(db: Session = Depends(get_db)):
-    if db.bind.dialect.name == "sqlite":
-        query = "SELECT CURRENT_TIMESTAMP"
-    else:
-        query = "SELECT NOW()"
-    result = db.execute(text(query))
-    current_time = result.scalar()
-    return {"database_time": current_time}

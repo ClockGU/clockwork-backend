@@ -1,8 +1,4 @@
-from datetime import date
-from uuid import UUID
-
-from fastapi import APIRouter, Depends, Query
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends
 
 from api.handlers.dependencies import get_employee_handler
 from api.handlers.employee_handler import EmployeeHandler
@@ -23,7 +19,9 @@ def get_employee_by_user(
     """
     Retrieve an employee record by the user ID (user_account).
     """
-    employee = handler.get_employee_by_user_account(user.get("sub"))
+    employee = handler.get_or_create_employee(
+        user_id=user.get("sub"), username=user.get("username")
+    )
     return employee
 
 
@@ -47,8 +45,8 @@ def get_employee_by_petition_id(
 def update_employee(
     employee_data: EmployeeUpdate,
     employee_id: str,
-    handler: EmployeeHandler = Depends(get_employee_handler),
     user=Depends(get_current_student),
+    handler: EmployeeHandler = Depends(get_employee_handler),
 ):
     """
     Update an employee record by the user ID (user_account).

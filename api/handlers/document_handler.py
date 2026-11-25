@@ -7,7 +7,8 @@ from api.db.managers.student_document import StudentDocumentManager
 from api.db.schema import Employee, Petition
 from api.db.schema.student_documents import StudentDocuments
 from api.handlers.exception_handler import ExceptionHandler
-from api.pydantic_models.documents import StudentDocumentsUpdate
+from api.pydantic_models import EmployeeRead
+from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
 
 
 class StudentDocumentHandler:
@@ -58,16 +59,21 @@ class StudentDocumentHandler:
             raise self.exc.not_found("Document", str(document_id))
         return document
 
-    def get_document_by_user_account(self, user_account: UUID) -> StudentDocuments:
+    def get_or_create_student_document(
+        self, user_id: UUID, employee: Employee
+    ) -> StudentDocuments:
         """
         Retrieve the document associated with a specific user account.
         """
-        document = self.manager.get_document_by_user_account(user_account)
+        document = self.manager.get_document_by_user_account(user_id)
         if not document:
-            raise self.exc.not_found(
-                "Documents",
-                message=f"No documents found for user account {user_account}",
+            data = StudentDocumentsCreate(
+                user_account=user_id, employee=EmployeeRead.model_validate(employee)
             )
+            try:
+                document = self.manager.create_document(document_data=data)
+            except:
+                raise
         return document
 
     def update_document(

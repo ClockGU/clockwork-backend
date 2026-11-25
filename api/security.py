@@ -1,18 +1,17 @@
 import base64
 import hashlib
 import hmac
+import json
 import secrets
+from collections.abc import Callable
 from enum import Enum
+from uuid import UUID
 
 import jwt
 from fastapi import Depends, HTTPException, Request
-from sqlmodel import Session
 
-from api.db.dependencies import get_db
+from api.db.schema import Petition
 from api.env import settings
-from api.handlers.document_handler import StudentDocumentHandler
-from api.handlers.employee_handler import EmployeeHandler
-from api.pydantic_models.employee import EmployeeCreate
 
 # Replace with your actual public key
 PUBLIC_KEY_PATH = settings.JWT_PUBLIC_KEY_PATH
@@ -21,7 +20,7 @@ JWT_ALGORITHM = settings.JWT_ALGORITHM
 if not PUBLIC_KEY_PATH:
     raise Exception("JWT public certificate is not provided")
 with open(PUBLIC_KEY_PATH, "r") as f:
-    public_key = f.read()
+    PUBLIC_KEY = f.read()
 
 
 class UserRole(Enum):
@@ -34,7 +33,10 @@ def retrieve_jwt_bearer_token(request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         raise HTTPException(status_code=401, detail="Missing Authorization header")
-    scheme, token = auth_header.split()
+    try:
+        scheme, token = auth_header.split()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Malformed Authorization header")
     if scheme.lower() != "bearer":
         raise HTTPException(status_code=401, detail="Invalid authentication scheme")
     return token
@@ -43,7 +45,7 @@ def retrieve_jwt_bearer_token(request: Request):
 def decode_user_jwt(token: str = Depends(retrieve_jwt_bearer_token)):
     try:
         # Decode the JWT token using the public key
-        payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[JWT_ALGORITHM])
 
         return payload
 
@@ -53,8 +55,38 @@ def decode_user_jwt(token: str = Depends(retrieve_jwt_bearer_token)):
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
 
-def authenticate_clerk(user: dict):
-    if user.get("user_role") != UserRole.CLERK.value:
+def authenticate_role(user: dict, role: int):
+    if user.get("user_role") != role:
+        raise HTTPException(
+            status_code=403, detail="No permission to access this resource"
+        )
+    return user
+
+
+def build_current_role_retrival(role: UserRole) -> Callable[[], dict]:
+    """
+    A factory function building an authentication function for a role provided.
+    The authentication function can be used as a dependency for endpoints. It
+    attempts to read a 'Bearer' toke from the requests headers, tries to decode
+    a JWT from it and checks whether the decoded user object has the specified role.
+    """
+
+    def get_current_role(user: dict = Depends(decode_user_jwt)):
+        return authenticate_role(user, role.value)
+
+    func_name = f"get_current_{role.name.lower()}"
+    get_current_role.__name__ = func_name
+    get_current_role.__qualname__ = func_name
+    return get_current_role
+
+
+get_current_student = build_current_role_retrival(UserRole.STUDENT)
+get_current_supervisor = build_current_role_retrival(UserRole.SUPERVISOR)
+get_current_clerk = build_current_role_retrival(UserRole.CLERK)
+
+
+def get_current_clerk_or_student(user: dict = Depends(decode_user_jwt)):
+    if user.get("user_role") not in [UserRole.CLERK.value, UserRole.STUDENT.value]:
         raise HTTPException(
             status_code=403, detail="No permission to access this resource"
         )
@@ -62,122 +94,53 @@ def authenticate_clerk(user: dict):
 
 
 def auth_clerk_from_token(token: str):
-    authenticate_clerk(user=decode_user_jwt(token=token))
+    authenticate_role(user=decode_user_jwt(token=token), role=UserRole.CLERK.value)
 
 
-def get_current_supervisor(request: Request):
-    """
-    decode the JWT token to inject user in api and checks the role of supervisor
-    """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    scheme, token = auth_header.split()
-    if scheme.lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-
-    try:
-        # Decode the JWT token using the public key
-        payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
-        ####check the role of supervisor
-        if payload.get("user_role") != UserRole.SUPERVISOR.value:
-            raise HTTPException(
-                status_code=403, detail="No permission to access this resource"
-            )
-        return payload
-
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+def can_access(user: dict, obj) -> bool:
+    role = user.get("user_role")
+    if role == UserRole.CLERK.value:
+        return True
+    if isinstance(obj, Petition):
+        if role == UserRole.SUPERVISOR.value:
+            return str(obj.user_account) == user["sub"]
+        if role == UserRole.STUDENT.value:
+            return obj.student_username == user["username"]
+        return False
+    return (
+        str(obj.user_account) == user["sub"]
+    )  # Employee, StudentDocuments, PrevEmployment
 
 
-def get_current_student(request: Request, db: Session = Depends(get_db)) -> dict:
-    """
-    Decode the JWT token to inject user in API and checks the role of student.
-    If no employee entry exists for the user, create one and also create a document entry.
-    """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-
-    try:
-        scheme, token = auth_header.split()
-        if scheme.lower() != "bearer":
-            raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-
-        # Decode the JWT token using the public key
-        payload = jwt.decode(token, public_key, algorithms=[JWT_ALGORITHM])
-
-        # Check the role of student
-        if payload.get("user_role") != UserRole.STUDENT.value:
-            raise HTTPException(
-                status_code=403, detail="No permission to access this resource"
-            )
-
-        # Extract user_account from the payload
-        user_account = payload.get("sub")
-        if not user_account:
-            raise HTTPException(
-                status_code=400, detail="Invalid token: Missing user_account"
-            )
-
-        # Dependency injection for handlers
-        employee_handler = EmployeeHandler(db)
-        document_handler = StudentDocumentHandler(db)
-
-        # Check if an employee entry exists
-        # Todo: This could become a handler method setup_employee_entry_for_user
-        if not employee_handler.employee_exists_by_user_account(user_account):
-            # Create a new employee entry
-            new_employee_data = EmployeeCreate(
-                user_account=user_account, username=payload.get("username")
-            )
-
-            new_employee = employee_handler.create_employee(new_employee_data)
-
-            document_handler.create_document(new_employee)
-        return payload
-
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
-
-
-def get_current_clerk(user: dict = Depends(decode_user_jwt)) -> dict:
-    """
-    decode the JWT token to inject user in api and checks the role of clerk
-    """
-    authenticate_clerk(user)
-    return user
-
-
-# for email signature
 SECRET_KEY = settings.SIGNATURE_SECRET_KEY  # Ensure the secret key is bytes
 
 
-def generate_signature() -> str:
+def generate_signature(budget_position_id: UUID) -> str:
     """
-    Generate a unique HMAC signature using a random nonce and a secret key.
+    Generate a unique HMAC signature using a random nonce and a secret key for a given BudgetPosition id.
     """
     nonce = secrets.token_urlsafe(32)  # Generates a secure random string
-    signature = hmac.new(SECRET_KEY, nonce.encode(), hashlib.sha256).digest()
+    msg = {"nonce": nonce, "budget_position_id": str(budget_position_id)}
+    signature = hmac.new(
+        SECRET_KEY, json.dumps(msg).encode("utf-8"), hashlib.sha256
+    ).digest()
     signature_b64 = base64.urlsafe_b64encode(nonce.encode() + b"." + signature).decode()
     return signature_b64
 
 
-def verify_signature(signature_b64: str) -> bool:
+def verify_signature(signature_b64: str, budget_position_id: UUID) -> bool:
     """
-    Verify if the given signature is valid using the secret key.
+    Verify if the given signature is valid for the provided budget_position_id using the secret key.
     """
     try:
         # Decode and split nonce and signature
         decoded = base64.urlsafe_b64decode(signature_b64.encode())
         nonce, received_sig = decoded.split(b".", 1)
-
+        msg = {"nonce": nonce.decode(), "budget_position_id": str(budget_position_id)}
         # Recalculate the expected signature
-        expected_sig = hmac.new(SECRET_KEY, nonce, hashlib.sha256).digest()
+        expected_sig = hmac.new(
+            SECRET_KEY, json.dumps(msg).encode("utf-8"), hashlib.sha256
+        ).digest()
 
         # Securely compare both signatures
         return hmac.compare_digest(received_sig, expected_sig)

@@ -12,8 +12,6 @@ from api.utils import (
     STUDENT_DOCUMENTS_DIR,
     create_upload_dirs,
     delete_file,
-    delete_prev_emp_file,
-    delete_student_doc_file,
     save_prev_emp_file,
     save_student_doc_file,
     upload_file_path,
@@ -125,29 +123,12 @@ def test_delete_file(upload_dir, doc):
     assert not (upload_dir / STUDENT_DOCUMENTS_DIR / file_name).exists()
 
 
-def test_delete_student_doc_file(upload_dir, doc):
-    file_name = save_student_doc_file(doc, "elstam", make_upload("a.pdf"))
-    delete_student_doc_file(file_name)
-    assert not (upload_dir / STUDENT_DOCUMENTS_DIR / file_name).exists()
-
-
-def test_delete_prev_emp_file(upload_dir):
-    prev_emp = SimpleNamespace(id=uuid.uuid4())
-    file_name = save_prev_emp_file(prev_emp, make_upload("proof.pdf"))
-    delete_prev_emp_file(file_name)
-    assert not (upload_dir / PREV_EMPLOYMENTS_DIR / file_name).exists()
-
-
 def test_prev_employment_handler_upload_file(upload_dir):
     from api.handlers.prev_employment_handler import PrevEmploymentHandler
 
     prev_emp = SimpleNamespace(id=uuid.uuid4(), proof=None)
 
     class StubManager:
-        def get(self, id):
-            assert id == prev_emp.id
-            return prev_emp
-
         def update(self, objs, data):
             for obj in objs:
                 for key, value in data.items():
@@ -156,12 +137,13 @@ def test_prev_employment_handler_upload_file(upload_dir):
 
     handler = PrevEmploymentHandler.__new__(PrevEmploymentHandler)
     handler.manager = StubManager()
+    handler._prev_employment = prev_emp
 
-    handler.upload_file(prev_emp.id, make_upload("proof.pdf"))
+    handler.upload_file(make_upload("proof.pdf"))
     assert prev_emp.proof == f"{prev_emp.id}_proof.pdf"
     assert (upload_dir / PREV_EMPLOYMENTS_DIR / prev_emp.proof).is_file()
 
-    handler.upload_file(prev_emp.id, make_upload("proof.jpg"))
+    handler.upload_file(make_upload("proof.jpg"))
     assert prev_emp.proof == f"{prev_emp.id}_proof.jpg"
     assert [p.name for p in (upload_dir / PREV_EMPLOYMENTS_DIR).iterdir()] == [
         prev_emp.proof
@@ -173,5 +155,7 @@ def test_prev_employment_download_resolves_in_subdir(upload_dir, monkeypatch):
 
     monkeypatch.setattr(settings, "SERVE_FILES_VIA_NGINX", False)
     prev_emp = SimpleNamespace(id=uuid.uuid4(), proof="some_proof.pdf")
-    response = download_prev_employment_proof(prev_emp.id, prev_emp, user={})
+    response = download_prev_employment_proof(
+        prev_emp.id, prev_employmeent=prev_emp, user={}
+    )
     assert response.path == upload_dir / PREV_EMPLOYMENTS_DIR / "some_proof.pdf"
