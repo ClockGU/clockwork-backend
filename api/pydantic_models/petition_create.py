@@ -1,7 +1,5 @@
 from typing import List
 
-from pydantic import BaseModel
-
 from .budget_position import BudgetPositionCreate
 from .petition import PetitionBase
 from .validators.petition_validators import PetitionValidationMixin

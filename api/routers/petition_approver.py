@@ -21,10 +21,12 @@ def read_petition(
     budget_position_id: UUID,
     signature: str,
     budget_position: BudgetPosition = Depends(get_specified_budget_position),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     # TODO: This call is somehow unnecessarily complicated
-    petition = PetitionHandler.from_existing_object(db, budget_position.petition).get_petition_for_approver_action(budget_position_id)
+    petition = PetitionHandler.from_existing_object(
+        db, budget_position.petition
+    ).get_petition_for_approver_action(budget_position_id)
     return petition
 
 
@@ -38,7 +40,9 @@ def update_budget_position_approval(
 ):
     """Update the approval status of a specific budget position"""
     # TODO: This call is somehow unnecessarily complicated
-    updated_petition = PetitionHandler.from_existing_object(db, budget_position.petition).update_budget_position_approval(
+    updated_petition = PetitionHandler.from_existing_object(
+        db, budget_position.petition
+    ).update_budget_position_approval(
         budget_position_id=budget_position_id,
         budget_position_approved=approval_data.budget_position_approved,
         message=approval_data.message,

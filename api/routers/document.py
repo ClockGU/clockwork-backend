@@ -1,5 +1,4 @@
 import inspect
-import os
 from pathlib import Path
 from typing import Optional
 from uuid import UUID
@@ -9,8 +8,8 @@ from sqlmodel import Session
 
 from api.db.dependencies import get_db
 from api.db.managers.dependencies import (
-    get_specified_student_document,
     get_specified_petition,
+    get_specified_student_document,
 )
 from api.db.schema import Petition
 from api.db.schema.student_documents import StudentDocuments
@@ -21,8 +20,8 @@ from api.pydantic_models import StudentDocumentsRead, StudentDocumentsUpdate
 from api.pydantic_models.documents import UPLOAD_FIELDS, DocumentType
 from api.security import (
     get_current_clerk,
-    get_current_student,
     get_current_clerk_or_student,
+    get_current_student,
 )
 from api.utils import STUDENT_DOCUMENTS_DIR, file_response, save_student_doc_file
 
@@ -44,7 +43,9 @@ def get_document(
     Retrieve a document by the user's account.
     """
     employee = employee_handler.get_employee_by_username(username=user.get("username"))
-    return handler.get_or_create_student_document(user_id=user.get("sub"), employee=employee)
+    return handler.get_or_create_student_document(
+        user_id=user.get("sub"), employee=employee
+    )
 
 
 def files_dependency(names: list[str]):

@@ -1,13 +1,8 @@
 from datetime import date
-from typing import List
-from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException
-from sqlmodel import Session
+from fastapi import APIRouter, Body, Depends
 from starlette.responses import StreamingResponse
 
-from api.consts import PetitionStatus
-from api.db.dependencies import get_db
 from api.db.managers.dependencies import get_specified_petition
 from api.db.managers.emploeyee_manager import EmployeeManager
 from api.db.schema import Petition

@@ -1,7 +1,7 @@
 import re
 from typing import ClassVar, Self
 
-from pydantic import ValidationError, field_validator, model_validator
+from pydantic import field_validator, model_validator
 
 from api.consts import (
     LEGAL_REGULAR_CONTRACT_LENGTH,

@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import List, Optional, Self
+from typing import Optional, Self
 from uuid import UUID
 
 from sqlmodel import Session
@@ -9,7 +9,7 @@ from api.db.managers.petition_manager import PetitionManager
 from api.db.schema.employee import Employee
 from api.handlers.exception_handler import ExceptionHandler
 from api.pdf.student_data import create_student_data_pdf
-from api.pydantic_models import EmployeeRead, PetitionRead
+from api.pydantic_models import EmployeeRead
 from api.pydantic_models.employee import EmployeeCreate
 
 

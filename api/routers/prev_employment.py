@@ -2,10 +2,8 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile
-from sqlmodel import Session
 from starlette.responses import FileResponse
 
-from api.db.dependencies import get_db
 from api.db.managers.dependencies import (
     get_specified_petition,
     get_specified_prev_employment,
@@ -33,7 +31,7 @@ def create_new_employment(
     user=Depends(get_current_student),
     prev_employment_handler: PrevEmploymentHandler = Depends(
         get_prev_employment_handler
-    )
+    ),
 ):
     return prev_employment_handler.create_prev_employment(body, user["sub"])
 
@@ -41,7 +39,9 @@ def create_new_employment(
 @router.get("/prev_employments", response_model=list[PrevEmploymentRead])
 def get_prev_employments(
     user=Depends(get_current_student),
-    prev_employment_handler: PrevEmploymentHandler = Depends(get_prev_employment_handler),
+    prev_employment_handler: PrevEmploymentHandler = Depends(
+        get_prev_employment_handler
+    ),
 ):
     return prev_employment_handler.get_user_prev_employments(user["sub"])
 
@@ -64,7 +64,9 @@ def upload_proof(
 def delete_prev_employment(
     prev_employment_id: uuid.UUID,
     user=Depends(get_current_student),
-    prev_employment_handler: PrevEmploymentHandler = Depends(get_prev_employment_handler)
+    prev_employment_handler: PrevEmploymentHandler = Depends(
+        get_prev_employment_handler
+    ),
 ):
     prev_employment_handler.delete_prev_employment()
 
@@ -74,8 +76,9 @@ def update_prev_employment(
     prev_employment_id: uuid.UUID,
     body: PrevEmploymentUpdate,
     user=Depends(get_current_student),
-    prev_employment_handler: PrevEmploymentHandler = Depends(get_prev_employment_handler),
-
+    prev_employment_handler: PrevEmploymentHandler = Depends(
+        get_prev_employment_handler
+    ),
 ):
     return prev_employment_handler.update_prev_employment(body)
 

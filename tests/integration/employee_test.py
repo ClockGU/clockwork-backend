@@ -9,7 +9,9 @@ def test_employees_me_creates_employeeon_first_call(
     client, db_session, as_student_payload
 ):
     user_account = uuid.uuid4()
-    as_student_payload({"sub": str(user_account), "username": "firstlogin", "user_role":0})
+    as_student_payload(
+        {"sub": str(user_account), "username": "firstlogin", "user_role": 0}
+    )
 
     response = client.get("/employees/me")
 
@@ -25,7 +27,11 @@ def test_employees_me_returns_existing_employee_without_duplicates(
     client, db_session, student_employee, student_documents, as_student_payload
 ):
     as_student_payload(
-        {"sub": str(student_employee.user_account), "username": "teststudent", "user_role":0}
+        {
+            "sub": str(student_employee.user_account),
+            "username": "teststudent",
+            "user_role": 0,
+        }
     )
 
     response = client.get("/employees/me")

@@ -15,9 +15,11 @@ UPLOAD_FIELDS = [
 
 DocumentType = Enum("DocumentType", {field: field for field in UPLOAD_FIELDS}, type=str)
 
+
 class StudentDocumentsCreate(BaseModel):
     user_account: UUID
     employee: EmployeeRead
+
 
 class StudentDocumentsUpdate(BaseModel):
     elstam_file: Optional[str] = None

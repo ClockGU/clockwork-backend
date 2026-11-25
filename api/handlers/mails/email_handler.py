@@ -42,9 +42,7 @@ class EmailHandler:
 
     def _approver_url(self, budget_position: BudgetPosition, signature: str) -> str:
         """Signed link for a budget approver to review the petition for their budget position."""
-        return (
-            f"{settings.FRONTEND_URL}/approver?signature={signature}&budget_position_id={budget_position.id}"
-        )
+        return f"{settings.FRONTEND_URL}/approver?signature={signature}&budget_position_id={budget_position.id}"
 
     def get_or_create_smtp_server(self):
         if self.server is None:
@@ -148,7 +146,9 @@ class EmailHandler:
         with self.smtp_session():
             self._mail_petition_created_student()
             for budget_position in budget_positions:
-                self._mail_approval_request_approver(budget_position, generate_signature(budget_position.id))
+                self._mail_approval_request_approver(
+                    budget_position, generate_signature(budget_position.id)
+                )
 
     def _mail_petition_created_student(self) -> None:
         self.send_email(
@@ -397,7 +397,9 @@ class EmailHandler:
 
         with self.smtp_session():
             for budget_position in budget_positions:
-                self._mail_petition_updated_approver(budget_position, generate_signature(budget_position.id))
+                self._mail_petition_updated_approver(
+                    budget_position, generate_signature(budget_position.id)
+                )
 
     def _mail_petition_updated_approver(
         self, budget_position: BudgetPosition, signature: str

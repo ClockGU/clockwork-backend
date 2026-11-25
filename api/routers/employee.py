@@ -1,8 +1,4 @@
-from datetime import date
-from uuid import UUID
-
-from fastapi import APIRouter, Depends, Query
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends
 
 from api.handlers.dependencies import get_employee_handler
 from api.handlers.employee_handler import EmployeeHandler

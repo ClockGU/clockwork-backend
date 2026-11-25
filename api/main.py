@@ -1,20 +1,17 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from pydantic import ValidationError
-from sqlalchemy import text
-from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 
 from api.admin import setup_admin
-from api.db.dependencies import engine, get_db
+from api.db.dependencies import engine
 from api.env import settings
 from api.events import register_all_events
 from api.routers import router
-from api.security import get_current_student, get_current_supervisor
 from api.utils import create_upload_dirs
 
 
@@ -90,6 +87,7 @@ def custom_openapi():
 
 
 app.openapi = custom_openapi
+
 
 @app.exception_handler(ValidationError)
 async def pydantic_validation_handler(request, exc: ValidationError):

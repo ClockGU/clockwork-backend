@@ -13,7 +13,6 @@ from fastapi import Depends, HTTPException, Request
 from api.db.schema import Petition
 from api.env import settings
 
-
 # Replace with your actual public key
 PUBLIC_KEY_PATH = settings.JWT_PUBLIC_KEY_PATH
 JWT_ALGORITHM = settings.JWT_ALGORITHM
@@ -63,6 +62,7 @@ def authenticate_role(user: dict, role: int):
         )
     return user
 
+
 def build_current_role_retrival(role: UserRole) -> Callable[[], dict]:
     """
     A factory function building an authentication function for a role provided.
@@ -70,8 +70,10 @@ def build_current_role_retrival(role: UserRole) -> Callable[[], dict]:
     attempts to read a 'Bearer' toke from the requests headers, tries to decode
     a JWT from it and checks whether the decoded user object has the specified role.
     """
+
     def get_current_role(user: dict = Depends(decode_user_jwt)):
         return authenticate_role(user, role.value)
+
     func_name = f"get_current_{role.name.lower()}"
     get_current_role.__name__ = func_name
     get_current_role.__qualname__ = func_name
@@ -82,6 +84,7 @@ get_current_student = build_current_role_retrival(UserRole.STUDENT)
 get_current_supervisor = build_current_role_retrival(UserRole.SUPERVISOR)
 get_current_clerk = build_current_role_retrival(UserRole.CLERK)
 
+
 def get_current_clerk_or_student(user: dict = Depends(decode_user_jwt)):
     if user.get("user_role") not in [UserRole.CLERK.value, UserRole.STUDENT.value]:
         raise HTTPException(
@@ -89,20 +92,25 @@ def get_current_clerk_or_student(user: dict = Depends(decode_user_jwt)):
         )
     return user
 
+
 def auth_clerk_from_token(token: str):
     authenticate_role(user=decode_user_jwt(token=token), role=UserRole.CLERK.value)
 
+
 def can_access(user: dict, obj) -> bool:
-  role = user.get("user_role")
-  if role == UserRole.CLERK.value:
-      return True
-  if isinstance(obj, Petition):
-      if role == UserRole.SUPERVISOR.value:
-          return str(obj.user_account) == user["sub"]
-      if role == UserRole.STUDENT.value:
-          return obj.student_username == user["username"]
-      return False
-  return str(obj.user_account) == user["sub"] # Employee, StudentDocuments, PrevEmployment
+    role = user.get("user_role")
+    if role == UserRole.CLERK.value:
+        return True
+    if isinstance(obj, Petition):
+        if role == UserRole.SUPERVISOR.value:
+            return str(obj.user_account) == user["sub"]
+        if role == UserRole.STUDENT.value:
+            return obj.student_username == user["username"]
+        return False
+    return (
+        str(obj.user_account) == user["sub"]
+    )  # Employee, StudentDocuments, PrevEmployment
+
 
 SECRET_KEY = settings.SIGNATURE_SECRET_KEY  # Ensure the secret key is bytes
 
@@ -113,7 +121,9 @@ def generate_signature(budget_position_id: UUID) -> str:
     """
     nonce = secrets.token_urlsafe(32)  # Generates a secure random string
     msg = {"nonce": nonce, "budget_position_id": str(budget_position_id)}
-    signature = hmac.new(SECRET_KEY, json.dumps(msg).encode("utf-8"), hashlib.sha256).digest()
+    signature = hmac.new(
+        SECRET_KEY, json.dumps(msg).encode("utf-8"), hashlib.sha256
+    ).digest()
     signature_b64 = base64.urlsafe_b64encode(nonce.encode() + b"." + signature).decode()
     return signature_b64
 
@@ -128,7 +138,9 @@ def verify_signature(signature_b64: str, budget_position_id: UUID) -> bool:
         nonce, received_sig = decoded.split(b".", 1)
         msg = {"nonce": nonce.decode(), "budget_position_id": str(budget_position_id)}
         # Recalculate the expected signature
-        expected_sig = hmac.new(SECRET_KEY, json.dumps(msg).encode("utf-8"), hashlib.sha256).digest()
+        expected_sig = hmac.new(
+            SECRET_KEY, json.dumps(msg).encode("utf-8"), hashlib.sha256
+        ).digest()
 
         # Securely compare both signatures
         return hmac.compare_digest(received_sig, expected_sig)

@@ -1,4 +1,3 @@
-import uuid
 from typing import Optional, Self
 
 from fastapi import HTTPException, UploadFile
@@ -54,9 +53,7 @@ class PrevEmploymentHandler:
         validated_data = PrevEmploymentCreate.model_validate(data).model_dump()
         return self.manager.create(**validated_data)
 
-    def update_prev_employment(
-        self, data: PrevEmploymentUpdate
-    ) -> PrevEmployment:
+    def update_prev_employment(self, data: PrevEmploymentUpdate) -> PrevEmployment:
         prev_employment = self.get_prev_employment()
         data_dict = data.model_dump(exclude_unset=True)
         PrevEmploymentCreate.model_validate(prev_employment.model_dump() | data_dict)
@@ -66,9 +63,7 @@ class PrevEmploymentHandler:
     def get_user_prev_employments(self, user_id: str) -> list[PrevEmployment]:
         return self.manager.filter(user_account=user_id)
 
-    def upload_file(
-        self, file: UploadFile
-    ) -> PrevEmployment:
+    def upload_file(self, file: UploadFile) -> PrevEmployment:
         prev_employment = self.get_prev_employment()
         file_url = save_prev_emp_file(prev_employment, file)
         updated_prev_employment = self.manager.update(

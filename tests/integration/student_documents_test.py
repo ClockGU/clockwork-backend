@@ -70,7 +70,10 @@ def test_documents_by_username_endpoint_is_gone(client, student_documents, as_cl
 
     assert response.status_code == 404
 
-@pytest.mark.skip("Skipped until link between Employee and StudentDocuments schemas is lifted.")
+
+@pytest.mark.skip(
+    "Skipped until link between Employee and StudentDocuments schemas is lifted."
+)
 def test_get_documents_returns_callers_document_without_employee_query(
     client, db_session, student_documents, student_employee, as_student_payload
 ):
@@ -122,12 +125,19 @@ def test_document_with_unknown_user_account_fails(db_session):
 def test_documents_creates_document_on_first_call(
     client, db_session, student_employee, as_student_payload
 ):
-    as_student_payload({"sub": str(student_employee.user_account), "username": student_employee.username})
+    as_student_payload(
+        {
+            "sub": str(student_employee.user_account),
+            "username": student_employee.username,
+        }
+    )
     response = client.get("/documents")
     assert response.status_code == 200
     assert response.json()["user_account"] == str(student_employee.user_account)
     document = db_session.execute(
-        select(StudentDocuments).where(StudentDocuments.user_account == student_employee.user_account)
+        select(StudentDocuments).where(
+            StudentDocuments.user_account == student_employee.user_account
+        )
     ).scalar_one()
     assert str(document.id) == response.json()["id"]
     assert str(document.employee.id) == str(student_employee.id)

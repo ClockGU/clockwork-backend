@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 from api.consts import PetitionStatus
 from api.db.schema.budget_position import BudgetPosition
 from api.db.schema.petition import Petition
-from api.pydantic_models import PetitionCreate, PetitionRead
+from api.pydantic_models import PetitionCreate
 
 
 class PetitionManager:

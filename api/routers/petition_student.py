@@ -1,10 +1,7 @@
 from typing import List
-from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
-from sqlmodel import Session
+from fastapi import APIRouter, Depends
 
-from api.db.dependencies import get_db
 from api.db.managers.dependencies import get_specified_petition
 from api.db.schema import Petition
 from api.handlers.dependencies import get_petition_handler
@@ -14,7 +11,7 @@ from api.pydantic_models import (
     PetitionStudentUpdate,
     StudenRevisionRequest,
 )
-from api.security import get_current_student, get_current_supervisor, verify_signature
+from api.security import get_current_student
 
 router = APIRouter()
 

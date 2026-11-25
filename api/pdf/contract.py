@@ -1,6 +1,5 @@
 from datetime import date
 from io import BytesIO
-from uuid import uuid4
 
 from pikepdf import Dictionary, String
 from pikepdf.form import ExtendedAppearanceStreamGenerator, Form, Pdf

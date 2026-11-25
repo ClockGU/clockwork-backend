@@ -1,12 +1,12 @@
 from datetime import date
 from io import BytesIO
 
-from pikepdf import Dictionary, Name, String
+from pikepdf import Dictionary, String
 from pikepdf.form import ExtendedAppearanceStreamGenerator, Form, Pdf
 
 import api.consts as consts
 from api.db.schema.employee import Gender
-from api.pydantic_models import EmployeeRead, PetitionRead
+from api.pydantic_models import EmployeeRead
 
 
 def create_student_data_pdf(employee: EmployeeRead) -> BytesIO:

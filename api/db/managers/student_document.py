@@ -6,14 +6,17 @@ from sqlmodel import Session, select
 
 from api.db.schema.employee import Employee
 from api.db.schema.student_documents import StudentDocuments
-from api.pydantic_models.documents import StudentDocumentsUpdate, StudentDocumentsCreate
+from api.pydantic_models.documents import StudentDocumentsCreate, StudentDocumentsUpdate
+
 
 class StudentDocumentManager:
     def __init__(self, db: Session):
         self.db = db
         self.schema = StudentDocuments
 
-    def create_document(self, document_data: StudentDocumentsCreate) -> StudentDocuments:
+    def create_document(
+        self, document_data: StudentDocumentsCreate
+    ) -> StudentDocuments:
         """
         Create a new document record.
         :raises: IntegrityError

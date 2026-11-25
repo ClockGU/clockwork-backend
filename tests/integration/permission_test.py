@@ -1,7 +1,13 @@
 import warnings
+
 from fastapi.routing import APIRoute
 
-from api.security import get_current_student, get_current_supervisor, get_current_clerk, get_current_clerk_or_student
+from api.security import (
+    get_current_clerk,
+    get_current_clerk_or_student,
+    get_current_student,
+    get_current_supervisor,
+)
 
 PERMISSION_FUNCS = {
     "CLERK": get_current_clerk,
@@ -11,7 +17,12 @@ PERMISSION_FUNCS = {
 }
 # Not APIRoutes (framework routes, admin mount, websocket): ignored by path.
 IGNORE_PATHS = {
-    "/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc", "/admin","/ws/{client_id}",
+    "/openapi.json",
+    "/docs",
+    "/docs/oauth2-redirect",
+    "/redoc",
+    "/admin",
+    "/ws/{client_id}",
 }
 # APIRoutes without a role guard on purpose, ignored per (method, path).
 IGNORE_ROUTES = {
@@ -36,16 +47,20 @@ EXPECTED_PERMISSIONS = {
     "/students/petitions": {"GET": "STUDENT"},
     "/students/petitions/{petition_id}/student-action": {"PATCH": "STUDENT"},
     "/students/petitions/{petition_id}/request-revision": {"PATCH": "STUDENT"},
-    "/supervisor/petitions": {"POST": "SUPERVISOR","GET": "SUPERVISOR"},
-    "/supervisor/petitions/{petition_id}": {"GET": "SUPERVISOR","PATCH": "SUPERVISOR","DELETE": "SUPERVISOR"},
+    "/supervisor/petitions": {"POST": "SUPERVISOR", "GET": "SUPERVISOR"},
+    "/supervisor/petitions/{petition_id}": {
+        "GET": "SUPERVISOR",
+        "PATCH": "SUPERVISOR",
+        "DELETE": "SUPERVISOR",
+    },
     # PrevEmployments
     "/prev_employments": {"POST": "STUDENT", "GET": "STUDENT"},
     "/prev_employments/{prev_employment_id}/proof": {"PATCH": "STUDENT"},
-    "/prev_employments/{prev_employment_id}": {"DELETE":"STUDENT","PATCH": "STUDENT"},
+    "/prev_employments/{prev_employment_id}": {"DELETE": "STUDENT", "PATCH": "STUDENT"},
     "/clerk/prev_employments/petition/{petition_id}": {"GET": "CLERK"},
     "/clerk/prev_employments/{prev_employment_id}/download": {"GET": "CLERK"},
-
 }
+
 
 def test_route_permission_test():
     from api.main import app
@@ -54,15 +69,21 @@ def test_route_permission_test():
         if route.path in IGNORE_PATHS:
             continue
         if not isinstance(route, APIRoute):
-            warnings.warn(f"A non-APIRoute with path {route.path} not present in IGNORE_PATHS was encountered and skipped.",UserWarning, stacklevel=2)
+            warnings.warn(
+                f"A non-APIRoute with path {route.path} not present in IGNORE_PATHS was encountered and skipped.",
+                UserWarning,
+                stacklevel=2,
+            )
             continue
         route_method = list(route.methods)[0]
         if (route_method, route.path) in IGNORE_ROUTES:
             continue
         expected_methods = EXPECTED_PERMISSIONS.get(route.path)
         if not expected_methods:
-            raise Exception(f"The route with path {route.path} and method {route.methods} has "
-                            "neither defined expected permissions nor is it specified in IGNORE_ROUTES.")
+            raise Exception(
+                f"The route with path {route.path} and method {route.methods} has "
+                "neither defined expected permissions nor is it specified in IGNORE_ROUTES."
+            )
         method_permission = expected_methods.get(route_method)
         if not method_permission:
             raise Exception(
@@ -70,6 +91,10 @@ def test_route_permission_test():
             )
 
         permission_check_fn = PERMISSION_FUNCS.get(method_permission)
-        if not any([dep.call == permission_check_fn for dep in route.dependant.dependencies]):
-            raise Exception(f"The route with path {route.path} and method {route.methods} is not guarded "
-                            f"by a role check for role {method_permission} with function {permission_check_fn.__name__}")
+        if not any(
+            [dep.call == permission_check_fn for dep in route.dependant.dependencies]
+        ):
+            raise Exception(
+                f"The route with path {route.path} and method {route.methods} is not guarded "
+                f"by a role check for role {method_permission} with function {permission_check_fn.__name__}"
+            )
